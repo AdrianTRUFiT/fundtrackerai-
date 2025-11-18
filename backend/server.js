@@ -85,3 +85,5 @@ app.listen(10000, () => {
 app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
+
+console.log("Using registry file at:", registryFile);
