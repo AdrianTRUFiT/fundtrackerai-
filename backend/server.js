@@ -17,7 +17,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json path inside backend folder
+// registry.json located in backend root
 const registryFile = path.join(process.cwd(), "registry.json");
 
 // ---------- 1. CREATE CHECKOUT SESSION ----------
@@ -63,7 +63,7 @@ app.get("/verify-donation/:id", async (req, res) => {
       timestamp: new Date().toISOString()
     };
 
-    // append to registry
+    // Append to registry.json
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
     json.donations.push(entry);
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
