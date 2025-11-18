@@ -1,104 +1,49 @@
-import express from "express";
-import Stripe from "stripe";
-import fs from "fs";
-import path from "path";
-import cors from "cors";
-import dotenv from "dotenv";
+body {
+  font-family: Arial, sans-serif;
+  padding: 24px;
+  background: #f8f9fa;
+  color: #333;
+}
 
-dotenv.config();
+/* Header */
+h1 {
+  margin-bottom: 20px;
+}
 
-// force redeploy
+/* Stats Cards */
+#stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+}
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 220px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+}
 
-// ENV VARS
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const FRONTEND_URL = process.env.FRONTEND_URL;
+/* Donation Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+}
 
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+thead {
+  background: #222;
+  color: white;
+}
 
-// registry.json in backend root
-const registryFile = path.join(process.cwd(), "registry.json");
+th, td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+}
 
-// LOG path for Render
-console.log("📁 Registry path:", registryFile);
-
-// ---------- ROOT PING ----------
-app.get("/", (req, res) => {
-  res.send("FundTrackerAI backend is running.");
-});
-
-// ---------- 1. CREATE CHECKOUT SESSION ----------
-app.post("/create-checkout-session", async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { name: "Donation" },
-            unit_amount: 100
-          },
-          quantity: 1
-        }
-      ],
-      success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/index.html`
-    });
-
-    res.json({ url: session.url });
-
-  } catch (err) {
-    console.error("SESSION ERROR:", err);
-    res.status(500).json({ error: "Session creation failed" });
-  }
-});
-
-// ---------- 2. VERIFY PAYMENT ----------
-app.get("/verify-donation/:id", async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.retrieve(req.params.id);
-
-    if (!session || session.payment_status !== "paid") {
-      return res.json({ verified: false });
-    }
-
-    const entry = {
-      id: session.id,
-      amount: session.amount_total,
-      email: session.customer_details?.email || "unknown",
-      timestamp: new Date().toISOString()
-    };
-
-    // Append to registry.json
-    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    json.donations.push(entry);
-    fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
-
-    res.json({ verified: true, entry });
-
-  } catch (err) {
-    console.error("VERIFY ERROR:", err);
-    res.status(500).json({ error: "Verification failed" });
-  }
-});
-
-// ---------- READ ALL DONATIONS ----------
-app.get("/donations", (req, res) => {
-  try {
-    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    res.json(json);
-  } catch (err) {
-    console.error("READ ERROR:", err);
-    res.status(500).json({ error: "Failed to read registry" });
-  }
-});
-
-// ---------- 3. START SERVER ----------
-app.listen(10000, () => {
-  console.log("Backend running on port 10000");
-});
+tr:hover {
+  background: #f1f1f1;
+}
