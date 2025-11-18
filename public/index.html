@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html>
 <body>
-  <h2>Hello World</h2>
+
+<h2>Donate Test</h2>
+<button id="donateBtn">Donate $1</button>
+
+<script>
+document.getElementById("donateBtn").onclick = async () => {
+
+  const res = await fetch("YOUR_RENDER_BACKEND_URL/create-checkout-session", {
+    method: "POST"
+  });
+
+  const data = await res.json();
+  window.location.href = data.url;
+};
+</script>
+
 </body>
 </html>
