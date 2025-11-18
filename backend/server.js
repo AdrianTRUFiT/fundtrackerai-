@@ -18,7 +18,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 // registry.json path inside backend folder
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+const registryFile = path.join(process.cwd(), "registry.json");
 
 // ---------- 1. CREATE CHECKOUT SESSION ----------
 app.post("/create-checkout-session", async (req, res) => {
