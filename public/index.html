@@ -7,8 +7,7 @@
 
 <script>
 document.getElementById("donateBtn").onclick = async () => {
-
-  const res = await fetch("YOUR_RENDER_BACKEND_URL/create-checkout-session", {
+  const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
     method: "POST"
   });
 
