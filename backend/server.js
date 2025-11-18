@@ -11,16 +11,16 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ENV
+// ENV VARS
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// Registry file path
+// registry.json path inside backend folder
 const registryFile = path.join(process.cwd(), "backend", "registry.json");
 
-// 1. CREATE CHECKOUT SESSION
+// ---------- 1. CREATE CHECKOUT SESSION ----------
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -30,7 +30,7 @@ app.post("/create-checkout-session", async (req, res) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: "FundTracker Donation" },
+            product_data: { name: "Donation" },
             unit_amount: 100
           },
           quantity: 1
@@ -47,16 +47,15 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-// 2. VERIFY DONATION
+// ---------- 2. VERIFY PAYMENT ----------
 app.get("/verify-donation/:id", async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(req.params.id);
 
     if (!session || session.payment_status !== "paid") {
-      return res.status(400).json({ verified: false });
+      return res.json({ verified: false });
     }
 
-    // Record donation
     const entry = {
       id: session.id,
       amount: session.amount_total,
@@ -64,9 +63,10 @@ app.get("/verify-donation/:id", async (req, res) => {
       timestamp: new Date().toISOString()
     };
 
-    const current = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    current.donations.push(entry);
-    fs.writeFileSync(registryFile, JSON.stringify(current, null, 2));
+    // append to registry
+    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    json.donations.push(entry);
+    fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
     res.json({ verified: true, entry });
 
@@ -76,7 +76,7 @@ app.get("/verify-donation/:id", async (req, res) => {
   }
 });
 
-// START SERVER
+// ---------- 3. START SERVER ----------
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
