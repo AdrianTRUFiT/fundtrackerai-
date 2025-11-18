@@ -17,8 +17,8 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json located in backend root
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+// registry.json is in backend root
+const registryFile = path.join(process.cwd(), "registry.json");
 
 // ---------- 1. CREATE CHECKOUT SESSION ----------
 app.post("/create-checkout-session", async (req, res) => {
@@ -81,6 +81,7 @@ app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
 
+// OPTIONAL ROOT PING
 app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
