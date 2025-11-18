@@ -2,30 +2,18 @@
 <html>
 <body>
 
-<h2>Payment Status</h2>
-<div id="result">Checking...</div>
+<h2>Donate Test</h2>
+<button id="donateBtn">Donate $1</button>
 
 <script>
-async function verify() {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("session_id");
+document.getElementById("donateBtn").onclick = async () => {
+  const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
+    method: "POST"
+  });
 
-  if (!id) {
-    document.getElementById("result").innerText = "No session ID found ❌";
-    return;
-  }
-
-  const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
   const data = await res.json();
-
-  if (data.verified) {
-    document.getElementById("result").innerText = "Payment Verified ✔";
-  } else {
-    document.getElementById("result").innerText = "Verification Failed ❌";
-  }
-}
-
-verify();
+  window.location.href = data.url;
+};
 </script>
 
 </body>
