@@ -19,10 +19,10 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is in backend root
+// registry.json in backend root
 const registryFile = path.join(process.cwd(), "registry.json");
 
-// LOG the actual registry path on Render
+// LOG path for Render
 console.log("📁 Registry path:", registryFile);
 
 // ---------- ROOT PING ----------
@@ -51,6 +51,7 @@ app.post("/create-checkout-session", async (req, res) => {
     });
 
     res.json({ url: session.url });
+
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
@@ -83,6 +84,17 @@ app.get("/verify-donation/:id", async (req, res) => {
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
+  }
+});
+
+// ---------- READ ALL DONATIONS ----------
+app.get("/donations", (req, res) => {
+  try {
+    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    res.json(json);
+  } catch (err) {
+    console.error("READ ERROR:", err);
+    res.status(500).json({ error: "Failed to read registry" });
   }
 });
 
