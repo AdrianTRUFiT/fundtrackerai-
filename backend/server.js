@@ -20,6 +20,14 @@ const stripe = new Stripe(STRIPE_SECRET_KEY);
 // registry.json is in backend root
 const registryFile = path.join(process.cwd(), "registry.json");
 
+// LOG the actual registry path on Render
+console.log("📁 Registry path:", registryFile);
+
+// ---------- ROOT PING ----------
+app.get("/", (req, res) => {
+  res.send("FundTrackerAI backend is running.");
+});
+
 // ---------- 1. CREATE CHECKOUT SESSION ----------
 app.post("/create-checkout-session", async (req, res) => {
   try {
@@ -80,10 +88,3 @@ app.get("/verify-donation/:id", async (req, res) => {
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
-
-// OPTIONAL ROOT PING
-app.get("/", (req, res) => {
-  res.send("FundTrackerAI backend is running.");
-});
-
-console.log("Using registry file at:", registryFile);
