@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Payment Status</h2>
+<div id="result">Checking...</div>
+
+<script>
+// 1. Get session_id from the URL
+const params = new URLSearchParams(window.location.search);
+const sessionId = params.get("session_id");
+
+// 2. Ask your backend to verify it
+fetch("https://jwr-engine-test.onrender.com/verify-donation/" + sessionId)
+.then(res => res.json())
+.then(data => {
+// 3. Show result to the user
+if (data.verified) {
+document.getElementById("result").innerText = "Payment Verified ✔";
+} else {
+document.getElementById("result").innerText = "Payment Failed ❌";
+}
+})
+.catch(() => {
+document.getElementById("result").innerText = "Error verifying payment ❌";
+});
+</script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Donation Verification</h2>
+<div id="result">Checking...</div>
+
+<script>
+async function verify() {
+const params = new URLSearchParams(window.location.search);
+const id = params.get("session_id");
+
+if (!id) {
+document.getElementById("result").innerText = "No session ID found ❌";
+return;
+}
+
+const res = await fetch(`https://jwr-engine-test.onrender.com/verify-donation/${id}`);
+const data = await res.json();
+
+if (data.verified) {
+document.getElementById("result").innerText = "Payment Verified ✔";
+} else {
+document.getElementById("result").innerText = "Verification Failed ❌";
+}
+}
+
+verify();
+</script>
+
+</body>
+</html>
