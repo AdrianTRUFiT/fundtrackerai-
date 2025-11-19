@@ -5,40 +5,51 @@ import fs from "fs";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
-// ---------- APP ----------
+// --------------------- INIT APP ---------------------
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ---------- ENV VARS ----------
+// --------------------- ENV VARS ---------------------
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL;
 const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// ---------- REGISTRY PATH ----------
-// Render installs your project at /opt/render/project/src/
-// So registry.json must sit inside the backend folder next to server.js
-const registryFile = path.join(process.cwd(), "src", "backend", "registry.json");
+// --------------------- REGISTRY PATH ---------------------
+// Render sets CWD to: /opt/render/project/src/backend/
+const registryFile = path.join(process.cwd(), "registry.json");
 
-console.log("📁 Using registry file:", registryFile);
+console.log("📁 Registry path:", registryFile);
 
 // Ensure registry.json exists
 if (!fs.existsSync(registryFile)) {
   fs.writeFileSync(registryFile, JSON.stringify({ donations: [] }, null, 2));
-  console.log("📄 registry.json created.");
+  console.log("📁 registry.json created");
 }
 
-// ---------- 0. ROOT PING ----------
+// --------------------- ROOT PING ---------------------
 app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
 
-// ---------- 1. CREATE CHECKOUT SESSION ----------
+// --------------------- SOULMARK GENERATOR ---------------------
+function generateSoulMark(email) {
+  const timestamp = Date.now().toString();
+  const nonce = crypto.randomBytes(16).toString("hex");
+
+  return crypto
+    .createHash("sha256")
+    .update(email + timestamp + SOULMARK_SECRET + nonce)
+    .digest("hex");
+}
+
+// --------------------- 1. CREATE CHECKOUT SESSION ---------------------
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -49,68 +60,59 @@ app.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: 100
+            unit_amount: 100,
           },
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
       success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/index.html`
+      cancel_url: `${FRONTEND_URL}/index.html`,
     });
 
     res.json({ url: session.url });
-
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
   }
 });
 
-// ---------- 2. VERIFY PAYMENT + SOULMARK ----------
-import crypto from "crypto";
-
-function generateSoulMark(email, timestamp) {
-  return crypto
-    .createHash("sha256")
-    .update(email + timestamp + SOULMARK_SECRET)
-    .digest("hex");
-}
-
+// --------------------- 2. VERIFY PAYMENT + SOULMARK ---------------------
 app.get("/verify-donation/:id", async (req, res) => {
   try {
-    const sessionId = req.params.id;
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(req.params.id);
 
     if (!session || session.payment_status !== "paid") {
       return res.json({ verified: false });
     }
 
     const email = session.customer_details?.email || "unknown";
-    const timestamp = new Date().toISOString();
-    const soulmark = generateSoulMark(email, timestamp);
+
+    // Generate SoulMark
+    const soulmark = generateSoulMark(email);
 
     const entry = {
       id: session.id,
-      email,
       amount: session.amount_total,
-      timestamp,
-      soulmark
+      email,
+      soulmark,
+      timestamp: new Date().toISOString(),
     };
 
-    // Write to registry.json
-    const fileData = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    fileData.donations.push(entry);
-    fs.writeFileSync(registryFile, JSON.stringify(fileData, null, 2));
+    // Read registry
+    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    json.donations.push(entry);
+
+    // Save updated registry
+    fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
     res.json({ verified: true, entry });
-
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ---------- 3. LIST ALL DONATIONS (Dashboard) ----------
+// --------------------- 3. READ ALL DONATIONS ---------------------
 app.get("/donations", (req, res) => {
   try {
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
@@ -121,8 +123,7 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- 4. START SERVER ----------
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🚀 Backend running on port ${PORT}`);
+// --------------------- 4. START SERVER ---------------------
+app.listen(10000, () => {
+  console.log("🚀 Backend running on port 10000");
 });
