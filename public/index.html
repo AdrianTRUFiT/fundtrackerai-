@@ -1,20 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FundTrackerAI — Donate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
 <body>
+  <div class="app-shell">
+    <div class="card">
+      <h1>FundTrackerAI</h1>
+      <p class="subtext">
+        Make a test $1 donation and see it flow into a live, verifiable ledger.
+      </p>
 
-<h2>Donate Test</h2>
-<button id="donateBtn">Donate $1</button>
+      <button id="donateBtn" class="btn">
+        Donate $1 Test
+      </button>
 
-<script>
-document.getElementById("donateBtn").onclick = async () => {
-  const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
-    method: "POST"
-  });
+      <div class="divider"></div>
 
-  const data = await res.json();
-  window.location.href = data.url;
-};
-</script>
+      <p class="subtext">
+        Already donated? <a href="dashboard.html" style="color:#38bdf8;">View live dashboard</a>
+      </p>
+    </div>
+  </div>
 
+  <script>
+    document.getElementById("donateBtn").onclick = async () => {
+      try {
+        const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
+          method: "POST"
+        });
+        const data = await res.json();
+
+        if (!data.url) {
+          alert("Unable to start checkout session.");
+          console.error("No URL in response:", data);
+          return;
+        }
+
+        window.location.href = data.url;
+      } catch (err) {
+        console.error("Error starting checkout session:", err);
+        alert("Error starting checkout session.");
+      }
+    };
+  </script>
 </body>
 </html>
