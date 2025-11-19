@@ -1,45 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>FundTrackerAI — Donate</title>
+  <title>FundTrackerAI — Verified Transaction System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <div class="app-shell">
 
-    <div class="card">
+<div class="app">
+  <h1>FundTrackerAI</h1>
+  <h2>Verified Transaction System</h2>
 
-      <!-- BRAND HEADER -->
-      <div class="brand-row">
-        <div class="brand-mark">$</div>
-        <div>
-          <h1>FundTrackerAI</h1>
-          <h2>Verified Transaction System</h2>
-        </div>
-      </div>
+  <div class="card">
+    <p class="sub">Make a secure, verified donation.</p>
 
-      <h2>Make a Donation</h2>
-      <p class="subtext">
-        Every transaction is verified, timestamped, and protected with a SoulMarkⓈ.
-      </p>
-
-      <button class="btn" id="donateBtn">Donate $1</button>
-
-    </div>
-
+    <button id="donateBtn" class="btn-primary">
+      Donate $1
+    </button>
   </div>
+</div>
 
-  <script>
-    document.getElementById("donateBtn").onclick = async () => {
-      const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
-        method: "POST"
-      });
-      const data = await res.json();
-      window.location.href = data.url;
-    };
-  </script>
+<script>
+document.getElementById("donateBtn").onclick = async () => {
+  const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
+    method: "POST"
+  });
+  const data = await res.json();
+  window.location.href = data.url;
+};
+</script>
 
 </body>
 </html>
