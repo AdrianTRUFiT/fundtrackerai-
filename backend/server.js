@@ -9,6 +9,7 @@ import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
@@ -24,14 +25,48 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL;
 const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
 
+if (!STRIPE_SECRET_KEY || !FRONTEND_URL || !SOULMARK_SECRET) {
+  console.warn("⚠️  Missing one or more env vars: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET");
+}
+
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// --------------------------------------------------
-// FIXED PATH — registry.json is in SAME folder as server.js
-// --------------------------------------------------
-const registryFile = path.join(process.cwd(), "registry.json");
+// Resolve path relative to THIS FILE (server.js), not process.cwd()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// registry.json lives in the SAME directory as server.js
+const registryFile = path.join(__dirname, "registry.json");
 
 console.log("📁 Registry path:", registryFile);
+
+// Ensure registry file exists and is valid JSON
+function ensureRegistry() {
+  try {
+    if (!fs.existsSync(registryFile)) {
+      console.log("🆕 Creating new registry.json");
+      fs.writeFileSync(
+        registryFile,
+        JSON.stringify({ donations: [] }, null, 2),
+        "utf8"
+      );
+    } else {
+      // Validate JSON; if corrupt, re-init instead of crashing
+      const raw = fs.readFileSync(registryFile, "utf8");
+      JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error("⚠️ registry.json was invalid, reinitializing:", err.message);
+    fs.writeFileSync(
+      registryFile,
+      JSON.stringify({ donations: [] }, null, 2),
+      "utf8"
+    );
+  }
+}
+
+// Run once at startup
+ensureRegistry();
 
 // -----------------------------------------------
 // 1. ROOT PING
@@ -74,11 +109,13 @@ app.post("/create-checkout-session", async (req, res) => {
 // -----------------------------------------------
 app.get("/verify-donation/:id", async (req, res) => {
   try {
+    ensureRegistry();
+
     const session = await stripe.checkout.sessions.retrieve(req.params.id);
 
     // 3A — validate payment
     if (!session || session.payment_status !== "paid") {
-      return res.json({ verified: false });
+      return res.json({ verified: false, reason: "unpaid_or_missing" });
     }
 
     const email = session.customer_details?.email || "unknown";
@@ -105,6 +142,7 @@ app.get("/verify-donation/:id", async (req, res) => {
     json.donations.push(entry);
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
+    // return everything so success.html can display it
     res.json({ verified: true, entry });
 
   } catch (err) {
@@ -118,6 +156,7 @@ app.get("/verify-donation/:id", async (req, res) => {
 // -----------------------------------------------
 app.get("/donations", (req, res) => {
   try {
+    ensureRegistry();
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
     res.json(json);
   } catch (err) {
@@ -129,6 +168,7 @@ app.get("/donations", (req, res) => {
 // -----------------------------------------------
 // 5. START SERVER
 // -----------------------------------------------
-app.listen(10000, () => {
-  console.log("Backend running on port 10000");
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
 });
