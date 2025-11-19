@@ -1,105 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>FundTrackerAI — Dashboard</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
   <div class="app-shell">
-    <div class="card" style="max-width:900px;">
+    <div class="card">
 
-      <h2>FundTrackerAI Dashboard</h2>
-      <p class="subtext">Your verified identity contributions</p>
-
-      <!-- SUMMARY -->
-      <div class="summary-row">
-        <div class="summary-box">
-          <div class="summary-value" id="totalRaised">$0.00</div>
-          <div class="summary-label">Total Raised</div>
-        </div>
-
-        <div class="summary-box">
-          <div class="summary-value" id="totalDonations">0</div>
-          <div class="summary-label">Total Donations</div>
+      <!-- BRAND HEADER -->
+      <div class="brand-row">
+        <div class="brand-mark">$</div>
+        <div>
+          <h1>FundTrackerAI</h1>
+          <h2>Verified Transaction System</h2>
         </div>
       </div>
 
-      <!-- TABLE -->
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Amount</th>
-            <th>Time</th>
-            <th>SoulMark</th>
-          </tr>
-        </thead>
-        <tbody id="donationTable"></tbody>
-      </table>
+      <h2>Donation Dashboard</h2>
+      <p class="subtext">Real-time verified history of all processed donations.</p>
 
-      <p class="note">Data shown is from the live identity registry.</p>
+      <div id="stats" style="display:flex; gap:16px; margin-top:18px;">
+        <div class="stat-card">
+          <p>Total Raised</p>
+          <h3 id="total-amount">$0.00</h3>
+        </div>
 
-      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
-        Back to Donate
-      </button>
+        <div class="stat-card">
+          <p>Total Donations</p>
+          <h3 id="total-donations">0</h3>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="donationTable">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Amount</th>
+              <th>SoulMarkⓈ</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </div>
 
   <script>
-    async function loadDonations() {
-      try {
-        const res = await fetch("https://fundtrackerai.onrender.com/donations");
-        const data = await res.json();
+    fetch("https://fundtrackerai.onrender.com/donations")
+      .then(res => res.json())
+      .then(data => {
+        const donations = data.donations || [];
 
-        const table = document.getElementById("donationTable");
-        table.innerHTML = "";
+        const totalAmount = donations.reduce((s, d) => s + d.amount, 0);
+        document.getElementById("total-amount").textContent =
+          "$" + (totalAmount / 100).toFixed(2);
 
-        let total = 0;
+        document.getElementById("total-donations").textContent =
+          donations.length.toString();
 
-        data.donations.forEach(entry => {
-          total += entry.amount;
+        const rows = donations.map(d => `
+          <tr>
+            <td>${d.email}</td>
+            <td>$${(d.amount / 100).toFixed(2)}</td>
+            <td class="truncate" title="${d.soulmark}">${d.soulmark}</td>
+            <td>${new Date(d.timestamp).toLocaleString()}</td>
+          </tr>
+        `).join("");
 
-          const shortSoul = entry.soulmark
-            ? entry.soulmark.substring(0, 10) + "..."
-            : "—";
-
-          const row = `
-            <tr>
-              <td>${entry.email}</td>
-              <td>$${(entry.amount / 100).toFixed(2)}</td>
-              <td>${new Date(entry.timestamp).toLocaleString()}</td>
-              <td>
-                <span class="soulmark-short">${shortSoul}</span>
-                <button class="copy-btn" onclick="copySoul('${entry.soulmark || ""}')">
-                  Copy
-                </button>
-              </td>
-            </tr>
-          `;
-
-          table.innerHTML += row;
-        });
-
-        document.getElementById("totalRaised").textContent =
-          "$" + (total / 100).toFixed(2);
-
-        document.getElementById("totalDonations").textContent =
-          data.donations.length;
-
-      } catch (err) {
-        console.error("Error loading registry:", err);
-      }
-    }
-
-    function copySoul(fullSoul) {
-      navigator.clipboard.writeText(fullSoul);
-      alert("Full SoulMark copied to clipboard:\n\n" + fullSoul);
-    }
-
-    loadDonations();
+        document.querySelector("#donationTable tbody").innerHTML = rows;
+      })
+      .catch(() => {
+        document.querySelector("#donationTable tbody").innerHTML =
+          "<tr><td colspan='4'>Error loading data</td></tr>";
+      });
   </script>
 
 </body>
