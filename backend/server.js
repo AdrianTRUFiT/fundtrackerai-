@@ -20,23 +20,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is inside /backend/registry.json on GitHub
+// registry.json is inside backend/
 const registryFile = path.join(process.cwd(), "backend", "registry.json");
 
-// LOG path for Render
+// LOG REAL PATH (Render)
 console.log("📁 Registry path:", registryFile);
-
-// ---- SoulMark Generator ----
-function generateSoulMark(sessionId, email) {
-  const hash = crypto
-    .createHash("sha256")
-    .update(sessionId + email + Date.now().toString())
-    .digest("hex")
-    .slice(0, 12)
-    .toUpperCase();
-
-  return `SM-${hash}`;
-}
 
 // ---------- ROOT PING ----------
 app.get("/", (req, res) => {
@@ -71,7 +59,7 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-// ---------- 2. VERIFY PAYMENT ----------
+// ---------- 2. VERIFY PAYMENT + GENERATE SOULMARK ----------
 app.get("/verify-donation/:id", async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(req.params.id);
@@ -81,16 +69,18 @@ app.get("/verify-donation/:id", async (req, res) => {
     }
 
     const email = session.customer_details?.email || "unknown";
+    const timestamp = new Date().toISOString();
 
-    // create SoulMark
-    const soulmark = generateSoulMark(session.id, email);
+    // ---- CREATE SOULMARK (Option C) ----
+    const raw = session.id + email + timestamp;
+    const soulmark = crypto.createHash("sha256").update(raw).digest("hex");
 
     const entry = {
       id: session.id,
+      soulmark,
       amount: session.amount_total,
       email,
-      timestamp: new Date().toISOString(),
-      soulmark
+      timestamp
     };
 
     // Append to registry.json
@@ -117,7 +107,7 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- 3. START SERVER ----------
+// ---------- START SERVER ----------
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
