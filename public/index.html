@@ -1,78 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>FundTrackerAI — Donate</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- GLOBAL STYLESHEET -->
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+  <div class="app-shell">
 
-  <div class="card">
-    <h1>Support the Mission</h1>
-    <p class="subtext">Choose an amount or enter your own donation.</p>
+    <div class="card">
 
-    <div class="amount-grid">
-      <div class="amount-btn" data-amount="500">$5</div>
-      <div class="amount-btn" data-amount="1000">$10</div>
-      <div class="amount-btn" data-amount="2500">$25</div>
-      <div class="amount-btn" data-amount="5000">$50</div>
-      <div class="amount-btn" data-amount="10000">$100</div>
-      <div class="amount-btn" data-amount="0">Other</div>
+      <!-- BRAND HEADER -->
+      <div class="brand-row">
+        <div class="brand-mark">$</div>
+        <div>
+          <h1>FundTrackerAI</h1>
+          <h2>Verified Transaction System</h2>
+        </div>
+      </div>
+
+      <h2>Make a Donation</h2>
+      <p class="subtext">
+        Every transaction is verified, timestamped, and protected with a SoulMarkⓈ.
+      </p>
+
+      <button class="btn" id="donateBtn">Donate $1</button>
+
     </div>
 
-    <div class="input-wrap" id="customAmountWrap" style="display:none;">
-      <label>Enter Custom Amount (USD)</label>
-      <input type="number" id="customAmountInput" min="1" placeholder="e.g., 37" />
-    </div>
-
-    <button class="btn-primary" id="donateBtn">Donate</button>
   </div>
 
   <script>
-    let selectedAmount = null;
-
-    document.querySelectorAll(".amount-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".amount-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-
-        const amt = btn.dataset.amount;
-
-        if (amt === "0") {
-          document.getElementById("customAmountWrap").style.display = "block";
-          selectedAmount = null;
-        } else {
-          document.getElementById("customAmountWrap").style.display = "none";
-          selectedAmount = parseInt(amt, 10);
-        }
-      });
-    });
-
     document.getElementById("donateBtn").onclick = async () => {
-      let amountToSend = selectedAmount;
-
-      if (!amountToSend) {
-        const custom = parseFloat(
-          document.getElementById("customAmountInput").value || "0"
-        );
-        if (custom <= 0) return alert("Please enter a valid donation amount.");
-
-        amountToSend = Math.round(custom * 100);
-      }
-
       const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: amountToSend })
+        method: "POST"
       });
-
       const data = await res.json();
-      if (data.url) window.location = data.url;
-      else alert("Unable to start payment.");
+      window.location.href = data.url;
     };
   </script>
 
