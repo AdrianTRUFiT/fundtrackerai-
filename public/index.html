@@ -1,36 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FundTrackerAI — Verified Transaction System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
+  <div class="app-shell">
 
-<div class="app">
-  <h1>FundTrackerAI</h1>
-  <h2>Verified Transaction System</h2>
+    <!-- HEADER -->
+    <div class="header-bar">
+      <div class="icon-circle">
+        <span class="icon-dollar">$</span>
+      </div>
+      <div class="header-text">
+        <h1 class="brand">FundTrackerAI</h1>
+        <h2 class="tagline">Verified Transaction System</h2>
+      </div>
+    </div>
 
-  <div class="card">
-    <p class="sub">Make a secure, verified donation.</p>
+    <!-- CARD -->
+    <div class="card">
 
-    <button id="donateBtn" class="btn-primary">
-      Donate $1
-    </button>
+      <h2 class="section-title">Make a Donation</h2>
+      <p class="subtext">Your contribution will be securely processed and verified.</p>
+
+      <button id="donateBtn" class="btn-primary">
+        Donate $1.00
+      </button>
+
+      <p id="status" class="status-msg"></p>
+
+    </div>
   </div>
-</div>
 
-<script>
-document.getElementById("donateBtn").onclick = async () => {
-  const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
-    method: "POST"
-  });
-  const data = await res.json();
-  window.location.href = data.url;
-};
-</script>
+  <script>
+    document.getElementById("donateBtn").onclick = async () => {
+      try {
+        const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          document.getElementById("status").textContent = "Unable to create session.";
+        }
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").textContent = "Error starting donation.";
+      }
+    };
+  </script>
 
 </body>
 </html>
