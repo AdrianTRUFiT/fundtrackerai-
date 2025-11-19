@@ -9,6 +9,8 @@
   <h2>Payment Status</h2>
   <div id="result" class="status">Checking...</div>
 
+  <p id="soulmarkBox" class="soulmark" style="display:none;"></p>
+
   <a href="dashboard.html" id="dashboardBtn" class="btn" style="display:none;">
     View Donation Dashboard
   </a>
@@ -19,25 +21,31 @@ async function verify() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("session_id");
 
+  const resultEl = document.getElementById("result");
+  const soulmarkBox = document.getElementById("soulmarkBox");
+  const btn = document.getElementById("dashboardBtn");
+
   if (!id) {
-    document.getElementById("result").innerText = "Invalid session ❌";
-    document.getElementById("result").classList.add("fail");
+    resultEl.innerText = "Invalid session ❌";
+    resultEl.classList.add("fail");
     return;
   }
 
   const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
   const data = await res.json();
 
-  const statusEl = document.getElementById("result");
-  const btn = document.getElementById("dashboardBtn");
-
   if (data.verified) {
-    statusEl.innerText = "Payment Verified ✔";
-    statusEl.classList.add("success");
+    resultEl.innerText = "Payment Verified ✔";
+    resultEl.classList.add("success");
+
+    // Show SoulMark
+    soulmarkBox.style.display = "block";
+    soulmarkBox.innerText = "SoulMark: " + data.entry.soulmark;
+
     btn.style.display = "inline-block";
   } else {
-    statusEl.innerText = "Verification Failed ❌";
-    statusEl.classList.add("fail");
+    resultEl.innerText = "Verification Failed ❌";
+    resultEl.classList.add("fail");
   }
 }
 
