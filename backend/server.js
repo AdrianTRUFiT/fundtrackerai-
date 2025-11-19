@@ -1,75 +1,44 @@
+// backend/server.js
 import express from "express";
 import Stripe from "stripe";
 import fs from "fs";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import crypto from "crypto";
 
 dotenv.config();
 
-// ------------------------------------
-// APP + MIDDLEWARE
-// ------------------------------------
+// ---------- APP ----------
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ------------------------------------
-// ENV VARS
-// ------------------------------------
+// ---------- ENV VARS ----------
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const FRONTEND_URL = process.env.FRONTEND_URL; // e.g. https://fundtrackerai.vercel.app
-const SOULMARK_SECRET = process.env.SOULMARK_SECRET || "dev-only-secret";
-
-if (!STRIPE_SECRET_KEY) {
-  console.error("❌ Missing STRIPE_SECRET_KEY in environment!");
-}
-if (!FRONTEND_URL) {
-  console.error("❌ Missing FRONTEND_URL in environment!");
-}
+const FRONTEND_URL = process.env.FRONTEND_URL;
+const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is inside /backend/registry.json in GitHub
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+// ---------- REGISTRY PATH ----------
+// Render installs your project at /opt/render/project/src/
+// So registry.json must sit inside the backend folder next to server.js
+const registryFile = path.join(process.cwd(), "src", "backend", "registry.json");
 
-// Ensure registry.json exists with basic structure
-function ensureRegistryFile() {
-  try {
-    if (!fs.existsSync(registryFile)) {
-      const initial = { donations: [] };
-      fs.writeFileSync(registryFile, JSON.stringify(initial, null, 2));
-      console.log("📁 Created new registry.json");
-    }
-  } catch (err) {
-    console.error("REGISTRY INIT ERROR:", err);
-  }
-}
-ensureRegistryFile();
+console.log("📁 Using registry file:", registryFile);
 
-console.log("📁 Registry path:", registryFile);
-
-// ------------------------------------
-// HELPERS
-// ------------------------------------
-function generateSoulMark(email, sessionId) {
-  const timestamp = new Date().toISOString();
-  const raw = `${email}|${sessionId}|${timestamp}|${SOULMARK_SECRET}`;
-  const hash = crypto.createHash("sha256").update(raw).digest("hex");
-  return { soulmark: hash, timestamp };
+// Ensure registry.json exists
+if (!fs.existsSync(registryFile)) {
+  fs.writeFileSync(registryFile, JSON.stringify({ donations: [] }, null, 2));
+  console.log("📄 registry.json created.");
 }
 
-// ------------------------------------
-// ROOT PING
-// ------------------------------------
+// ---------- 0. ROOT PING ----------
 app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
 
-// ------------------------------------
-// 1. CREATE CHECKOUT SESSION
-// ------------------------------------
+// ---------- 1. CREATE CHECKOUT SESSION ----------
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -80,25 +49,33 @@ app.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: 100, // $1 test
+            unit_amount: 100
           },
-          quantity: 1,
-        },
+          quantity: 1
+        }
       ],
       success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/index.html`,
+      cancel_url: `${FRONTEND_URL}/index.html`
     });
 
     res.json({ url: session.url });
+
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
   }
 });
 
-// ------------------------------------
-// 2. VERIFY PAYMENT + WRITE REGISTRY
-// ------------------------------------
+// ---------- 2. VERIFY PAYMENT + SOULMARK ----------
+import crypto from "crypto";
+
+function generateSoulMark(email, timestamp) {
+  return crypto
+    .createHash("sha256")
+    .update(email + timestamp + SOULMARK_SECRET)
+    .digest("hex");
+}
+
 app.get("/verify-donation/:id", async (req, res) => {
   try {
     const sessionId = req.params.id;
@@ -109,43 +86,34 @@ app.get("/verify-donation/:id", async (req, res) => {
     }
 
     const email = session.customer_details?.email || "unknown";
-    const amount = session.amount_total || 0;
-
-    const { soulmark, timestamp } = generateSoulMark(email, sessionId);
+    const timestamp = new Date().toISOString();
+    const soulmark = generateSoulMark(email, timestamp);
 
     const entry = {
       id: session.id,
-      amount,
       email,
-      soulmark,
+      amount: session.amount_total,
       timestamp,
+      soulmark
     };
 
-    // Read current registry
-    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    if (!Array.isArray(json.donations)) {
-      json.donations = [];
-    }
-
-    json.donations.push(entry);
-    fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
+    // Write to registry.json
+    const fileData = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    fileData.donations.push(entry);
+    fs.writeFileSync(registryFile, JSON.stringify(fileData, null, 2));
 
     res.json({ verified: true, entry });
+
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ------------------------------------
-// 3. READ ALL DONATIONS (DASHBOARD)
-// ------------------------------------
+// ---------- 3. LIST ALL DONATIONS (Dashboard) ----------
 app.get("/donations", (req, res) => {
   try {
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    if (!Array.isArray(json.donations)) {
-      json.donations = [];
-    }
     res.json(json);
   } catch (err) {
     console.error("READ ERROR:", err);
@@ -153,9 +121,8 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ------------------------------------
-// START SERVER
-// ------------------------------------
-app.listen(10000, () => {
-  console.log("Backend running on port 10000");
+// ---------- 4. START SERVER ----------
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`🚀 Backend running on port ${PORT}`);
 });
