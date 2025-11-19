@@ -4,48 +4,188 @@
   <meta charset="UTF-8" />
   <title>FundTrackerAI — Donate</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    :root {
+      --bg: #f8f9fb;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --text: #1f2937;
+      --subtext: #6b7280;
+      --radius: 14px;
+      --border: #e5e7eb;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.7rem;
+      font-weight: 700;
+    }
+
+    .subtext {
+      color: var(--subtext);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    .amount-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .amount-btn {
+      background: #f1f5f9;
+      padding: 12px 0;
+      border-radius: var(--radius);
+      text-align: center;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: 0.2s;
+      user-select: none;
+    }
+
+    .amount-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .amount-btn.active {
+      border-color: var(--primary);
+      background: #dbeafe;
+    }
+
+    .input-wrap {
+      margin-bottom: 20px;
+    }
+
+    .input-wrap label {
+      font-size: 0.85rem;
+      color: var(--subtext);
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 14px;
+      margin-top: 6px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: none;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+  </style>
 </head>
+
 <body>
-  <div class="app-shell">
-    <div class="card">
-      <h1>FundTrackerAI</h1>
-      <p class="subtext">
-        Make a test $1 donation and see it flow into a live, verifiable ledger.
-      </p>
 
-      <button id="donateBtn" class="btn">
-        Donate $1 Test
-      </button>
+  <div class="card">
+    <h1>Support the Mission</h1>
+    <p class="subtext">Choose an amount or enter your own donation.</p>
 
-      <div class="divider"></div>
-
-      <p class="subtext">
-        Already donated? <a href="dashboard.html" style="color:#38bdf8;">View live dashboard</a>
-      </p>
+    <div class="amount-grid">
+      <div class="amount-btn" data-amount="500">$5</div>
+      <div class="amount-btn" data-amount="1000">$10</div>
+      <div class="amount-btn" data-amount="2500">$25</div>
+      <div class="amount-btn" data-amount="5000">$50</div>
+      <div class="amount-btn" data-amount="10000">$100</div>
+      <div class="amount-btn" data-amount="0">Other</div>
     </div>
+
+    <div class="input-wrap" id="customAmountWrap" style="display:none;">
+      <label>Enter Custom Amount (USD)</label>
+      <input type="number" id="customAmountInput" min="1" placeholder="e.g., 37" />
+    </div>
+
+    <button class="btn-primary" id="donateBtn">Donate</button>
   </div>
 
   <script>
-    document.getElementById("donateBtn").onclick = async () => {
-      try {
-        const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
-          method: "POST"
-        });
-        const data = await res.json();
+    let selectedAmount = null;
 
-        if (!data.url) {
-          alert("Unable to start checkout session.");
-          console.error("No URL in response:", data);
+    // Selectable preset buttons
+    document.querySelectorAll(".amount-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".amount-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        const amt = btn.dataset.amount;
+
+        if (amt === "0") {
+          document.getElementById("customAmountWrap").style.display = "block";
+          selectedAmount = null;
+        } else {
+          document.getElementById("customAmountWrap").style.display = "none";
+          selectedAmount = parseInt(amt, 10);
+        }
+      });
+    });
+
+    // Donate button → call backend
+    document.getElementById("donateBtn").onclick = async () => {
+      let amountToSend = selectedAmount;
+
+      if (!amountToSend) {
+        const custom = parseFloat(
+          document.getElementById("customAmountInput").value || "0"
+        );
+
+        if (custom <= 0) {
+          alert("Please enter a valid donation amount.");
           return;
         }
 
-        window.location.href = data.url;
-      } catch (err) {
-        console.error("Error starting checkout session:", err);
-        alert("Error starting checkout session.");
+        amountToSend = Math.round(custom * 100);
       }
+
+      const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amountToSend })
+      });
+
+      const data = await res.json();
+      if (data.url) window.location = data.url;
+      else alert("Unable to start payment.");
     };
   </script>
+
 </body>
 </html>
