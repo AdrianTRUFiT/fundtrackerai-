@@ -18,6 +18,7 @@
 
       <div id="details" style="margin-top:16px; display:none;">
         <div class="chip" id="emailChip"></div>
+
         <p style="margin:10px 0 4px; font-size:0.85rem; color:#9ca3af;">Amount</p>
         <div id="amountText" style="font-weight:600;"></div>
 
@@ -42,6 +43,7 @@
     async function verify() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("session_id");
+
       const statusEl = document.getElementById("statusText");
       const detailsEl = document.getElementById("details");
       const dashBtn = document.getElementById("dashboardBtn");
@@ -53,7 +55,9 @@
       }
 
       try {
+        // 🔥 THE ONE FIX — correct backend path
         const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
+
         const data = await res.json();
 
         if (data.verified && data.entry) {
@@ -73,6 +77,7 @@
 
           detailsEl.style.display = "block";
           dashBtn.style.display = "inline-flex";
+
         } else {
           statusEl.textContent = "Verification Failed ❌";
           statusEl.classList.add("fail");
