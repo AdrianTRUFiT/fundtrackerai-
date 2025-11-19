@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
 
-<h2>Payment Status</h2>
-<div id="result">Checking...</div>
+<div class="card">
+  <h2>Payment Status</h2>
+  <div id="result" class="status">Checking...</div>
+
+  <a href="dashboard.html" id="dashboardBtn" class="btn" style="display:none;">
+    View Donation Dashboard
+  </a>
+</div>
 
 <script>
 async function verify() {
@@ -11,29 +20,24 @@ async function verify() {
   const id = params.get("session_id");
 
   if (!id) {
-    document.getElementById("result").innerHTML = "No session ID found ❌";
+    document.getElementById("result").innerText = "Invalid session ❌";
+    document.getElementById("result").classList.add("fail");
     return;
   }
 
-  // 🔥 IMPORTANT: This MUST be your Render backend
-  const backend = "https://fundtrackerai.onrender.com";
+  const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
+  const data = await res.json();
 
-  try {
-    const res = await fetch(`${backend}/verify-donation/${id}`);
-    const data = await res.json();
+  const statusEl = document.getElementById("result");
+  const btn = document.getElementById("dashboardBtn");
 
-    if (data.verified) {
-      document.getElementById("result").innerHTML =
-        "<strong>Payment Verified ✔</strong>";
-    } else {
-      document.getElementById("result").innerHTML =
-        "<strong>Verification Failed ❌</strong>";
-    }
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("result").innerHTML =
-      "<strong>Error connecting to server ❌</strong>";
+  if (data.verified) {
+    statusEl.innerText = "Payment Verified ✔";
+    statusEl.classList.add("success");
+    btn.style.display = "inline-block";
+  } else {
+    statusEl.innerText = "Verification Failed ❌";
+    statusEl.classList.add("fail");
   }
 }
 
