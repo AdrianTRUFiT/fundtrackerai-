@@ -2,94 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FundTrackerAI — Live Donation Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FundTrackerAI — Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <div class="app-shell">
-    <div class="card">
-      <h2>Live Donation Dashboard</h2>
-      <p class="subtext">
-        This view reads directly from the FundTrackerAI registry and renders every verified donation.
-      </p>
+    <div class="card" style="max-width:900px;">
 
-      <div id="stats">
-        <div class="stat-card">
-          <div class="stat-label">Total Raised</div>
-          <div id="total-amount" class="stat-value">$0.00</div>
+      <h2>FundTrackerAI Dashboard</h2>
+      <p class="subtext">Your verified identity contributions</p>
+
+      <!-- SUMMARY -->
+      <div class="summary-row">
+        <div class="summary-box">
+          <div class="summary-value" id="totalRaised">$0.00</div>
+          <div class="summary-label">Total Raised</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Donations</div>
-          <div id="total-donations" class="stat-value">0</div>
+
+        <div class="summary-box">
+          <div class="summary-value" id="totalDonations">0</div>
+          <div class="summary-label">Total Donations</div>
         </div>
       </div>
 
-      <div class="divider"></div>
-
-      <table id="donationTable">
+      <!-- TABLE -->
+      <table class="data-table">
         <thead>
           <tr>
             <th>Email</th>
             <th>Amount</th>
             <th>Time</th>
-            <th>SoulMark (short)</th>
+            <th>SoulMark</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td colspan="4">Loading...</td>
-          </tr>
-        </tbody>
+        <tbody id="donationTable"></tbody>
       </table>
 
-      <div style="margin-top:14px; display:flex; justify-content:space-between; gap:8px;">
-        <button class="btn btn-secondary" onclick="window.location.href='index.html'">
-          Back to Donate
-        </button>
-        <span class="subtext" style="text-align:right;">
-          Data shown is from the live registry on the backend.
-        </span>
-      </div>
+      <p class="note">Data shown is from the live identity registry.</p>
+
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+        Back to Donate
+      </button>
     </div>
   </div>
 
   <script>
-    fetch("https://fundtrackerai.onrender.com/donations")
-      .then(res => res.json())
-      .then(data => {
-        const donations = Array.isArray(data.donations) ? data.donations : [];
+    async function loadDonations() {
+      try {
+        const res = await fetch("https://fundtrackerai.onrender.com/donations");
+        const data = await res.json();
 
-        // Total amount
-        const totalAmount = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
-        document.getElementById("total-amount").textContent =
-          "$" + (totalAmount / 100).toFixed(2);
+        const table = document.getElementById("donationTable");
+        table.innerHTML = "";
 
-        // Count
-        document.getElementById("total-donations").textContent =
-          donations.length.toString();
+        let total = 0;
 
-        // Table rows
-        const rows = donations.map(d => {
-          const shortSoul = d.soulmark ? d.soulmark.slice(0, 10) + "…" : "—";
-          return `
+        data.donations.forEach(entry => {
+          total += entry.amount;
+
+          const shortSoul = entry.soulmark
+            ? entry.soulmark.substring(0, 10) + "..."
+            : "—";
+
+          const row = `
             <tr>
-              <td>${d.email || "Unknown"}</td>
-              <td>$${((d.amount || 0) / 100).toFixed(2)}</td>
-              <td>${d.timestamp ? new Date(d.timestamp).toLocaleString() : "—"}</td>
-              <td title="${d.soulmark || ""}">${shortSoul}</td>
+              <td>${entry.email}</td>
+              <td>$${(entry.amount / 100).toFixed(2)}</td>
+              <td>${new Date(entry.timestamp).toLocaleString()}</td>
+              <td>
+                <span class="soulmark-short">${shortSoul}</span>
+                <button class="copy-btn" onclick="copySoul('${entry.soulmark || ""}')">
+                  Copy
+                </button>
+              </td>
             </tr>
           `;
-        }).join("");
 
-        document.querySelector("#donationTable tbody").innerHTML =
-          rows || "<tr><td colspan='4'>No donations yet.</td></tr>";
-      })
-      .catch(err => {
-        console.error("Error loading donations:", err);
-        document.querySelector("#donationTable tbody").innerHTML =
-          "<tr><td colspan='4'>Error loading data.</td></tr>";
-      });
+          table.innerHTML += row;
+        });
+
+        document.getElementById("totalRaised").textContent =
+          "$" + (total / 100).toFixed(2);
+
+        document.getElementById("totalDonations").textContent =
+          data.donations.length;
+
+      } catch (err) {
+        console.error("Error loading registry:", err);
+      }
+    }
+
+    function copySoul(fullSoul) {
+      navigator.clipboard.writeText(fullSoul);
+      alert("Full SoulMark copied to clipboard:\n\n" + fullSoul);
+    }
+
+    loadDonations();
   </script>
+
 </body>
 </html>
