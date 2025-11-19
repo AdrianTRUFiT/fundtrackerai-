@@ -22,12 +22,14 @@ app.use(cors());
 // ENV VARS
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL;
-const SOULMARK_SECRET = process.env.SOULMARK_SECRET;   // NEW
+const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is inside backend/
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+// --------------------------------------------------
+// FIXED PATH — registry.json is in SAME folder as server.js
+// --------------------------------------------------
+const registryFile = path.join(process.cwd(), "registry.json");
 
 console.log("📁 Registry path:", registryFile);
 
@@ -103,7 +105,6 @@ app.get("/verify-donation/:id", async (req, res) => {
     json.donations.push(entry);
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
-    // return everything so success.html can display it
     res.json({ verified: true, entry });
 
   } catch (err) {
