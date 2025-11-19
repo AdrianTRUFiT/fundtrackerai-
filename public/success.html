@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <div class="app-shell">
     <div class="card">
@@ -16,19 +17,20 @@
 
       <div id="statusText" class="status">Checking...</div>
 
+      <!-- PAYMENT DETAILS -->
       <div id="details" style="margin-top:16px; display:none;">
         <div class="chip" id="emailChip"></div>
 
-        <p style="margin:10px 0 4px; font-size:0.85rem; color:#9ca3af;">Amount</p>
-        <div id="amountText" style="font-weight:600;"></div>
+        <p class="label">Amount</p>
+        <div id="amountText" class="value"></div>
 
-        <p style="margin:14px 0 4px; font-size:0.85rem; color:#9ca3af;">SoulMark</p>
-        <code id="soulmarkText" style="font-size:0.7rem; word-break:break-all;"></code>
+        <p class="label">SoulMark</p>
+        <code id="soulmarkText" class="soulmark"></code>
       </div>
 
       <div class="divider"></div>
 
-      <button id="dashboardBtn" class="btn btn-secondary" style="display:none; margin-right:8px;"
+      <button id="dashboardBtn" class="btn btn-secondary" style="display:none;"
         onclick="window.location.href='dashboard.html'">
         View Donation Dashboard
       </button>
@@ -43,47 +45,45 @@
     async function verify() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("session_id");
-
       const statusEl = document.getElementById("statusText");
       const detailsEl = document.getElementById("details");
       const dashBtn = document.getElementById("dashboardBtn");
 
+      // ---------- 1. NO SESSION ID ----------
       if (!id) {
-        statusEl.textContent = "Invalid session ❌";
+        statusEl.innerHTML =
+          "This link has expired or is invalid. <br><br><span style='font-size:14px;'>Please complete a new donation.</span>";
         statusEl.classList.add("fail");
         return;
       }
 
       try {
-        // 🔥 THE ONE FIX — correct backend path
+        // ---------- 2. VERIFY WITH BACKEND ----------
         const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
-
         const data = await res.json();
 
-        if (data.verified && data.entry) {
-          statusEl.textContent = "Payment Verified ✔";
-          statusEl.classList.add("success");
-
-          const entry = data.entry;
-
-          document.getElementById("emailChip").textContent =
-            entry.email || "Unknown email";
-
-          document.getElementById("amountText").textContent =
-            "$" + ((entry.amount || 0) / 100).toFixed(2);
-
-          document.getElementById("soulmarkText").textContent =
-            entry.soulmark || "No SoulMark generated";
-
-          detailsEl.style.display = "block";
-          dashBtn.style.display = "inline-flex";
-
-        } else {
-          statusEl.textContent = "Verification Failed ❌";
+        // ---------- 3. INVALID / EXPIRED / REUSED SESSION ----------
+        if (!data.verified) {
+          statusEl.innerHTML =
+            "This verification link has expired. <br><br><span style='font-size:14px;'>Please complete a new donation.</span>";
           statusEl.classList.add("fail");
+          return;
         }
+
+        // ---------- 4. VALID AND VERIFIED ----------
+        const entry = data.entry;
+
+        statusEl.textContent = "Payment Verified ✔";
+        statusEl.classList.add("success");
+
+        document.getElementById("emailChip").textContent = entry.email;
+        document.getElementById("amountText").textContent = "$" + (entry.amount / 100).toFixed(2);
+        document.getElementById("soulmarkText").textContent = entry.soulmark;
+
+        detailsEl.style.display = "block";
+        dashBtn.style.display = "inline-flex";
+
       } catch (err) {
-        console.error("Error verifying payment:", err);
         statusEl.textContent = "Error verifying payment ❌";
         statusEl.classList.add("fail");
       }
