@@ -1,56 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>FundTrackerAI — Payment Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="app-shell">
+    <div class="card">
+      <h2>Payment Status</h2>
+      <p class="subtext">
+        We’ve received a response from Stripe. Here’s the verified record.
+      </p>
 
-<div class="card">
-  <h2>Payment Status</h2>
-  <div id="result" class="status">Checking...</div>
+      <div id="statusText" class="status">Checking...</div>
 
-  <p id="soulmarkBox" class="soulmark" style="display:none;"></p>
+      <div id="details" style="margin-top:16px; display:none;">
+        <div class="chip" id="emailChip"></div>
+        <p style="margin:10px 0 4px; font-size:0.85rem; color:#9ca3af;">Amount</p>
+        <div id="amountText" style="font-weight:600;"></div>
 
-  <a href="dashboard.html" id="dashboardBtn" class="btn" style="display:none;">
-    View Donation Dashboard
-  </a>
-</div>
+        <p style="margin:14px 0 4px; font-size:0.85rem; color:#9ca3af;">SoulMark</p>
+        <code id="soulmarkText" style="font-size:0.7rem; word-break:break-all;"></code>
+      </div>
 
-<script>
-async function verify() {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("session_id");
+      <div class="divider"></div>
 
-  const resultEl = document.getElementById("result");
-  const soulmarkBox = document.getElementById("soulmarkBox");
-  const btn = document.getElementById("dashboardBtn");
+      <button id="dashboardBtn" class="btn btn-secondary" style="display:none; margin-right:8px;"
+        onclick="window.location.href='dashboard.html'">
+        View Donation Dashboard
+      </button>
 
-  if (!id) {
-    resultEl.innerText = "Invalid session ❌";
-    resultEl.classList.add("fail");
-    return;
-  }
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+        Back to Donate
+      </button>
+    </div>
+  </div>
 
-  const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
-  const data = await res.json();
+  <script>
+    async function verify() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("session_id");
+      const statusEl = document.getElementById("statusText");
+      const detailsEl = document.getElementById("details");
+      const dashBtn = document.getElementById("dashboardBtn");
 
-  if (data.verified) {
-    resultEl.innerText = "Payment Verified ✔";
-    resultEl.classList.add("success");
+      if (!id) {
+        statusEl.textContent = "Invalid session ❌";
+        statusEl.classList.add("fail");
+        return;
+      }
 
-    // Show SoulMark
-    soulmarkBox.style.display = "block";
-    soulmarkBox.innerText = "SoulMark: " + data.entry.soulmark;
+      try {
+        const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
+        const data = await res.json();
 
-    btn.style.display = "inline-block";
-  } else {
-    resultEl.innerText = "Verification Failed ❌";
-    resultEl.classList.add("fail");
-  }
-}
+        if (data.verified && data.entry) {
+          statusEl.textContent = "Payment Verified ✔";
+          statusEl.classList.add("success");
 
-verify();
-</script>
+          const entry = data.entry;
 
+          document.getElementById("emailChip").textContent =
+            entry.email || "Unknown email";
+
+          document.getElementById("amountText").textContent =
+            "$" + ((entry.amount || 0) / 100).toFixed(2);
+
+          document.getElementById("soulmarkText").textContent =
+            entry.soulmark || "No SoulMark generated";
+
+          detailsEl.style.display = "block";
+          dashBtn.style.display = "inline-flex";
+        } else {
+          statusEl.textContent = "Verification Failed ❌";
+          statusEl.classList.add("fail");
+        }
+      } catch (err) {
+        console.error("Error verifying payment:", err);
+        statusEl.textContent = "Error verifying payment ❌";
+        statusEl.classList.add("fail");
+      }
+    }
+
+    verify();
+  </script>
 </body>
 </html>
