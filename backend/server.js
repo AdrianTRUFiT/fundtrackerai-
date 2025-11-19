@@ -8,30 +8,68 @@ import crypto from "crypto";
 
 dotenv.config();
 
-// force redeploy
-
+// ------------------------------------
+// APP + MIDDLEWARE
+// ------------------------------------
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+// ------------------------------------
 // ENV VARS
+// ------------------------------------
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const FRONTEND_URL = process.env.FRONTEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL; // e.g. https://fundtrackerai.vercel.app
+const SOULMARK_SECRET = process.env.SOULMARK_SECRET || "dev-only-secret";
+
+if (!STRIPE_SECRET_KEY) {
+  console.error("❌ Missing STRIPE_SECRET_KEY in environment!");
+}
+if (!FRONTEND_URL) {
+  console.error("❌ Missing FRONTEND_URL in environment!");
+}
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is inside backend/
-const registryFile = path.join(process.cwd(), "registry.json");
+// registry.json is inside /backend/registry.json in GitHub
+const registryFile = path.join(process.cwd(), "backend", "registry.json");
 
-// LOG REAL PATH (Render)
+// Ensure registry.json exists with basic structure
+function ensureRegistryFile() {
+  try {
+    if (!fs.existsSync(registryFile)) {
+      const initial = { donations: [] };
+      fs.writeFileSync(registryFile, JSON.stringify(initial, null, 2));
+      console.log("📁 Created new registry.json");
+    }
+  } catch (err) {
+    console.error("REGISTRY INIT ERROR:", err);
+  }
+}
+ensureRegistryFile();
+
 console.log("📁 Registry path:", registryFile);
 
-// ---------- ROOT PING ----------
+// ------------------------------------
+// HELPERS
+// ------------------------------------
+function generateSoulMark(email, sessionId) {
+  const timestamp = new Date().toISOString();
+  const raw = `${email}|${sessionId}|${timestamp}|${SOULMARK_SECRET}`;
+  const hash = crypto.createHash("sha256").update(raw).digest("hex");
+  return { soulmark: hash, timestamp };
+}
+
+// ------------------------------------
+// ROOT PING
+// ------------------------------------
 app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
 
-// ---------- 1. CREATE CHECKOUT SESSION ----------
+// ------------------------------------
+// 1. CREATE CHECKOUT SESSION
+// ------------------------------------
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -42,64 +80,72 @@ app.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: 100
+            unit_amount: 100, // $1 test
           },
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
       success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/index.html`
+      cancel_url: `${FRONTEND_URL}/index.html`,
     });
 
     res.json({ url: session.url });
-
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
   }
 });
 
-// ---------- 2. VERIFY PAYMENT + GENERATE SOULMARK ----------
+// ------------------------------------
+// 2. VERIFY PAYMENT + WRITE REGISTRY
+// ------------------------------------
 app.get("/verify-donation/:id", async (req, res) => {
   try {
-    const session = await stripe.checkout.sessions.retrieve(req.params.id);
+    const sessionId = req.params.id;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session || session.payment_status !== "paid") {
       return res.json({ verified: false });
     }
 
     const email = session.customer_details?.email || "unknown";
-    const timestamp = new Date().toISOString();
+    const amount = session.amount_total || 0;
 
-    // ---- CREATE SOULMARK (Option C) ----
-    const raw = session.id + email + timestamp;
-    const soulmark = crypto.createHash("sha256").update(raw).digest("hex");
+    const { soulmark, timestamp } = generateSoulMark(email, sessionId);
 
     const entry = {
       id: session.id,
-      soulmark,
-      amount: session.amount_total,
+      amount,
       email,
-      timestamp
+      soulmark,
+      timestamp,
     };
 
-    // Append to registry.json
+    // Read current registry
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    if (!Array.isArray(json.donations)) {
+      json.donations = [];
+    }
+
     json.donations.push(entry);
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
     res.json({ verified: true, entry });
-
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ---------- READ ALL DONATIONS ----------
+// ------------------------------------
+// 3. READ ALL DONATIONS (DASHBOARD)
+// ------------------------------------
 app.get("/donations", (req, res) => {
   try {
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    if (!Array.isArray(json.donations)) {
+      json.donations = [];
+    }
     res.json(json);
   } catch (err) {
     console.error("READ ERROR:", err);
@@ -107,7 +153,9 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- START SERVER ----------
+// ------------------------------------
+// START SERVER
+// ------------------------------------
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
