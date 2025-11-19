@@ -1,40 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FundTrackerAI Dashboard</title>
+  <title>FundTrackerAI — Live Donation Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
+  <div class="app-shell">
+    <div class="card">
+      <h2>Live Donation Dashboard</h2>
+      <p class="subtext">
+        This view reads directly from the FundTrackerAI registry and renders every verified donation.
+      </p>
 
-  <h1>FundTrackerAI Dashboard</h1>
+      <div id="stats">
+        <div class="stat-card">
+          <div class="stat-label">Total Raised</div>
+          <div id="total-amount" class="stat-value">$0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Donations</div>
+          <div id="total-donations" class="stat-value">0</div>
+        </div>
+      </div>
 
-  <!-- Stats -->
-  <div id="stats">
-    <div class="stat-card">
-      <h2 id="total-amount">$0</h2>
-      <p>Total Raised</p>
-    </div>
+      <div class="divider"></div>
 
-    <div class="stat-card">
-      <h2 id="total-donations">0</h2>
-      <p>Total Donations</p>
+      <table id="donationTable">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Amount</th>
+            <th>Time</th>
+            <th>SoulMark (short)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:14px; display:flex; justify-content:space-between; gap:8px;">
+        <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+          Back to Donate
+        </button>
+        <span class="subtext" style="text-align:right;">
+          Data shown is from the live registry on the backend.
+        </span>
+      </div>
     </div>
   </div>
 
-  <!-- Donations Table -->
-  <table id="donationTable">
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Amount</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <script>
+    fetch("https://fundtrackerai.onrender.com/donations")
+      .then(res => res.json())
+      .then(data => {
+        const donations = Array.isArray(data.donations) ? data.donations : [];
 
-  <script src="dashboard.js"></script>
+        // Total amount
+        const totalAmount = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+        document.getElementById("total-amount").textContent =
+          "$" + (totalAmount / 100).toFixed(2);
+
+        // Count
+        document.getElementById("total-donations").textContent =
+          donations.length.toString();
+
+        // Table rows
+        const rows = donations.map(d => {
+          const shortSoul = d.soulmark ? d.soulmark.slice(0, 10) + "…" : "—";
+          return `
+            <tr>
+              <td>${d.email || "Unknown"}</td>
+              <td>$${((d.amount || 0) / 100).toFixed(2)}</td>
+              <td>${d.timestamp ? new Date(d.timestamp).toLocaleString() : "—"}</td>
+              <td title="${d.soulmark || ""}">${shortSoul}</td>
+            </tr>
+          `;
+        }).join("");
+
+        document.querySelector("#donationTable tbody").innerHTML =
+          rows || "<tr><td colspan='4'>No donations yet.</td></tr>";
+      })
+      .catch(err => {
+        console.error("Error loading donations:", err);
+        document.querySelector("#donationTable tbody").innerHTML =
+          "<tr><td colspan='4'>Error loading data.</td></tr>";
+      });
+  </script>
 </body>
 </html>
