@@ -4,40 +4,140 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FundTrackerAI — Verified Transaction System</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    :root {
+      --blue-bg: #041423;
+      --green: #47C28A;
+      --orange: #F8BC07;
+      --card-bg: #0A1D2B;
+      --text-light: #E8EEF2;
+      --text-muted: #9BA8B5;
+      --radius: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--blue-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-light);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 14px;
+    }
+
+    .icon-box {
+      background: rgba(71,194,138,0.15);
+      padding: 12px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      color: var(--green);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 2px 0 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .section-title {
+      margin-top: 22px;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .subtext {
+      margin: 6px 0 20px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      margin-top: 20px;
+      transition: 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: #01210F;
+    }
+
+    .btn-primary:hover {
+      background: #3AB77D;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="app-shell">
+  <div class="card">
 
-    <!-- HEADER -->
-    <div class="header-bar">
-      <div class="icon-circle">
-        <span class="icon-dollar">$</span>
-      </div>
-      <div class="header-text">
-        <h1 class="brand">FundTrackerAI</h1>
-        <h2 class="tagline">Verified Transaction System</h2>
+    <!-- Header Block -->
+    <div class="header">
+      <div class="icon-box">$</div>
+      <div>
+        <h1>FundTrackerAI</h1>
+        <h2>Verified Transaction System</h2>
       </div>
     </div>
 
-    <!-- CARD -->
-    <div class="card">
+    <!-- Donation Block -->
+    <div class="section-title">Make a Donation</div>
+    <p class="subtext">
+      Every transaction is verified, timestamped, and protected with a SoulMarkⓈ.
+    </p>
 
-      <h2 class="section-title">Make a Donation</h2>
-      <p class="subtext">Your contribution will be securely processed and verified.</p>
+    <button class="btn btn-primary" onclick="startDonation()">
+      Donate $1
+    </button>
 
-      <button id="donateBtn" class="btn-primary">
-        Donate $1.00
-      </button>
-
-      <p id="status" class="status-msg"></p>
-
-    </div>
   </div>
 
   <script>
-    document.getElementById("donateBtn").onclick = async () => {
+    async function startDonation() {
       try {
         const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
           method: "POST",
@@ -48,14 +148,13 @@
         if (data.url) {
           window.location.href = data.url;
         } else {
-          document.getElementById("status").textContent = "Unable to create session.";
+          alert("Unable to start donation.");
         }
-
       } catch (err) {
         console.error(err);
-        document.getElementById("status").textContent = "Error starting donation.";
+        alert("Error connecting to server.");
       }
-    };
+    }
   </script>
 
 </body>
