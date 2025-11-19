@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -19,15 +20,23 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// -----------------------------------------------
-// registry.json is inside /backend in GitHub
-// BUT Render root directory = "backend"
-// So registry.json sits directly in CWD
-// -----------------------------------------------
-const registryFile = path.join(process.cwd(), "registry.json");
+// registry.json is inside /backend/registry.json on GitHub
+const registryFile = path.join(process.cwd(), "backend", "registry.json");
 
-// Log actual path on Render
+// LOG path for Render
 console.log("📁 Registry path:", registryFile);
+
+// ---- SoulMark Generator ----
+function generateSoulMark(sessionId, email) {
+  const hash = crypto
+    .createHash("sha256")
+    .update(sessionId + email + Date.now().toString())
+    .digest("hex")
+    .slice(0, 12)
+    .toUpperCase();
+
+  return `SM-${hash}`;
+}
 
 // ---------- ROOT PING ----------
 app.get("/", (req, res) => {
@@ -71,11 +80,17 @@ app.get("/verify-donation/:id", async (req, res) => {
       return res.json({ verified: false });
     }
 
+    const email = session.customer_details?.email || "unknown";
+
+    // create SoulMark
+    const soulmark = generateSoulMark(session.id, email);
+
     const entry = {
       id: session.id,
       amount: session.amount_total,
-      email: session.customer_details?.email || "unknown",
-      timestamp: new Date().toISOString()
+      email,
+      timestamp: new Date().toISOString(),
+      soulmark
     };
 
     // Append to registry.json
@@ -102,7 +117,7 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- START SERVER ----------
+// ---------- 3. START SERVER ----------
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
