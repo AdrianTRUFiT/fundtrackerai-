@@ -4,7 +4,6 @@ import fs from "fs";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import crypto from "crypto";
 
 dotenv.config();
 
@@ -20,10 +19,10 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is inside /backend/registry.json in GitHub
+// Correct registry.json path
 const registryFile = path.join(process.cwd(), "backend", "registry.json");
 
-// LOG path for Render
+// Log for debugging
 console.log("📁 Registry path:", registryFile);
 
 // ---------- ROOT PING ----------
@@ -42,17 +41,18 @@ app.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: 100
+            unit_amount: 100,
           },
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
-      success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/index.html`
+
+      // ✅ THE FIX — Stripe ONLY replaces the placeholder in a PLAIN STRING
+      success_url: FRONTEND_URL + "/success.html?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: FRONTEND_URL + "/index.html",
     });
 
     res.json({ url: session.url });
-
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
@@ -68,15 +68,11 @@ app.get("/verify-donation/:id", async (req, res) => {
       return res.json({ verified: false });
     }
 
-    // Generate SoulMark ID
-    const soulmark = crypto.randomUUID();
-
     const entry = {
-      soulmark,                                       // ← NEW FIELD HERE
       id: session.id,
       amount: session.amount_total,
       email: session.customer_details?.email || "unknown",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Append to registry.json
@@ -85,14 +81,13 @@ app.get("/verify-donation/:id", async (req, res) => {
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
     res.json({ verified: true, entry });
-
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ---------- READ ALL DONATIONS ----------
+// ---------- 3. READ ALL DONATIONS ----------
 app.get("/donations", (req, res) => {
   try {
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
@@ -103,7 +98,7 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- 3. START SERVER ----------
+// ---------- 4. START SERVER ----------
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
