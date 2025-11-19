@@ -21,7 +21,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 // registry.json is inside backend/
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+const registryFile = path.join(process.cwd(), "registry.json");
 
 // LOG REAL PATH (Render)
 console.log("📁 Registry path:", registryFile);
