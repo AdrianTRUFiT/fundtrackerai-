@@ -19,10 +19,14 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// Correct registry.json path
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+// -----------------------------------------------
+// registry.json is inside /backend in GitHub
+// BUT Render root directory = "backend"
+// So registry.json sits directly in CWD
+// -----------------------------------------------
+const registryFile = path.join(process.cwd(), "registry.json");
 
-// Log for debugging
+// Log actual path on Render
 console.log("📁 Registry path:", registryFile);
 
 // ---------- ROOT PING ----------
@@ -41,18 +45,17 @@ app.post("/create-checkout-session", async (req, res) => {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: 100,
+            unit_amount: 100
           },
-          quantity: 1,
-        },
+          quantity: 1
+        }
       ],
-
-      // ✅ THE FIX — Stripe ONLY replaces the placeholder in a PLAIN STRING
-      success_url: FRONTEND_URL + "/success.html?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: FRONTEND_URL + "/index.html",
+      success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/index.html`
     });
 
     res.json({ url: session.url });
+
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
@@ -72,7 +75,7 @@ app.get("/verify-donation/:id", async (req, res) => {
       id: session.id,
       amount: session.amount_total,
       email: session.customer_details?.email || "unknown",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
 
     // Append to registry.json
@@ -81,13 +84,14 @@ app.get("/verify-donation/:id", async (req, res) => {
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
     res.json({ verified: true, entry });
+
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ---------- 3. READ ALL DONATIONS ----------
+// ---------- READ ALL DONATIONS ----------
 app.get("/donations", (req, res) => {
   try {
     const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
@@ -98,7 +102,7 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- 4. START SERVER ----------
+// ---------- START SERVER ----------
 app.listen(10000, () => {
   console.log("Backend running on port 10000");
 });
