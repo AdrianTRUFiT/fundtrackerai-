@@ -11,17 +11,29 @@ async function verify() {
   const id = params.get("session_id");
 
   if (!id) {
-    document.getElementById("result").innerText = "No session ID found ❌";
+    document.getElementById("result").innerHTML = "No session ID found ❌";
     return;
   }
 
-  const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
-  const data = await res.json();
+  // 🔥 IMPORTANT: This MUST be your Render backend
+  const backend = "https://fundtrackerai.onrender.com";
 
-  if (data.verified) {
-    document.getElementById("result").innerText = "Payment Verified ✔";
-  } else {
-    document.getElementById("result").innerText = "Verification Failed ❌";
+  try {
+    const res = await fetch(`${backend}/verify-donation/${id}`);
+    const data = await res.json();
+
+    if (data.verified) {
+      document.getElementById("result").innerHTML =
+        "<strong>Payment Verified ✔</strong>";
+    } else {
+      document.getElementById("result").innerHTML =
+        "<strong>Verification Failed ❌</strong>";
+    }
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("result").innerHTML =
+      "<strong>Error connecting to server ❌</strong>";
   }
 }
 
