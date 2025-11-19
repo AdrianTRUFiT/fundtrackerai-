@@ -19,8 +19,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// registry.json is inside /backend/registry.json in GitHub
-const registryFile = path.join(process.cwd(), "backend", "registry.json");
+// registry.json is located at /opt/render/project/src/registry.json
+// Because Render runs inside /src automatically.
+const registryFile = path.join(process.cwd(), "registry.json");
 
 // LOG path for Render
 console.log("📁 Registry path:", registryFile);
