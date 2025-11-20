@@ -1,161 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FundTrackerAI — Verified Transaction System</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FundTrackerAI — Donate</title>
 
-  <style>
-    :root {
-      --blue-bg: #041423;
-      --green: #47C28A;
-      --orange: #F8BC07;
-      --card-bg: #0A1D2B;
-      --text-light: #E8EEF2;
-      --text-muted: #9BA8B5;
-      --radius: 16px;
-    }
+<style>
+/* ------------------------------------------------ */
+/* GLOBAL STYLING                                   */
+/* ------------------------------------------------ */
+body {
+  margin: 0;
+  padding: 0;
+  background: #041423;
+  font-family: "Inter", sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
 
-    body {
-      margin: 0;
-      padding: 0;
-      background: var(--blue-bg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: var(--text-light);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 40px 16px;
-    }
+.container {
+  width: 100%;
+  max-width: 450px;
+  background: #062136;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.35);
+}
 
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 32px 28px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.45);
-      animation: fadeIn 0.4s ease-out;
-    }
+/* ------------------------------------------------ */
+/* HEADERS                                          */
+/* ------------------------------------------------ */
+h1 {
+  font-size: 28px;
+  margin-bottom: 0;
+  color: #47C28A;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+.subtext {
+  font-size: 15px;
+  margin-top: 4px;
+  margin-bottom: 24px;
+  opacity: 0.8;
+}
 
-    .header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      gap: 14px;
-    }
+/* ------------------------------------------------ */
+/* FORM                                             */
+/* ------------------------------------------------ */
+label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  display: block;
+}
 
-    .icon-box {
-      background: rgba(71,194,138,0.15);
-      padding: 12px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 22px;
-      color: var(--green);
-    }
+input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  margin-bottom: 18px;
+  background: #0A2A44;
+  color: white;
+}
 
-    h1 {
-      font-size: 1.6rem;
-      margin: 0;
-      color: var(--green);
-      font-weight: 700;
-    }
+input::placeholder {
+  color: rgba(255,255,255,0.45);
+}
 
-    h2 {
-      margin: 2px 0 0;
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
+/* ------------------------------------------------ */
+/* DONATION AMOUNT GRID                             */
+/* ------------------------------------------------ */
+.amount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 25px;
+}
 
-    .section-title {
-      margin-top: 22px;
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
+.amount-btn {
+  padding: 14px 10px;
+  border-radius: 12px;
+  background: #0A2A44;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 2px solid transparent;
+}
 
-    .subtext {
-      margin: 6px 0 20px;
-      font-size: 0.92rem;
-      line-height: 1.45;
-      color: var(--text-muted);
-    }
+.amount-btn.active {
+  background: #F8BC07;
+  color: #041423;
+  border-color: #F8BC07;
+  font-weight: bold;
+}
 
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      margin-top: 20px;
-      transition: 0.15s ease;
-    }
+/* ------------------------------------------------ */
+/* DONATE BUTTON                                    */
+/* ------------------------------------------------ */
+#donateBtn {
+  width: 100%;
+  padding: 18px;
+  background: #47C28A;
+  color: #041423;
+  font-size: 18px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s;
+}
 
-    .btn-primary {
-      background: var(--green);
-      color: #01210F;
-    }
+#donateBtn:hover {
+  background: #3EB17C;
+}
 
-    .btn-primary:hover {
-      background: #3AB77D;
-    }
-  </style>
+/* ------------------------------------------------ */
+/* CUSTOM AMOUNT                                    */
+/* ------------------------------------------------ */
+#customAmountWrapper {
+  display: none;
+}
+</style>
 </head>
 
 <body>
-  <div class="card">
 
-    <!-- Header Block -->
-    <div class="header">
-      <div class="icon-box">$</div>
-      <div>
-        <h1>FundTrackerAI</h1>
-        <h2>Verified Transaction System</h2>
-      </div>
-    </div>
+<div class="container">
+  
+  <h1>FundTrackerAI</h1>
+  <div class="subtext">Verified Transaction System</div>
 
-    <!-- Donation Block -->
-    <div class="section-title">Make a Donation</div>
-    <p class="subtext">
-      Every transaction is verified, timestamped, and protected with a SoulMarkⓈ.
-    </p>
+  <label>Full Name *</label>
+  <input id="name" type="text" placeholder="John Doe" />
 
-    <button class="btn btn-primary" onclick="startDonation()">
-      Donate $1
-    </button>
+  <label>Email Address *</label>
+  <input id="email" type="email" placeholder="you@example.com" />
 
+  <label>Select Amount *</label>
+
+  <div class="amount-grid">
+    <div class="amount-btn" data-value="25">$25</div>
+    <div class="amount-btn" data-value="50">$50</div>
+    <div class="amount-btn" data-value="100">$100</div>
+    <div class="amount-btn" data-value="250">$250</div>
+    <div class="amount-btn" data-value="500">$500</div>
+    <div class="amount-btn" data-value="custom">Custom</div>
   </div>
 
-  <script>
-    async function startDonation() {
-      try {
-        const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
+  <div id="customAmountWrapper">
+    <input id="customAmount" type="number" placeholder="Enter custom amount" min="1" />
+  </div>
 
-        const data = await res.json();
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          alert("Unable to start donation.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Error connecting to server.");
-      }
+  <button id="donateBtn">Donate — SoulMarkⓈ Verified</button>
+
+</div>
+
+
+<script>
+// ----------------------
+// HANDLE AMOUNT SELECTION
+// ----------------------
+let selectedAmount = null;
+
+document.querySelectorAll(".amount-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".amount-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const value = btn.getAttribute("data-value");
+
+    if (value === "custom") {
+      document.getElementById("customAmountWrapper").style.display = "block";
+      selectedAmount = null;
+    } else {
+      document.getElementById("customAmountWrapper").style.display = "none";
+      selectedAmount = parseInt(value);
     }
-  </script>
+  });
+});
+
+// ----------------------
+// DONATE BUTTON HANDLER
+// ----------------------
+document.getElementById("donateBtn").addEventListener("click", async () => {
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const customAmt = document.getElementById("customAmount").value;
+
+  let amountToSend = selectedAmount;
+
+  if (!amountToSend && customAmt) amountToSend = parseInt(customAmt);
+
+  if (!name || !email || !amountToSend) {
+    alert("Please complete all fields and choose an amount.");
+    return;
+  }
+
+  const res = await fetch("YOUR_BACKEND_URL/create-checkout-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      email,
+      amount: amountToSend
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.url) {
+    window.location = data.url;
+  } else {
+    alert("Error creating donation session.");
+  }
+});
+</script>
 
 </body>
 </html>
