@@ -85,7 +85,6 @@
 
       if (!raw) return;
 
-      // basic constraints
       const cleaned = raw.toLowerCase().replace(/[^a-z0-9._-]/g, "");
       if (cleaned !== raw.toLowerCase()) {
         usernameStatus.textContent = "Use letters, numbers, dots, dashes, or underscores.";
@@ -106,16 +105,17 @@
       usernameStatus.textContent = "Checking availability…";
 
       try {
-        const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(name + "@iascendai")}`);
+        const res = await fetch(
+          `${BACKEND_URL}/check-username/${encodeURIComponent(name + "@iascendai")}`
+        );
         const data = await res.json();
 
-        if (name !== lastCheckName) return; // stale check
+        if (name !== lastCheckName) return;
 
-        if (data.available) {
-          usernameStatus.textContent = "✅ Available";
-        } else {
-          usernameStatus.textContent = "❌ Already taken";
-        }
+        usernameStatus.textContent = data.available
+          ? "✅ Available"
+          : "❌ Already taken";
+
       } catch (err) {
         console.error(err);
         usernameStatus.textContent = "Error checking username.";
@@ -139,7 +139,6 @@
       }
 
       const fullUsername = `${uname}@iascendai`;
-
       registerStatus.textContent = "Creating your identity…";
 
       try {
@@ -169,6 +168,7 @@
         } catch (e) {}
 
         registerStatus.textContent = "Identity created. Redirecting to dashboard…";
+
         setTimeout(() => {
           window.location.href = "iascendai-dashboard.html";
         }, 600);
