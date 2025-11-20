@@ -72,8 +72,10 @@
       const totalCountEl = document.getElementById("rcptTotalCount");
       const totalAmountEl = document.getElementById("rcptTotalAmount");
 
-      const identityEmail = localStorage.getItem("ias_email") ||
-                            localStorage.getItem("fta_email") || "";
+      const identityEmail =
+        localStorage.getItem("ias_email") ||
+        localStorage.getItem("fta_email") ||
+        "";
 
       if (!identityEmail) {
         tbody.innerHTML = "<tr><td colspan='3'>No identity email found on this device.</td></tr>";
@@ -105,14 +107,18 @@
           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
           .map(d => {
             const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
-            const when = d.timestamp ? new Date(d.timestamp).toLocaleString() : "N/A";
-            return `<tr>
-              <td>${amt}</td>
-              <td>${when}</td>
-              <td class="truncate" title="${d.soulmark || ""}">
-                ${maskSoulmark(d.soulmark)}
-              </td>
-            </tr>`;
+            const when = d.timestamp
+              ? new Date(d.timestamp).toLocaleString()
+              : "N/A";
+
+            return `
+              <tr>
+                <td>${amt}</td>
+                <td>${when}</td>
+                <td class="truncate" title="${d.soulmark || ""}">
+                  ${maskSoulmark(d.soulmark)}
+                </td>
+              </tr>`;
           })
           .join("");
 
