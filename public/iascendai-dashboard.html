@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>iAscendAi — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- TOP IDENTITY CARD -->
+    <div class="identity-card">
+      <div class="logo">iA</div>
+      <div class="id-text">
+        <h1>iAscendAi</h1>
+        <h2>The Trust Engine</h2>
+        <p class="welcome">Welcome, <span id="username">Friend</span>!</p>
+        <p class="streak">🔥 <span id="streakDays">1</span> day streak</p>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD TILES -->
+    <div class="tile-grid">
+
+      <div class="tile" onclick="goto('iascendai-dashboard-soulmark.html')">
+        <div class="emoji">🔐</div>
+        <h3>Your SoulMarks</h3>
+        <p>View, verify, and manage your authored identity.</p>
+      </div>
+
+      <div class="tile" onclick="goto('iascendai-dashboard-jwr.html')">
+        <div class="emoji">💛</div>
+        <h3>Jamaica We Rise</h3>
+        <p>See your contribution impact and updates.</p>
+      </div>
+
+      <div class="tile" onclick="goto('iascendai-dashboard-travel.html')">
+        <div class="emoji">🌍</div>
+        <h3>TravelFlow</h3>
+        <p>Your travel identity, protection, and alerts.</p>
+      </div>
+
+      <div class="tile" onclick="goto('iascendai-dashboard-checkin.html')">
+        <div class="emoji">✨</div>
+        <h3>Daily Check-In</h3>
+        <p>Your emotional presence log.</p>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+
+  </div>
+
+<script>
+  function goto(page) {
+    window.location.href = page;
+  }
+
+  function logout() {
+    localStorage.removeItem("iascendai_user");
+    window.location.href = "index.html";
+  }
+
+  // Load username (if any)
+  const user = JSON.parse(localStorage.getItem("iascendai_user"));
+  if (user && user.username) {
+    document.getElementById("username").textContent = user.username;
+  }
+</script>
+
+</body>
+</html>
