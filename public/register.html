@@ -2,43 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FundTrackerAI — Create Username</title>
+  <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    .form-field {
-      margin-top: 14px;
-      margin-bottom: 10px;
-    }
-    .form-field label {
-      display: block;
-      font-size: 0.85rem;
-      color: #b9c5d1;
-      margin-bottom: 4px;
-    }
-    .form-field input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #243b53;
-      background: #0a1b2b;
-      color: #ffffff;
-      font-size: 0.95rem;
-    }
-    .form-field input::placeholder {
-      color: #6b7280;
-    }
-    .muted {
-      color: #9ca3af;
-    }
-  </style>
 </head>
 
 <body>
   <div class="app-shell">
     <div class="card">
 
-      <!-- BRAND HEADER -->
+      <!-- HEADER -->
       <div class="brand-row">
         <div class="brand-mark">$</div>
         <div>
@@ -49,136 +22,58 @@
 
       <h2>Create Your iAscendAi Username</h2>
       <p class="subtext">
-        Link this device to your verified donation and unlock your
-        SoulMarkⓈ-backed dashboard. No passwords — just this device.
+        Link this device to your verified donation and unlock your SoulMarkⓈ-backed dashboard.
+        No passwords — just this device.
       </p>
 
-      <!-- Fallback if no donation found -->
-      <div id="noDonation" style="display:none; margin-top:16px;">
-        <p class="info">
-          We couldn’t find a recent verified donation on this device.
-          Please complete a donation first, then return here.
-        </p>
-        <button class="btn-secondary" onclick="window.location.href='index.html'">
-          Back to Donate
-        </button>
-      </div>
+      <!-- VERIFIED EMAIL -->
+      <p class="label">Verified Email</p>
+      <div id="emailChip" class="chip"></div>
 
-      <!-- MAIN REGISTER BLOCK -->
-      <div id="formBlock" style="display:none;">
+      <!-- LAST DONATION -->
+      <p class="label" style="margin-top:18px;">Last Donation</p>
+      <div id="donationText" class="value"></div>
 
-        <p class="label">Verified Email</p>
-        <div id="emailDisplay" class="chip"></div>
+      <!-- PROGRESS MESSAGE -->
+      <p class="info" style="margin-top:20px;">
+        Tap below to continue. Your username will be created on the next step.
+      </p>
 
-        <p class="label">Last Donation</p>
-        <div id="amountDisplay" class="value"></div>
-
-        <div class="form-field">
-          <label for="username">Choose Username</label>
-          <input
-            id="username"
-            type="text"
-            placeholder="yourname"
-            autocomplete="off"
-          />
-        </div>
-
-        <button id="registerBtn" class="btn">
-          Create My iAscendAi Username
-        </button>
-
-        <p class="muted" style="margin-top:10px; font-size:0.8rem;">
-          This creates a passwordless, device-bound login for your SoulMarkⓈ
-          records. You can add more campaigns under the same identity later.
-        </p>
-      </div>
+      <!-- CTA BUTTON -->
+      <button class="btn" onclick="continueToIdentity()">
+        Continue — Create My iAscendAi Username →
+      </button>
 
     </div>
   </div>
 
-  <script>
-    function maskEmail(email) {
-      if (!email) return "unknown";
-      const parts = email.split("@");
-      if (parts.length !== 2) return email;
-      const [user, domain] = parts;
-      return user[0] + "•••@" + domain;
-    }
+<script>
+  // Utility to mask email
+  function maskEmail(email) {
+    if (!email) return "unknown";
+    const [user, domain] = email.split("@");
+    return user[0] + "•••@" + domain;
+  }
 
-    // Pull the last verified donation from success.html
-    const lastDonation = (() => {
-      try {
-        const raw = localStorage.getItem("fta_lastDonation");
-        return raw ? JSON.parse(raw) : null;
-      } catch (e) {
-        console.warn("Could not read last donation:", e);
-        return null;
-      }
-    })();
+  // Extract donation + email from URL
+  window.onload = () => {
+    const params = new URLSearchParams(window.location.search);
 
-    const noDonation = document.getElementById("noDonation");
-    const formBlock = document.getElementById("formBlock");
+    const email = params.get("email");
+    const amount = params.get("amount");
 
-    if (!lastDonation) {
-      // No prior verified donation — show fallback
-      noDonation.style.display = "block";
-      formBlock.style.display = "none";
-    } else {
-      // Show donation summary
-      formBlock.style.display = "block";
-      noDonation.style.display = "none";
+    document.getElementById("emailChip").textContent = maskEmail(email);
+    document.getElementById("donationText").textContent =
+      amount ? "$" + Number(amount).toFixed(2) : "$0.00";
+  };
 
-      document.getElementById("emailDisplay").textContent =
-        maskEmail(lastDonation.email);
-
-      document.getElementById("amountDisplay").textContent =
-        "$" + ((lastDonation.amount || 0) / 100).toFixed(2);
-    }
-
-    document.getElementById("registerBtn").addEventListener("click", async () => {
-      if (!lastDonation) return;
-
-      const username = document.getElementById("username").value.trim();
-      if (!username) {
-        alert("Please choose a username.");
-        return;
-      }
-
-      try {
-        const res = await fetch("https://fundtrackerai.onrender.com/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username,
-            email: lastDonation.email,
-            soulmark: lastDonation.soulmark
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          alert(data.error || "Registration failed.");
-          return;
-        }
-
-        // Save identity + device token locally (Option 1 passwordless)
-        try {
-          localStorage.setItem("fta_user", JSON.stringify(data.user));
-          localStorage.setItem("fta_token", data.token);
-        } catch (e) {
-          console.warn("Could not persist token locally:", e);
-        }
-
-        // Send them to the dashboard
-        window.location.href = "dashboard.html";
-
-      } catch (err) {
-        console.error("Register error:", err);
-        alert("Error registering username. Please try again.");
-      }
-    });
-  </script>
+  // GO TO FULL IDENTITY CREATION PAGE
+  function continueToIdentity() {
+    // Pass along what we know (email + amount)
+    const params = new URLSearchParams(window.location.search);
+    window.location.href = "identity.html?" + params.toString();
+  }
+</script>
 
 </body>
 </html>
