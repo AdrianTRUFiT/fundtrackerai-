@@ -1,6 +1,5 @@
 // -----------------------------------------------
-// FundTrackerAI Backend — Donation + Identity Engine
-// JSON Registry Version (Backend B)
+// FundTrackerAI Backend — Donations + Identity
 // -----------------------------------------------
 
 import express from "express";
@@ -15,76 +14,83 @@ import { fileURLToPath } from "url";
 dotenv.config();
 
 // -----------------------------------------------
-// 0. APP SETUP
+// 0. APP + ENV SETUP
 // -----------------------------------------------
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ENV VARS
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL;
-const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
+const SOULMARK_SECRET = process.env.SOULMARK_SECRET || "change-me";
 
 if (!STRIPE_SECRET_KEY || !FRONTEND_URL || !SOULMARK_SECRET) {
-  console.warn("⚠️ Missing env vars: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET");
+  console.warn(
+    "⚠️  Missing env vars. Required: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET"
+  );
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// Resolve path relative to THIS FILE
+// ESM-friendly __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// registry.json lives next to server.js
+// registry.json lives NEXT TO server.js
 const registryFile = path.join(__dirname, "registry.json");
+console.log("📁 Registry path:", registryFile);
 
 // -----------------------------------------------
-// 1. Ensure registry.json is valid
+// 1. REGISTRY HELPERS
 // -----------------------------------------------
 function ensureRegistry() {
   try {
     if (!fs.existsSync(registryFile)) {
-      console.log("🆕 Creating fresh registry.json");
-      fs.writeFileSync(
-        registryFile,
-        JSON.stringify({ donations: [], identities: [] }, null, 2),
-        "utf8"
-      );
+      console.log("🆕 Creating new registry.json");
+      const initial = { donations: [], identities: [] };
+      fs.writeFileSync(registryFile, JSON.stringify(initial, null, 2), "utf8");
       return;
     }
 
     const raw = fs.readFileSync(registryFile, "utf8");
     const parsed = JSON.parse(raw);
 
-    if (!parsed.donations) parsed.donations = [];
-    if (!parsed.identities) parsed.identities = [];
+    // If old format, upgrade it
+    if (!parsed.donations || !Array.isArray(parsed.donations)) {
+      parsed.donations = [];
+    }
+    if (!parsed.identities || !Array.isArray(parsed.identities)) {
+      parsed.identities = [];
+    }
 
-    fs.writeFileSync(registryFile, JSON.stringify(parsed, null, 2));
-
-  } catch (err) {
-    console.error("⚠️ registry.json corrupted — resetting.", err);
     fs.writeFileSync(
       registryFile,
-      JSON.stringify({ donations: [], identities: [] }, null, 2),
+      JSON.stringify(
+        { donations: parsed.donations, identities: parsed.identities },
+        null,
+        2
+      ),
       "utf8"
     );
+  } catch (err) {
+    console.error("⚠️ registry.json invalid, resetting:", err.message);
+    const fallback = { donations: [], identities: [] };
+    fs.writeFileSync(registryFile, JSON.stringify(fallback, null, 2), "utf8");
   }
 }
 
-ensureRegistry();
-
-// -----------------------------------------------
-// Helpers
-// -----------------------------------------------
 function readRegistry() {
   ensureRegistry();
-  return JSON.parse(fs.readFileSync(registryFile, "utf8"));
+  const raw = fs.readFileSync(registryFile, "utf8");
+  return JSON.parse(raw);
 }
 
 function writeRegistry(data) {
-  fs.writeFileSync(registryFile, JSON.stringify(data, null, 2));
+  fs.writeFileSync(registryFile, JSON.stringify(data, null, 2), "utf8");
 }
+
+// Run once at startup
+ensureRegistry();
 
 // -----------------------------------------------
 // 2. ROOT PING
@@ -100,31 +106,32 @@ app.post("/create-checkout-session", async (req, res) => {
   try {
     const { name, email, amount } = req.body;
 
-    if (!name || !email || !amount) {
-      return res.status(400).json({ error: "Missing name, email, or amount" });
+    if (!name || !email || !amount || amount < 1) {
+      return res
+        .status(400)
+        .json({ error: "Name, email, and valid amount are required." });
     }
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer_email: email,
       payment_method_types: ["card"],
+      customer_email: email,
       line_items: [
         {
           price_data: {
             currency: "usd",
-            product_data: { name: "Donation" },
-            unit_amount: amount * 100
+            product_data: { name: "FundTrackerAI Donation" },
+            unit_amount: amount * 100, // dollars → cents
           },
-          quantity: 1
-        }
+          quantity: 1,
+        },
       ],
+      metadata: { name },
       success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${FRONTEND_URL}/index.html`,
-      metadata: { name }
     });
 
     res.json({ url: session.url });
-
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
@@ -136,16 +143,31 @@ app.post("/create-checkout-session", async (req, res) => {
 // -----------------------------------------------
 app.get("/verify-donation/:id", async (req, res) => {
   try {
-    const session = await stripe.checkout.sessions.retrieve(req.params.id);
-
-    if (!session || session.payment_status !== "paid") {
-      return res.json({ verified: false });
+    const sessionId = req.params.id;
+    if (!sessionId) {
+      return res.json({ verified: false, reason: "missing_session_id" });
     }
 
-    const name = session.metadata?.name || "";
-    const email = session.customer_details?.email || "unknown";
-    const amount = session.amount_total;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
+    if (!session || session.payment_status !== "paid") {
+      return res.json({ verified: false, reason: "unpaid_or_missing" });
+    }
+
+    const registry = readRegistry();
+
+    // Idempotency: if already recorded, just return existing entry
+    const existing = registry.donations.find((d) => d.id === session.id);
+    if (existing) {
+      return res.json({ verified: true, entry: existing });
+    }
+
+    const email =
+      session.customer_details?.email ||
+      session.customer_email ||
+      "unknown@example.com";
+    const name = session.metadata?.name || "Donor";
+    const amount = session.amount_total || 0;
     const now = new Date().toISOString();
     const nonce = crypto.randomUUID();
 
@@ -156,21 +178,19 @@ app.get("/verify-donation/:id", async (req, res) => {
 
     const entry = {
       id: session.id,
-      name,
       email,
+      name,
       amount,
       timestamp: now,
       soulmark,
       username_created: false,
-      identity_username: null
+      identity_username: null,
     };
 
-    const data = readRegistry();
-    data.donations.push(entry);
-    writeRegistry(data);
+    registry.donations.push(entry);
+    writeRegistry(registry);
 
     res.json({ verified: true, entry });
-
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
@@ -178,101 +198,140 @@ app.get("/verify-donation/:id", async (req, res) => {
 });
 
 // -----------------------------------------------
-// 5. USERNAME CHECK
+// 5. USERNAME + IDENTITY ENDPOINTS
 // -----------------------------------------------
+
+// GET /check-username/:username
+// username is full form, e.g. "jane@iascendai"
 app.get("/check-username/:username", (req, res) => {
-  const username = req.params.username.toLowerCase();
-  const data = readRegistry();
+  try {
+    const rawUsername = req.params.username;
+    if (!rawUsername) {
+      return res
+        .status(400)
+        .json({ available: false, message: "Username required." });
+    }
 
-  const exists = data.identities.some(
-    (u) => u.username.toLowerCase() === username
-  );
+    const username = rawUsername.toLowerCase();
+    const registry = readRegistry();
 
-  res.json({ available: !exists });
+    const taken = registry.identities.some(
+      (i) => (i.username || "").toLowerCase() === username
+    );
+
+    res.json({ available: !taken });
+  } catch (err) {
+    console.error("CHECK USERNAME ERROR:", err);
+    res.status(500).json({ available: false, message: "Server error." });
+  }
 });
 
-// -----------------------------------------------
-// 6. REGISTER USERNAME
-// -----------------------------------------------
+// POST /register-username
+// body: { email, username, soulmark }
 app.post("/register-username", (req, res) => {
-  const { email, username, soulmark } = req.body;
+  try {
+    const { email, username, soulmark } = req.body;
 
-  if (!email || !username || !soulmark) {
-    return res.status(400).json({ success: false, message: "Missing fields." });
-  }
-
-  const data = readRegistry();
-
-  const taken = data.identities.find(
-    (u) =>
-      u.username.toLowerCase() === username.toLowerCase() &&
-      u.email.toLowerCase() !== email.toLowerCase()
-  );
-
-  if (taken) {
-    return res.status(409).json({ success: false, message: "Username taken." });
-  }
-
-  let identity = data.identities.find(
-    (i) => i.email.toLowerCase() === email.toLowerCase()
-  );
-
-  if (!identity) {
-    identity = {
-      identity_id: "ias-" + crypto.randomUUID(),
-      email,
-      username,
-      soulmarks: [soulmark],
-      registered_since: new Date().toISOString()
-    };
-    data.identities.push(identity);
-  } else {
-    identity.username = username;
-    if (!identity.soulmarks.includes(soulmark)) {
-      identity.soulmarks.push(soulmark);
+    if (!email || !username || !soulmark) {
+      return res.status(400).json({
+        success: false,
+        message: "email, username, and soulmark are required.",
+      });
     }
+
+    const cleanUsername = String(username).toLowerCase();
+    const cleanEmail = String(email).toLowerCase();
+
+    const registry = readRegistry();
+
+    // 1. Prevent username hijack by different email
+    const usernameOwner = registry.identities.find(
+      (i) => (i.username || "").toLowerCase() === cleanUsername
+    );
+    if (usernameOwner && usernameOwner.email.toLowerCase() !== cleanEmail) {
+      return res.status(409).json({
+        success: false,
+        message: "Username is already taken by another identity.",
+      });
+    }
+
+    // 2. Find or create identity by email
+    let identity = registry.identities.find(
+      (i) => (i.email || "").toLowerCase() === cleanEmail
+    );
+    let created = false;
+
+    if (!identity) {
+      identity = {
+        identity_id: `ias-id-${crypto.randomUUID()}`,
+        username: cleanUsername,
+        email,
+        soulmarks: [soulmark],
+        registered_since: new Date().toISOString(),
+      };
+      registry.identities.push(identity);
+      created = true;
+    } else {
+      identity.username = cleanUsername; // allow upgrade to username
+      if (!identity.soulmarks.includes(soulmark)) {
+        identity.soulmarks.push(soulmark);
+      }
+    }
+
+    // 3. Update all donations for this email
+    let updatedCount = 0;
+    registry.donations.forEach((d) => {
+      if ((d.email || "").toLowerCase() === cleanEmail) {
+        d.username_created = true;
+        d.identity_username = cleanUsername;
+        updatedCount++;
+      }
+    });
+
+    writeRegistry(registry);
+
+    console.log(
+      `✅ Identity ${created ? "created" : "updated"} for ${email}. Donations updated: ${updatedCount}`
+    );
+
+    res.status(created ? 201 : 200).json({
+      success: true,
+      message: created
+        ? "Identity created successfully."
+        : "Identity updated successfully.",
+      identity: {
+        ias_username: identity.username,
+        ias_email: identity.email,
+        ias_soulmark: soulmark,
+        ias_identity_id: identity.identity_id,
+      },
+    });
+  } catch (err) {
+    console.error("REGISTER USERNAME ERROR:", err);
+    res.status(500).json({ success: false, message: "Server error." });
   }
-
-  data.donations.forEach((d) => {
-    if (d.email.toLowerCase() === email.toLowerCase()) {
-      d.username_created = true;
-      d.identity_username = username;
-    }
-  });
-
-  writeRegistry(data);
-
-  res.json({
-    success: true,
-    identity: {
-      username,
-      email,
-      soulmark,
-      identity_id: identity.identity_id
-    }
-  });
 });
 
 // -----------------------------------------------
-// 7. READ DONATIONS (User Receipts Page)
+// 6. DONATION REGISTRY READ (for dashboards)
 // -----------------------------------------------
 app.get("/donations", (req, res) => {
-  const data = readRegistry();
-  res.json(data.donations);
+  try {
+    const registry = readRegistry();
+    res.json({ donations: registry.donations || [] });
+  } catch (err) {
+    console.error("READ DONATIONS ERROR:", err);
+    res.status(500).json({ error: "Failed to read registry" });
+  }
 });
 
-// -----------------------------------------------
-// 8. READ IDENTITIES (Soul Registry Page)
-// -----------------------------------------------
-app.get("/identities", (req, res) => {
-  const data = readRegistry();
-  res.json(data.identities);
-});
+// (Optional) expose identities list internally later if needed.
+// For now we keep it private, so no /identities route.
 
 // -----------------------------------------------
-// 9. START SERVER
+// 7. START SERVER
 // -----------------------------------------------
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`);
+  console.log(`🚀 FundTrackerAI backend running on port ${PORT}`);
 });
