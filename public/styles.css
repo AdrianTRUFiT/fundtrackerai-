@@ -79,34 +79,47 @@ body {
 }
 
 /* ------------------------------
-   BUTTONS
+   BUTTONS (NEW PREMIUM STYLE)
 ------------------------------ */
-.btn {
-  display: inline-block;
+
+/* PRIMARY — Reveal SoulMark */
+.btn-primary {
   width: 100%;
-  text-align: center;
-  padding: 12px 16px;
-  margin-top: 16px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-  border: none;
   background: #47C28A;
   color: #041423;
+  border: none;
+  padding: 14px 18px;
+  font-size: 1rem;
+  border-radius: 14px;
+  margin-top: 18px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(71, 194, 138, 0.25);
+  transition: 0.2s ease;
 }
 
-.btn:hover {
-  background: #38ad77;
+.btn-primary:hover {
+  background: #3BB17C;
 }
 
+/* SECONDARY — Back to Donate */
 .btn-secondary {
-  background: #F8BC07;
-  color: #041423;
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  color: #F8BC07;
+  border: 1px solid rgba(255,255,255,0.13);
+  padding: 14px 18px;
+  font-size: 1rem;
+  border-radius: 14px;
+  margin-top: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  transition: 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: #e4a404;
+  background: rgba(255,255,255,0.15);
 }
 
 /* ------------------------------
