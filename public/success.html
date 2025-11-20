@@ -31,19 +31,19 @@
         <p class="label">Email</p>
         <div id="emailChip" class="chip"></div>
 
-        <p class="label">Amount</p>
-        <div id="amountText" class="value"></div>
+        <p class="label" style="margin-top:14px;">Amount</p>
+        <div id="amountText" class="value" style="font-weight:600;"></div>
 
-        <p class="label">Reference ID</p>
-        <div id="refText" class="value"></div>
+        <p class="label" style="margin-top:14px;">Reference ID</p>
+        <div id="refText" class="value" style="font-weight:500;"></div>
 
-        <p class="info">
+        <p class="info" style="margin-top:20px; line-height:1.45; color:#b9c5d1;">
           To access your full verified SoulMarkⓈ and real-time impact dashboard,
           create your iAscendAi username below.
         </p>
       </div>
 
-      <!-- SIGN UP CTA -->
+      <!-- SIGNUP CTA -->
       <button id="signupBtn" class="btn-primary" style="display:none;"
         onclick="window.location.href='register.html'">
         Reveal My Verified SoulMarkⓈ →
@@ -98,6 +98,7 @@
 
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
+
         } else {
           statusEl.textContent = "Verification Failed ❌";
           statusEl.classList.add("fail");
