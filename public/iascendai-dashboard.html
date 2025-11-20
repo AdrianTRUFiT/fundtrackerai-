@@ -2,77 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>iAscendAi — Dashboard</title>
+  <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
   <div class="app-shell">
+    <div class="card">
 
-    <!-- TOP IDENTITY CARD -->
-    <div class="identity-card">
-      <div class="logo">iA</div>
-      <div class="id-text">
-        <h1>iAscendAi</h1>
-        <h2>The Trust Engine</h2>
-        <p class="welcome">Welcome, <span id="username">Friend</span>!</p>
-        <p class="streak">🔥 <span id="streakDays">1</span> day streak</p>
-      </div>
-    </div>
-
-    <!-- MAIN DASHBOARD TILES -->
-    <div class="tile-grid">
-
-      <div class="tile" onclick="goto('iascendai-dashboard-soulmark.html')">
-        <div class="emoji">🔐</div>
-        <h3>Your SoulMarks</h3>
-        <p>View, verify, and manage your authored identity.</p>
+      <!-- BRAND HEADER -->
+      <div class="brand-row">
+        <div class="brand-mark">$</div>
+        <div>
+          <h1>FundTrackerAI</h1>
+          <h2>Verified Transaction System</h2>
+        </div>
       </div>
 
-      <div class="tile" onclick="goto('iascendai-dashboard-jwr.html')">
-        <div class="emoji">💛</div>
-        <h3>Jamaica We Rise</h3>
-        <p>See your contribution impact and updates.</p>
-      </div>
+      <h2>Create Your iAscendAi Username</h2>
+      <p class="subtext">
+        Link this device to your verified donation and unlock your
+        SoulMarkⓈ-backed dashboard.  
+        No passwords — just this device.
+      </p>
 
-      <div class="tile" onclick="goto('iascendai-dashboard-travel.html')">
-        <div class="emoji">🌍</div>
-        <h3>TravelFlow</h3>
-        <p>Your travel identity, protection, and alerts.</p>
-      </div>
+      <p class="label">Verified Email</p>
+      <div id="emailChip" class="chip">unknown</div>
 
-      <div class="tile" onclick="goto('iascendai-dashboard-checkin.html')">
-        <div class="emoji">✨</div>
-        <h3>Daily Check-In</h3>
-        <p>Your emotional presence log.</p>
-      </div>
+      <p class="label">Last Donation</p>
+      <div id="amountText" class="value">$0.00</div>
+
+      <p class="label" style="margin-top:20px;">Ready?</p>
+      <p class="info">
+        Tap below to continue.  
+        Your username will be created on the next step in your iAscendAi dashboard.
+      </p>
+
+      <!-- CTA -->
+      <button id="continueBtn" class="btn-primary">
+        Continue — Create My iAscendAi Username →
+      </button>
 
     </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-      <button class="logout-btn" onclick="logout()">Log Out</button>
-    </div>
-
   </div>
 
-<script>
-  function goto(page) {
-    window.location.href = page;
-  }
+  <script>
+    function maskEmail(email) {
+      if (!email) return "unknown";
+      const [u, d] = email.split("@");
+      return u[0] + "•••@" + d;
+    }
 
-  function logout() {
-    localStorage.removeItem("iascendai_user");
-    window.location.href = "index.html";
-  }
+    // Load localStorage
+    try {
+      const email = localStorage.getItem("fta_email") || "";
+      const amount = Number(localStorage.getItem("fta_amount") || 0);
 
-  // Load username (if any)
-  const user = JSON.parse(localStorage.getItem("iascendai_user"));
-  if (user && user.username) {
-    document.getElementById("username").textContent = user.username;
-  }
-</script>
+      document.getElementById("emailChip").textContent = maskEmail(email);
+      document.getElementById("amountText").textContent =
+        "$" + (amount / 100).toFixed(2);
+    } catch (e) {
+      console.warn("localStorage error:", e);
+    }
+
+    // Redirect to main dashboard
+    document.getElementById("continueBtn").onclick = () => {
+      window.location.href = "iascendai-dashboard.html";
+    };
+  </script>
 
 </body>
 </html>
