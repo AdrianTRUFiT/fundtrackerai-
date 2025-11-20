@@ -28,12 +28,19 @@
       <!-- BASIC RECEIPT — SAFE TO SHOW PUBLICLY -->
       <div id="details" style="margin-top:16px; display:none;">
 
-        <p class="label">Email</p>
+        <!-- NAME -->
+        <p class="label">Name</p>
+        <div id="nameText" class="value" style="font-weight:600;"></div>
+
+        <!-- EMAIL -->
+        <p class="label" style="margin-top:14px;">Email</p>
         <div id="emailChip" class="chip"></div>
 
+        <!-- AMOUNT -->
         <p class="label" style="margin-top:14px;">Amount</p>
         <div id="amountText" class="value" style="font-weight:600;"></div>
 
+        <!-- REFERENCE ID -->
         <p class="label" style="margin-top:14px;">Reference ID</p>
         <div id="refText" class="value" style="font-weight:500;"></div>
 
@@ -43,7 +50,7 @@
         </p>
       </div>
 
-      <!-- SIGNUP CTA -->
+      <!-- SIGN UP CTA -->
       <button id="signupBtn" class="btn-primary" style="display:none;"
         onclick="window.location.href='register.html'">
         Reveal My Verified SoulMarkⓈ →
@@ -87,12 +94,19 @@
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
+          // NEW: NAME FIELD
+          document.getElementById("nameText").textContent =
+            entry.name ? entry.name : "Donor";
+
+          // MASKED EMAIL
           document.getElementById("emailChip").textContent =
             maskEmail(entry.email);
 
+          // AMOUNT
           document.getElementById("amountText").textContent =
             "$" + (entry.amount / 100).toFixed(2);
 
+          // TRUNCATED SOULMARK
           document.getElementById("refText").textContent =
             entry.soulmark.substring(0, 10) + "••••••••";
 
