@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Soul Registry — iAscendAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card">
+
+      <div class="brand-row">
+        <div class="brand-mark">Ⓢ</div>
+        <div>
+          <h1>Soul Registry</h1>
+          <h2>Verify Authored SoulMarksⓈ</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        Paste a full SoulMarkⓈ below to verify that it exists in the FundTrackerAI ledger
+        and see its public-facing metadata.
+      </p>
+
+      <label class="label">SoulMarkⓈ</label>
+      <input id="smInput" type="text" placeholder="Paste full SoulMark here" />
+
+      <button class="btn-primary" id="lookupBtn">
+        Verify SoulMarkⓈ
+      </button>
+
+      <p id="lookupStatus" class="small-label" style="margin-top:10px;"></p>
+
+      <div id="resultBox" class="dash-card" style="display:none; margin-top:18px;">
+        <div class="dash-title">Lookup Result</div>
+
+        <p class="label">SoulMarkⓈ</p>
+        <div id="resSoulmark" class="value" style="word-wrap:break-word;"></div>
+
+        <p class="label">Linked Username</p>
+        <div id="resUsername" class="value"></div>
+
+        <p class="label">Owner Email (masked)</p>
+        <div id="resEmail" class="value"></div>
+
+        <p class="label">Amount</p>
+        <div id="resAmount" class="value"></div>
+
+        <p class="label">Timestamp</p>
+        <div id="resTime" class="value"></div>
+      </div>
+
+      <button class="btn-secondary" style="margin-top:16px;" onclick="goBack()">
+        Back to iAscendAi Dashboard
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    function maskEmail(email) {
+      if (!email) return "unknown";
+      const [u, d] = email.split("@");
+      return u[0] + "•••@" + d;
+    }
+
+    document.getElementById("lookupBtn").addEventListener("click", lookup);
+    document.getElementById("smInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") lookup();
+    });
+
+    async function lookup() {
+      const sm = document.getElementById("smInput").value.trim();
+      const statusEl = document.getElementById("lookupStatus");
+      const box = document.getElementById("resultBox");
+
+      box.style.display = "none";
+      statusEl.textContent = "";
+
+      if (!sm) {
+        statusEl.textContent = "Please paste a SoulMarkⓈ.";
+        return;
+      }
+
+      statusEl.textContent = "Searching registry…";
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/donations`);
+        const data = await res.json();
+        const donations = data.donations || [];
+
+        const match = donations.find(d => d.soulmark === sm);
+
+        if (!match) {
+          statusEl.textContent = "No record found for this SoulMarkⓈ.";
+          return;
+        }
+
+        statusEl.textContent = "SoulMarkⓈ verified.";
+        box.style.display = "block";
+
+        document.getElementById("resSoulmark").textContent = match.soulmark;
+        document.getElementById("resUsername").textContent =
+          match.identity_username || "Not yet claimed";
+        document.getElementById("resEmail").textContent = maskEmail(match.email);
+        document.getElementById("resAmount").textContent =
+          "$" + ((match.amount || 0) / 100).toFixed(2);
+        document.getElementById("resTime").textContent =
+          match.timestamp ? new Date(match.timestamp).toLocaleString() : "N/A";
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Error reading registry.";
+      }
+    }
+
+    function goBack() {
+      window.location.href = "iascendai-dashboard.html";
+    }
+  </script>
+</body>
+</html>
