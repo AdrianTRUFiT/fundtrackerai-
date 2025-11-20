@@ -21,26 +21,35 @@
       </div>
 
       <h2>Payment Status</h2>
-      <p class="subtext">Your transaction has been processed and verified.</p>
+      <p class="subtext">Your transaction has been securely processed.</p>
 
       <div id="statusText" class="status">Checking...</div>
 
+      <!-- BASIC RECEIPT — SAFE TO SHOW PUBLICLY -->
       <div id="details" style="margin-top:16px; display:none;">
-        <div class="chip" id="emailChip"></div>
 
-        <p style="margin-top:10px; font-size:0.85rem; color:#b9c5d1;">Amount</p>
-        <div id="amountText" style="font-weight:600;"></div>
+        <p class="label">Email</p>
+        <div id="emailChip" class="chip"></div>
 
-        <p style="margin-top:14px; font-size:0.85rem; color:#b9c5d1;">SoulMarkⓈ</p>
-        <code id="soulmarkText" style="font-size:0.72rem; word-break:break-all;"></code>
+        <p class="label">Amount</p>
+        <div id="amountText" class="value"></div>
+
+        <p class="label">Reference ID</p>
+        <div id="refText" class="value"></div>
+
+        <p class="info">
+          To access your full verified SoulMarkⓈ and real-time impact dashboard,
+          create your iAscendAi username below.
+        </p>
       </div>
 
-      <button class="btn-secondary" id="dashboardBtn" style="display:none; margin-top:20px;"
-        onclick="window.location.href='dashboard.html'">
-        View Donation Dashboard
+      <!-- SIGN UP CTA -->
+      <button id="signupBtn" class="btn-primary" style="display:none;"
+        onclick="window.location.href='register.html'">
+        Reveal My Verified SoulMarkⓈ →
       </button>
 
-      <button class="btn" onclick="window.location.href='index.html'">
+      <button class="btn-secondary" onclick="window.location.href='index.html'">
         Back to Donate
       </button>
 
@@ -48,13 +57,19 @@
   </div>
 
   <script>
+    function maskEmail(email) {
+      if (!email) return "unknown";
+      const [user, domain] = email.split("@");
+      return user[0] + "•••@" + domain;
+    }
+
     async function verify() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("session_id");
 
       const statusEl = document.getElementById("statusText");
       const detailsEl = document.getElementById("details");
-      const dashBtn = document.getElementById("dashboardBtn");
+      const signupBtn = document.getElementById("signupBtn");
 
       if (!id) {
         statusEl.textContent = "Invalid session ❌";
@@ -72,14 +87,17 @@
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
-          document.getElementById("emailChip").textContent = entry.email;
+          document.getElementById("emailChip").textContent =
+            maskEmail(entry.email);
+
           document.getElementById("amountText").textContent =
             "$" + (entry.amount / 100).toFixed(2);
-          document.getElementById("soulmarkText").textContent = entry.soulmark;
+
+          document.getElementById("refText").textContent =
+            entry.soulmark.substring(0, 10) + "••••••••";
 
           detailsEl.style.display = "block";
-          dashBtn.style.display = "block";
-
+          signupBtn.style.display = "block";
         } else {
           statusEl.textContent = "Verification Failed ❌";
           statusEl.classList.add("fail");
@@ -93,5 +111,6 @@
 
     verify();
   </script>
+
 </body>
 </html>
