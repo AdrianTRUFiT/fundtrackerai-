@@ -62,7 +62,11 @@
   <script>
     // Identity tag
     const savedUsername = localStorage.getItem("ias_username");
-    const savedEmail = localStorage.getItem("ias_email") || localStorage.getItem("fta_email") || "";
+    const savedEmail =
+      localStorage.getItem("ias_email") ||
+      localStorage.getItem("fta_email") ||
+      "";
+
     const identityTag = document.getElementById("identityTag");
 
     if (savedUsername) {
@@ -76,15 +80,17 @@
     // Mood check-in
     function saveMood(mood) {
       localStorage.setItem("ias_mood", mood);
-      document.getElementById("moodStatus").textContent = "✔ Checked in: " + mood;
+      document.getElementById("moodStatus").textContent =
+        "✔ Checked in: " + mood;
     }
 
     const prevMood = localStorage.getItem("ias_mood");
     if (prevMood) {
-      document.getElementById("moodStatus").textContent = "✔ Checked in: " + prevMood;
+      document.getElementById("moodStatus").textContent =
+        "✔ Checked in: " + prevMood;
     }
 
-    // Navigation
+    // Navigation modules
     function openSoulmark() {
       window.location.href = "iascendai-verified-soulmark.html";
     }
@@ -97,12 +103,12 @@
       window.location.href = "iascendai-user-receipts.html";
     }
 
+    // Identity logout
     function logout() {
       localStorage.removeItem("ias_username");
       localStorage.removeItem("ias_email");
       localStorage.removeItem("ias_soulmark");
       localStorage.removeItem("ias_identity_id");
-      // Keep fta_* so their previous donation still exists if they re-register
 
       window.location.href = "index.html";
     }
