@@ -5,105 +5,11 @@
   <title>iAscendAi Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    /* Dashboard-specific styling (safe to keep here) */
-    .dash-card {
-      background: #0c2238;
-      padding: 22px;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.35);
-    }
-
-    .dash-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .small-label {
-      font-size: 0.80rem;
-      opacity: 0.65;
-      margin-bottom: 6px;
-    }
-
-    .module-btn {
-      width: 100%;
-      padding: 14px;
-      background: #122b44;
-      color: white;
-      border-radius: 12px;
-      text-align: left;
-      font-size: 1rem;
-      border: 1px solid #1d3a56;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-bottom: 10px;
-    }
-
-    .module-btn:hover {
-      background: #163554;
-    }
-
-    .tag {
-      display: inline-block;
-      background: #F8BC07;
-      color: #041423;
-      font-size: 0.78rem;
-      padding: 4px 10px;
-      border-radius: 50px;
-      margin-left: 8px;
-    }
-
-    .header-card {
-      background: linear-gradient(to bottom right, #13314d, #0b2236);
-      padding: 24px;
-      border-radius: 16px;
-      text-align: center;
-      margin-bottom: 26px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.4);
-    }
-
-    .header-card h1 {
-      margin: 0;
-      font-size: 1.7rem;
-      font-weight: 800;
-      color: #47C28A;
-    }
-
-    .header-card p {
-      margin-top: 6px;
-      margin-bottom: 0;
-      color: #c0ccd9;
-      font-size: 0.92rem;
-    }
-
-    .identity-pill {
-      display: inline-block;
-      background: #47C28A22;
-      padding: 8px 14px;
-      border-radius: 50px;
-      font-size: 0.9rem;
-      color: #47C28A;
-      margin-top: 12px;
-      font-weight: 600;
-    }
-
-    .logout-btn {
-      margin-top: 16px;
-      font-size: 0.9rem;
-      opacity: 0.7;
-      cursor: pointer;
-      text-decoration: underline;
-      text-align: center;
-    }
-  </style>
 </head>
 
 <body>
   <div class="app-shell">
-    <div class="card" style="max-width: 480px; width:100%;">
+    <div class="card" style="max-width:480px; width:100%;">
 
       <!-- HEADER -->
       <div class="header-card">
@@ -117,17 +23,16 @@
         <div class="dash-title">Your Tools</div>
 
         <button class="module-btn" onclick="openSoulmark()">
-          🔐  View SoulMarkⓈ Records 
+          🔐 View SoulMarkⓈ Records
         </button>
 
         <button class="module-btn" onclick="openCampaigns()">
-          💛  Jamaica We Rise <span class="tag">Live</span>
+          💛 Jamaica We Rise <span class="tag">Live</span>
         </button>
 
-        <button class="module-btn" onclick="openDonations()">
-          📊  Verified Donations
+        <button class="module-btn" onclick="openReceipts()">
+          📊 My Verified Receipts
         </button>
-
       </div>
 
       <!-- DAILY CHECK-IN -->
@@ -136,13 +41,12 @@
         <p class="small-label">How are you showing up today?</p>
 
         <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
-           <button class="chip" onclick="saveMood('✅ OK')">✅ OK</button>
-           <button class="chip" onclick="saveMood('🆘 Need Help')">🆘 Need Help</button>
-           <button class="chip" onclick="saveMood('❤️‍🩹 Recovering')">❤️‍🩹 Recovering</button>
-           <button class="chip" onclick="saveMood('🔥 Energized')">🔥 Energized</button>
-               <button class="chip" onclick="saveMood('💪 Strong')">💪 Strong</button>
-           <button class="chip" onclick="saveMood('⚖️ Balanced')">⚖️ Balaned</button>
-       
+          <button class="chip-button" onclick="saveMood('✅ OK')">✅ OK</button>
+          <button class="chip-button" onclick="saveMood('🆘 Need Help')">🆘 Need Help</button>
+          <button class="chip-button" onclick="saveMood('❤️‍🩹 Recovering')">❤️‍🩹 Recovering</button>
+          <button class="chip-button" onclick="saveMood('🔥 Energized')">🔥 Energized</button>
+          <button class="chip-button" onclick="saveMood('💪 Strong')">💪 Strong</button>
+          <button class="chip-button" onclick="saveMood('⚖️ Balanced')">⚖️ Balanced</button>
         </div>
 
         <p id="moodStatus" class="small-label" style="margin-top:12px;"></p>
@@ -152,59 +56,56 @@
       <div class="logout-btn" onclick="logout()">
         Log Out of This Device
       </div>
-
     </div>
   </div>
 
-
-  <!-- DASHBOARD LOGIC -->
   <script>
-    // Load identity from localStorage
-    const savedEmail = localStorage.getItem("fta_email") || "";
-    document.getElementById("identityTag").textContent =
-      savedEmail ? savedEmail.split("@")[0] + "@iascendai" : "user@iascendai";
+    // Identity tag
+    const savedUsername = localStorage.getItem("ias_username");
+    const savedEmail = localStorage.getItem("ias_email") || localStorage.getItem("fta_email") || "";
+    const identityTag = document.getElementById("identityTag");
+
+    if (savedUsername) {
+      identityTag.textContent = savedUsername;
+    } else if (savedEmail) {
+      identityTag.textContent = savedEmail.split("@")[0] + "@iascendai";
+    } else {
+      identityTag.textContent = "user@iascendai";
+    }
 
     // Mood check-in
     function saveMood(mood) {
       localStorage.setItem("ias_mood", mood);
-      document.getElementById("moodStatus").textContent =
-        "✔ Checked in: " + mood;
+      document.getElementById("moodStatus").textContent = "✔ Checked in: " + mood;
     }
 
-    // Load mood if exists
     const prevMood = localStorage.getItem("ias_mood");
     if (prevMood) {
-      document.getElementById("moodStatus").textContent =
-        "✔ Checked in: " + prevMood;
+      document.getElementById("moodStatus").textContent = "✔ Checked in: " + prevMood;
     }
 
     // Navigation
     function openSoulmark() {
-      window.location.href = "iascendai-dashboard-soulmark.html";
+      window.location.href = "iascendai-verified-soulmark.html";
     }
 
     function openCampaigns() {
-      window.location.href = "iascendai-dashboard-campaigns.html";
+      window.location.href = "iascendai-campaigns.html";
     }
 
-    function openDonations() {
-      window.location.href = "iascendai-dashboard-donations.html";
-    }
-
-    function openTravel() {
-      window.location.href = "iascendai-dashboard-travel.html";
+    function openReceipts() {
+      window.location.href = "iascendai-user-receipts.html";
     }
 
     function logout() {
-      localStorage.removeItem("fta_email");
-      localStorage.removeItem("fta_name");
-      localStorage.removeItem("fta_amount");
-      localStorage.removeItem("fta_soulmark");
-      localStorage.removeItem("fta_last_session");
+      localStorage.removeItem("ias_username");
+      localStorage.removeItem("ias_email");
+      localStorage.removeItem("ias_soulmark");
+      localStorage.removeItem("ias_identity_id");
+      // Keep fta_* so their previous donation still exists if they re-register
 
       window.location.href = "index.html";
     }
   </script>
-
 </body>
 </html>
