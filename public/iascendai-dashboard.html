@@ -108,16 +108,16 @@
       <!-- HEADER -->
       <div class="header-card">
         <h1>iAscendAi</h1>
-        <p>Verified Digital Identity</p>
+        <p>Your Identity • Your Presence • Your Signal</p>
         <div id="identityTag" class="identity-pill">user@iascendai</div>
       </div>
 
       <!-- QUICK MODULES -->
       <div class="dash-card">
-        <div class="dash-title">Dashboard</div>
+        <div class="dash-title">Your Tools</div>
 
         <button class="module-btn" onclick="openSoulmark()">
-          🔐  SoulMarkⓈ Records 
+          🔐  View My SoulMarkⓈ Records 
         </button>
 
         <button class="module-btn" onclick="openCampaigns()">
@@ -125,23 +125,25 @@
         </button>
 
         <button class="module-btn" onclick="openDonations()">
-          📊  Verified Donations
+          📊  My Verified Donations
         </button>
 
+        <button class="module-btn" onclick="openTravel()">
+          🌍  TravelFlow AI 
+        </button>
       </div>
 
       <!-- DAILY CHECK-IN -->
       <div class="dash-card">
         <div class="dash-title">Daily Check-In</div>
-        <p class="small-label">How are you feeling up today?</p>
+        <p class="small-label">How are you showing up today?</p>
 
         <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
           <button class="chip" onclick="saveMood('🔥 Energized')">🔥 Energized</button>
           <button class="chip" onclick="saveMood('💪 Strong')">💪 Strong</button>
-          <button class="chip" onclick="saveMood('⚖️ Balanced')">⚖️ Balanced</button>
-          <button class="chip" onclick="saveMood('🌱 Recovering')">🌱 Recovering</button>
-          <button class="chip" onclick="saveMood('✅ OK')">✅ OK</button>
-          <button class="chip" onclick="saveMood('🆘 Need Help')">🆘 Need Help</button>
+          <button class="chip" onclick="saveMood('🌊 Calm')">🌊 Calm</button>
+          <button class="chip" onclick="saveMood('🌱 Growing')">🌱 Growing</button>
+          <button class="chip" onclick="saveMood('😔 Need Support')">😔 Need Support</button>
         </div>
 
         <p id="moodStatus" class="small-label" style="margin-top:12px;"></p>
