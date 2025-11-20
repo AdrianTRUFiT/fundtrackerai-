@@ -2,16 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Your iAscendAi Identity</title>
+  <title>FundTrackerAI — Create Your Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* ---------- identity page extras (on top of styles.css) ---------- */
+
+    .section-title {
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9CA3AF;
+    }
+
+    .field-label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid #1f3347;
+      background: #0a2034;
+      color: #ffffff;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    .text-input::placeholder {
+      color: #6b7280;
+    }
+
+    .username-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .username-suffix {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #101f33;
+      font-size: 0.9rem;
+      color: #9CA3AF;
+      white-space: nowrap;
+    }
+
+    .helper-text {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: #9CA3AF;
+    }
+
+    .helper-text.ok {
+      color: #47C28A;
+    }
+
+    .helper-text.error {
+      color: #ff6b6b;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #102338;
+      font-size: 0.8rem;
+      color: #E5E7EB;
+      margin-bottom: 10px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .visibility-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #08192a;
+      border: 1px solid #1f3347;
+    }
+
+    .visibility-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 0.9rem;
+    }
+
+    .visibility-option input {
+      accent-color: #47C28A;
+    }
+
+    .muted-link-row {
+      margin-top: 14px;
+      font-size: 0.82rem;
+      text-align: center;
+      color: #9CA3AF;
+    }
+
+    .muted-link-row a {
+      color: #F8BC07;
+      text-decoration: underline;
+    }
+  </style>
 </head>
 
 <body>
   <div class="app-shell">
     <div class="card">
 
-      <!-- HEADER -->
+      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">$</div>
         <div>
@@ -20,60 +135,178 @@
         </div>
       </div>
 
-      <h2>Create Your iAscendAi Username</h2>
+      <!-- SUPPORTER PILL -->
+      <div class="pill-badge">
+        <span class="pill-dot"></span>
+        <span>Supporter • FundTrackerAI</span>
+      </div>
+
+      <h2>Create Your Identity</h2>
       <p class="subtext">
-        Link this device to your verified donation and unlock your SoulMarkⓈ-backed dashboard.
-        No passwords — just this device.
+        You’ve made a verified contribution. Now claim your unique
+        <strong>username@iascendai</strong> so you can view your SoulMarkⓈ,
+        track future donations, and access the live impact dashboard.
       </p>
 
-      <!-- VERIFIED EMAIL -->
-      <p class="label">Verified Email</p>
-      <div id="emailChip" class="chip"></div>
+      <div class="section-title">Identity Details</div>
 
-      <!-- LAST DONATION -->
-      <p class="label" style="margin-top:18px;">Last Donation</p>
-      <div id="donationText" class="value"></div>
+      <label class="field-label" for="fullName">Full Name *</label>
+      <input id="fullName" class="text-input" type="text" placeholder="Your name" />
 
-      <!-- PROGRESS MESSAGE -->
-      <p class="info" style="margin-top:20px;">
-        Tap below to continue. Your username will be created on the next step.
-      </p>
+      <label class="field-label" for="email">Email Address *</label>
+      <input id="email" class="text-input" type="email" placeholder="you@example.com" />
 
-      <!-- CTA BUTTON -->
-      <button class="btn" onclick="continueToIdentity()">
-        Continue — Create My iAscendAi Username →
+      <div class="helper-text" id="donationSummary">
+        Linked to your latest verified donation.
+      </div>
+
+      <label class="field-label" for="username" style="margin-top:14px;">
+        Choose Your Username *
+      </label>
+      <div class="username-row">
+        <input id="username" class="text-input" type="text" placeholder="yourname" />
+        <span class="username-suffix">@iascendai</span>
+      </div>
+      <div id="usernameStatus" class="helper-text">
+        Usernames are first-come, first-served. Try variations like
+        <em>firstname_lastname</em> or <em>firstname2025</em>.
+      </div>
+
+      <div class="section-title">Public Display</div>
+      <div class="visibility-box">
+        <div class="helper-text" style="margin-top:0; margin-bottom:6px;">
+          Choose how your support appears on the public tracker:
+        </div>
+
+        <label class="visibility-option">
+          <input type="radio" name="displayMode" value="username" checked />
+          <span>Username@iascendai (default)</span>
+        </label>
+
+        <label class="visibility-option">
+          <input type="radio" name="displayMode" value="realname" />
+          <span>Real name</span>
+        </label>
+
+        <label class="visibility-option">
+          <input type="radio" name="displayMode" value="anonymous" />
+          <span>Anonymous (name hidden)</span>
+        </label>
+
+        <label class="visibility-option">
+          <input type="checkbox" id="showAmount" checked />
+          <span>Show donation amount</span>
+        </label>
+
+        <div class="helper-text" style="margin-top:6px;">
+          At least one element must be visible: your name/handle or your donation
+          amount. Anonymous donors can still choose to show only their amount.
+        </div>
+      </div>
+
+      <button id="createIdentityBtn" class="btn-primary" style="margin-top:18px;">
+        Create My Identity &amp; Open Dashboard
       </button>
+
+      <div class="muted-link-row">
+        Already have a username?
+        <a href="dashboard.html">Open your dashboard</a>
+      </div>
 
     </div>
   </div>
 
-<script>
-  // Utility to mask email
-  function maskEmail(email) {
-    if (!email) return "unknown";
-    const [user, domain] = email.split("@");
-    return user[0] + "•••@" + domain;
-  }
+  <script>
+    // preload from last verified donation
+    (function preloadFromDonation() {
+      try {
+        const email = localStorage.getItem("fta_email") || "";
+        const amountStr = localStorage.getItem("fta_amount") || "";
+        const amount = amountStr ? parseInt(amountStr, 10) : 0;
 
-  // Extract donation + email from URL
-  window.onload = () => {
-    const params = new URLSearchParams(window.location.search);
+        if (email) document.getElementById("email").value = email;
 
-    const email = params.get("email");
-    const amount = params.get("amount");
+        const summary = document.getElementById("donationSummary");
+        if (amount > 0) {
+          summary.textContent =
+            "Linked to your latest verified donation of $" +
+            (amount / 100).toFixed(2) +
+            ".";
+        } else {
+          summary.textContent = "Linked to your latest verified donation.";
+        }
+      } catch (e) {
+        console.warn("Unable to read donation info:", e);
+      }
+    })();
 
-    document.getElementById("emailChip").textContent = maskEmail(email);
-    document.getElementById("donationText").textContent =
-      amount ? "$" + Number(amount).toFixed(2) : "$0.00";
-  };
+    const usernameInput = document.getElementById("username");
+    const usernameStatus = document.getElementById("usernameStatus");
 
-  // GO TO FULL IDENTITY CREATION PAGE
-  function continueToIdentity() {
-    // Pass along what we know (email + amount)
-    const params = new URLSearchParams(window.location.search);
-    window.location.href = "identity.html?" + params.toString();
-  }
-</script>
+    function validateUsername(value) {
+      const v = value.trim();
+
+      if (!v) {
+        usernameStatus.textContent =
+          "Usernames are first-come, first-served. Try variations like firstname_lastname.";
+        usernameStatus.className = "helper-text";
+        return false;
+      }
+
+      const pattern = /^[a-zA-Z0-9._-]{3,24}$/;
+      if (!pattern.test(v)) {
+        usernameStatus.textContent =
+          "Use 3–24 letters, numbers, dots, dashes, or underscores.";
+        usernameStatus.className = "helper-text error";
+        return false;
+      }
+
+      // lightweight “available” feedback for now (no real server check yet)
+      usernameStatus.textContent = "Looks available. You can claim this handle.";
+      usernameStatus.className = "helper-text ok";
+      return true;
+    }
+
+    usernameInput.addEventListener("input", (e) => {
+      validateUsername(e.target.value);
+    });
+
+    document.getElementById("createIdentityBtn").addEventListener("click", () => {
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const username = document.getElementById("username").value.trim();
+
+      if (!fullName || !email || !username || !validateUsername(username)) {
+        alert("Please complete all required fields with a valid username.");
+        return;
+      }
+
+      const modeEls = document.querySelectorAll('input[name="displayMode"]');
+      let displayMode = "username";
+      modeEls.forEach((el) => {
+        if (el.checked) displayMode = el.value;
+      });
+      const showAmount = document.getElementById("showAmount").checked;
+
+      const identity = {
+        fullName,
+        email,
+        username,
+        displayMode,
+        showAmount,
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem("fta_identity", JSON.stringify(identity));
+      } catch (e) {
+        console.warn("Unable to store identity:", e);
+      }
+
+      // For now, just open the dashboard; backend registration can be added later.
+      window.location.href = "dashboard.html";
+    });
+  </script>
 
 </body>
 </html>
