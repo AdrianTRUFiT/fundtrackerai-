@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jamaica We Rise — Campaign View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card">
+
+      <div class="brand-row">
+        <div class="brand-mark">🇯🇲</div>
+        <div>
+          <h1>Jamaica We Rise</h1>
+          <h2>Live Impact Overview</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        This view shows live totals from all FundTrackerAI donations currently
+        linked to this campaign.
+      </p>
+
+      <div class="dash-card">
+        <div class="dash-title">Campaign Stats</div>
+
+        <p class="small-label">Total Raised</p>
+        <div id="totalAmount" class="value">$0.00</div>
+
+        <p class="small-label" style="margin-top:10px;">Total Verified Donors</p>
+        <div id="totalDonors" class="value">0</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Recent Verified Donations</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Amount</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody id="donationRows">
+              <tr><td colspan="3">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <button class="btn-secondary" onclick="goBack()">
+        Back to iAscendAi Dashboard
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    async function loadDonations() {
+      const tbody = document.getElementById("donationRows");
+      const totalAmountEl = document.getElementById("totalAmount");
+      const totalDonorsEl = document.getElementById("totalDonors");
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/donations`);
+        const data = await res.json();
+        const donations = data.donations || [];
+
+        if (!donations.length) {
+          tbody.innerHTML = "<tr><td colspan='3'>No donations recorded yet.</td></tr>";
+          totalAmountEl.textContent = "$0.00";
+          totalDonorsEl.textContent = "0";
+          return;
+        }
+
+        const totalAmount = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+        totalAmountEl.textContent = "$" + (totalAmount / 100).toFixed(2);
+        totalDonorsEl.textContent = donations.length.toString();
+
+        const rows = donations
+          .slice()
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .map(d => {
+            const name = d.name && d.name.trim() ? d.name : "Donor";
+            const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
+            const when = d.timestamp ? new Date(d.timestamp).toLocaleString() : "N/A";
+            return `<tr>
+              <td>${name}</td>
+              <td>${amt}</td>
+              <td>${when}</td>
+            </tr>`;
+          })
+          .join("");
+
+        tbody.innerHTML = rows;
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = "<tr><td colspan='3'>Error loading donations.</td></tr>";
+      }
+    }
+
+    function goBack() {
+      window.location.href = "iascendai-dashboard.html";
+    }
+
+    loadDonations();
+  </script>
+</body>
+</html>
