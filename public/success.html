@@ -21,42 +21,47 @@
       </div>
 
       <h2>Payment Status</h2>
-      <p class="subtext">Your transaction has been securely processed.</p>
+      <p class="subtext">
+        Your transaction has been securely processed.
+      </p>
 
       <div id="statusText" class="status">Checking...</div>
 
       <!-- BASIC RECEIPT — SAFE TO SHOW PUBLICLY -->
       <div id="details" style="margin-top:16px; display:none;">
 
-        <!-- NAME -->
-        <p class="label">Name</p>
-        <div id="nameText" class="value" style="font-weight:600;"></div>
-
-        <!-- EMAIL -->
-        <p class="label" style="margin-top:14px;">Email</p>
+        <p class="label">Email</p>
         <div id="emailChip" class="chip"></div>
 
-        <!-- AMOUNT -->
-        <p class="label" style="margin-top:14px;">Amount</p>
-        <div id="amountText" class="value" style="font-weight:600;"></div>
+        <p class="label">Name</p>
+        <div id="nameText" class="value"></div>
 
-        <!-- REFERENCE ID -->
-        <p class="label" style="margin-top:14px;">Reference ID</p>
-        <div id="refText" class="value" style="font-weight:500;"></div>
+        <p class="label">Amount</p>
+        <div id="amountText" class="value"></div>
 
-        <p class="info" style="margin-top:20px; line-height:1.45; color:#b9c5d1;">
-          To access your full verified SoulMarkⓈ and real-time impact dashboard,
-          create your iAscendAi username below.
+        <p class="label">Reference ID</p>
+        <div id="refText" class="value"></div>
+
+        <p class="info">
+          To access your full verified SoulMarkⓈ and a live impact dashboard,
+          create your iAscendAi username below. This connects your donation
+          to a passwordless, device-bound identity.
         </p>
       </div>
 
       <!-- SIGN UP CTA -->
-      <button id="signupBtn" class="btn-primary" style="display:none;"
+      <button
+        id="signupBtn"
+        class="btn"
+        style="display:none; margin-top:16px;"
         onclick="window.location.href='register.html'">
         Reveal My Verified SoulMarkⓈ →
       </button>
 
-      <button class="btn-secondary" onclick="window.location.href='index.html'">
+      <button
+        class="btn-secondary"
+        style="margin-top:10px;"
+        onclick="window.location.href='index.html'">
         Back to Donate
       </button>
 
@@ -66,7 +71,9 @@
   <script>
     function maskEmail(email) {
       if (!email) return "unknown";
-      const [user, domain] = email.split("@");
+      const parts = email.split("@");
+      if (parts.length !== 2) return email;
+      const [user, domain] = parts;
       return user[0] + "•••@" + domain;
     }
 
@@ -85,7 +92,9 @@
       }
 
       try {
-        const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
+        const res = await fetch(
+          `https://fundtrackerai.onrender.com/verify-donation/${id}`
+        );
         const data = await res.json();
 
         if (data.verified && data.entry) {
@@ -94,31 +103,38 @@
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
-          // NEW: NAME FIELD
-          document.getElementById("nameText").textContent =
-            entry.name ? entry.name : "Donor";
-
-          // MASKED EMAIL
+          // basic, safe public info
           document.getElementById("emailChip").textContent =
             maskEmail(entry.email);
 
-          // AMOUNT
+          document.getElementById("nameText").textContent =
+            entry.name || "Donor";
+
           document.getElementById("amountText").textContent =
             "$" + (entry.amount / 100).toFixed(2);
 
-          // TRUNCATED SOULMARK
           document.getElementById("refText").textContent =
             entry.soulmark.substring(0, 10) + "••••••••";
 
+          // ✅ store full entry for the register step
+          try {
+            localStorage.setItem(
+              "fta_lastDonation",
+              JSON.stringify(entry)
+            );
+          } catch (e) {
+            console.warn("Could not persist last donation:", e);
+          }
+
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
-
         } else {
           statusEl.textContent = "Verification Failed ❌";
           statusEl.classList.add("fail");
         }
 
       } catch (err) {
+        console.error("Error verifying payment:", err);
         statusEl.textContent = "Error verifying payment ❌";
         statusEl.classList.add("fail");
       }
@@ -126,6 +142,5 @@
 
     verify();
   </script>
-
 </body>
 </html>
