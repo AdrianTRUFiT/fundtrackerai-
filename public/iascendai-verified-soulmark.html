@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My SoulMark Records — iAscendAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card">
+
+      <div class="brand-row">
+        <div class="brand-mark">Ⓢ</div>
+        <div>
+          <h1>My SoulMarkⓈ</h1>
+          <h2>Verified Identity Records</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        This view shows the SoulMarkⓈ and recent transaction linked to your
+        iAscendAi identity on this device.
+      </p>
+
+      <p class="label">Username</p>
+      <div id="usernameVal" class="value"></div>
+
+      <p class="label">Primary Email</p>
+      <div id="emailVal" class="value"></div>
+
+      <p class="label">Latest SoulMarkⓈ</p>
+      <div id="soulmarkVal" class="value" style="word-wrap:break-word;"></div>
+
+      <p class="label">Most Recent Amount</p>
+      <div id="amountVal" class="value"></div>
+
+      <p class="label">Last Session ID</p>
+      <div id="sessionVal" class="value truncate"></div>
+
+      <button class="btn-secondary" onclick="openRegistry()">
+        Open Public Soul Registry
+      </button>
+
+      <button class="btn-primary" style="margin-top:10px;" onclick="goBack()">
+        Back to iAscendAi Dashboard
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    function maskEmail(email) {
+      if (!email) return "unknown";
+      const [u, d] = email.split("@");
+      return u[0] + "•••@" + d;
+    }
+
+    const uname = localStorage.getItem("ias_username") || "user@iascendai";
+    const email = localStorage.getItem("ias_email") ||
+                  localStorage.getItem("fta_email") || "";
+    const soulmark = localStorage.getItem("ias_soulmark") ||
+                     localStorage.getItem("fta_soulmark") || "";
+    const amount = localStorage.getItem("fta_amount") || "";
+    const sessionId = localStorage.getItem("fta_last_session") || "";
+
+    document.getElementById("usernameVal").textContent = uname;
+    document.getElementById("emailVal").textContent = email ? maskEmail(email) : "Not set";
+
+    document.getElementById("soulmarkVal").textContent =
+      soulmark || "No SoulMark found on this device.";
+
+    document.getElementById("amountVal").textContent =
+      amount ? "$" + (parseInt(amount, 10) / 100).toFixed(2) : "N/A";
+
+    document.getElementById("sessionVal").textContent = sessionId || "N/A";
+
+    function openRegistry() {
+      window.location.href = "iascendai-soulregistry.html";
+    }
+
+    function goBack() {
+      window.location.href = "iascendai-dashboard.html";
+    }
+  </script>
+</body>
+</html>
