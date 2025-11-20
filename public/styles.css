@@ -199,3 +199,41 @@ tr:hover {
     padding: 22px;
   }
 }
+
+/* Reference row layout */
+.ref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0a2338;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+/* Masked reference ID */
+.ref-mask {
+  font-size: 0.9rem;
+  color: #d1d9e3;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Reveal button (pill style) */
+.pill-btn {
+  background: #47C28A;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #041423;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pill-btn:hover {
+  background: #3bb07e;
+}
