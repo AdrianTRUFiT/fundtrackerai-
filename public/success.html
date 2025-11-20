@@ -25,7 +25,7 @@
 
       <div id="statusText" class="status">Checking...</div>
 
-      <!-- BASIC RECEIPT (SAFE PUBLIC OUTPUT) -->
+      <!-- BASIC RECEIPT (SAFE TO DISPLAY PUBLICLY) -->
       <div id="details" style="margin-top:16px; display:none;">
 
         <p class="label">Name</p>
@@ -94,7 +94,7 @@
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
-          // NAME (from backend, with fallback)
+          // NAME (from backend, fallback to Donor)
           document.getElementById("nameText").textContent =
             entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
 
