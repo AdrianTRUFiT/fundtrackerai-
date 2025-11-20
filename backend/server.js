@@ -26,37 +26,33 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
 
 if (!STRIPE_SECRET_KEY || !FRONTEND_URL || !SOULMARK_SECRET) {
-  console.warn("⚠️  Missing one or more env vars: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET");
+  console.warn("⚠️ Missing env vars: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET");
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-// Resolve path relative to THIS FILE (server.js), not process.cwd()
+// PATH RESOLUTION
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// registry.json lives in the SAME directory as server.js
 const registryFile = path.join(__dirname, "registry.json");
-
 console.log("📁 Registry path:", registryFile);
 
-// Ensure registry file exists and is valid JSON
+// Ensure registry exists
 function ensureRegistry() {
   try {
     if (!fs.existsSync(registryFile)) {
-      console.log("🆕 Creating new registry.json");
+      console.log("🆕 Creating registry.json");
       fs.writeFileSync(
         registryFile,
         JSON.stringify({ donations: [] }, null, 2),
         "utf8"
       );
     } else {
-      // Validate JSON; if corrupt, re-init instead of crashing
-      const raw = fs.readFileSync(registryFile, "utf8");
-      JSON.parse(raw);
+      JSON.parse(fs.readFileSync(registryFile, "utf8"));
     }
-  } catch (err) {
-    console.error("⚠️ registry.json was invalid, reinitializing:", err.message);
+  } catch {
+    console.error("⚠️ registry.json invalid — resetting.");
     fs.writeFileSync(
       registryFile,
       JSON.stringify({ donations: [] }, null, 2),
@@ -65,18 +61,17 @@ function ensureRegistry() {
   }
 }
 
-// Run once at startup
 ensureRegistry();
 
 // -----------------------------------------------
-// 1. ROOT PING
+// 1. ROOT
 // -----------------------------------------------
 app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
 
 // -----------------------------------------------
-// 2. CREATE CHECKOUT SESSION
+// 2. CREATE CHECKOUT SESSION (NOW STORES NAME)
 // -----------------------------------------------
 app.post("/create-checkout-session", async (req, res) => {
   try {
@@ -90,16 +85,24 @@ app.post("/create-checkout-session", async (req, res) => {
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: email,
+
+      // ⭐ STORE NAME + EMAIL IN METADATA
+      metadata: {
+        donor_name: name,
+        donor_email: email
+      },
+
       line_items: [
         {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: amount * 100 // <-- FIXED HERE
+            unit_amount: amount * 100
           },
           quantity: 1
         }
       ],
+
       success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${FRONTEND_URL}/index.html`
     });
@@ -121,25 +124,27 @@ app.get("/verify-donation/:id", async (req, res) => {
 
     const session = await stripe.checkout.sessions.retrieve(req.params.id);
 
-    // 3A — validate payment
     if (!session || session.payment_status !== "paid") {
       return res.json({ verified: false, reason: "unpaid_or_missing" });
     }
 
     const email = session.customer_details?.email || "unknown";
+    const donorName = session.metadata?.donor_name || "Donor";
     const amount = session.amount_total;
+
     const now = new Date().toISOString();
     const nonce = crypto.randomUUID();
 
-    // 3B — generate SoulMark
+    // Generate SoulMark
     const soulmark = crypto
       .createHash("sha256")
       .update(email + now + SOULMARK_SECRET + nonce)
       .digest("hex");
 
-    // 3C — write event into registry
+    // Entry saved into registry
     const entry = {
       id: session.id,
+      name: donorName,
       email,
       amount,
       timestamp: now,
@@ -150,7 +155,6 @@ app.get("/verify-donation/:id", async (req, res) => {
     json.donations.push(entry);
     fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
 
-    // return everything so success.html can display it
     res.json({ verified: true, entry });
 
   } catch (err) {
