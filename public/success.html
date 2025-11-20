@@ -25,11 +25,11 @@
 
       <div id="statusText" class="status">Checking...</div>
 
-      <!-- BASIC RECEIPT — SAFE PUBLIC INFO -->
+      <!-- BASIC RECEIPT — SAFE TO SHOW PUBLICLY -->
       <div id="details" style="margin-top:16px; display:none;">
 
         <p class="label">Name</p>
-        <div id="nameText" class="value"></div>
+        <div id="nameText" class="value">Donor</div>
 
         <p class="label">Email</p>
         <div id="emailChip" class="chip"></div>
@@ -38,28 +38,22 @@
         <div id="amountText" class="value"></div>
 
         <p class="label">Reference ID</p>
-
-        <!-- SAME ROW: masked ID + pill button -->
-        <div class="ref-row">
-          <div id="refText" class="value ref-mask"></div>
-
-          <button class="pill-btn"
-            onclick="window.location.href='register.html'">
+        <div id="refRow" class="ref-row">
+          <span id="refText" class="value ref-value"></span>
+          <button id="inlineRevealBtn" class="pill-button">
             Reveal SoulMarkⓈ →
           </button>
         </div>
 
-        <p class="info" style="margin-top:18px;">
+        <p class="info">
           To access your full verified SoulMarkⓈ and real-time impact dashboard,
           create your iAscendAi username below.
         </p>
-
       </div>
 
-      <!-- MAIN CTA -->
-      <button id="signupBtn" class="btn-primary" style="display:none;"
-        onclick="window.location.href='register.html'">
-        Create My iAscendAi Identity →
+      <!-- MAIN SIGN-UP CTA -->
+      <button id="signupBtn" class="btn-primary" style="display:none;">
+        Reveal My Verified SoulMarkⓈ →
       </button>
 
     </div>
@@ -72,13 +66,6 @@
       return user[0] + "•••@" + domain;
     }
 
-    function maskName(name) {
-      if (!name) return "Donor";
-      const parts = name.split(" ");
-      const first = parts[0] || "D";
-      return first; // keep clean + private — first name only
-    }
-
     async function verify() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("session_id");
@@ -86,6 +73,7 @@
       const statusEl = document.getElementById("statusText");
       const detailsEl = document.getElementById("details");
       const signupBtn = document.getElementById("signupBtn");
+      const inlineRevealBtn = document.getElementById("inlineRevealBtn");
 
       if (!id) {
         statusEl.textContent = "Invalid session ❌";
@@ -100,27 +88,42 @@
         if (data.verified && data.entry) {
           const entry = data.entry;
 
+          // basic status
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
-          // NAME (from registry entry metadata in future — default "Donor")
-          document.getElementById("nameText").textContent =
-            maskName(entry.name || "Donor");
+          // name (we don't have a real name yet, so just show Donor for now)
+          document.getElementById("nameText").textContent = "Donor";
 
-          // EMAIL masked
+          // email + amount
           document.getElementById("emailChip").textContent =
             maskEmail(entry.email);
 
-          // AMOUNT
           document.getElementById("amountText").textContent =
             "$" + (entry.amount / 100).toFixed(2);
 
-          // MASKED SOULMARK (first 10 chars)
-          document.getElementById("refText").textContent =
-            entry.soulmark.substring(0, 10) + "••••••••";
+          // reference (partial SoulMark)
+          const shortRef = entry.soulmark.substring(0, 10) + "••••••••";
+          document.getElementById("refText").textContent = shortRef;
+
+          // persist latest record so register.html can preload it
+          try {
+            localStorage.setItem("fta_email", entry.email || "");
+            localStorage.setItem("fta_amount", String(entry.amount || ""));
+            localStorage.setItem("fta_soulmark", entry.soulmark || "");
+            localStorage.setItem("fta_last_session", entry.id || "");
+          } catch (e) {
+            console.warn("localStorage unavailable:", e);
+          }
 
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
+
+          const goToRegister = () => {
+            window.location.href = "register.html";
+          };
+          signupBtn.addEventListener("click", goToRegister);
+          inlineRevealBtn.addEventListener("click", goToRegister);
 
         } else {
           statusEl.textContent = "Verification Failed ❌";
