@@ -80,15 +80,22 @@ app.get("/", (req, res) => {
 // -----------------------------------------------
 app.post("/create-checkout-session", async (req, res) => {
   try {
+    const { name, email, amount } = req.body;
+
+    if (!amount || amount < 1) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
+      customer_email: email,
       line_items: [
         {
           price_data: {
             currency: "usd",
             product_data: { name: "Donation" },
-            unit_amount: 100
+            unit_amount: amount * 100 // <-- FIXED HERE
           },
           quantity: 1
         }
@@ -98,6 +105,7 @@ app.post("/create-checkout-session", async (req, res) => {
     });
 
     res.json({ url: session.url });
+
   } catch (err) {
     console.error("SESSION ERROR:", err);
     res.status(500).json({ error: "Session creation failed" });
