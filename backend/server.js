@@ -1,196 +1,466 @@
-// -----------------------------------------------
-// FundTrackerAI Backend — With SoulMark Minting
-// -----------------------------------------------
+/* ---------------------------------------
+   GLOBAL BASE
+---------------------------------------- */
 
-import express from "express";
-import Stripe from "stripe";
-import fs from "fs";
-import path from "path";
-import cors from "cors";
-import dotenv from "dotenv";
-import crypto from "crypto";
-import { fileURLToPath } from "url";
-
-dotenv.config();
-
-// -----------------------------------------------
-// 0. APP SETUP
-// -----------------------------------------------
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-// ENV VARS
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const FRONTEND_URL = process.env.FRONTEND_URL;
-const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
-
-if (!STRIPE_SECRET_KEY || !FRONTEND_URL || !SOULMARK_SECRET) {
-  console.warn("⚠️ Missing env vars: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET");
+* {
+  box-sizing: border-box;
 }
 
-const stripe = new Stripe(STRIPE_SECRET_KEY);
-
-// Resolve path relative to THIS FILE (server.js), not process.cwd()
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// registry.json lives in SAME directory as server.js
-const registryFile = path.join(__dirname, "registry.json");
-
-console.log("📁 Registry path:", registryFile);
-
-// Ensure registry file exists and is valid JSON
-function ensureRegistry() {
-  try {
-    if (!fs.existsSync(registryFile)) {
-      console.log("🆕 Creating registry.json");
-      fs.writeFileSync(
-        registryFile,
-        JSON.stringify({ donations: [] }, null, 2),
-        "utf8"
-      );
-      return;
-    }
-
-    // Validate JSON
-    const raw = fs.readFileSync(registryFile, "utf8");
-    JSON.parse(raw);
-
-  } catch (err) {
-    console.error("⚠️ registry.json invalid, resetting:", err.message);
-    fs.writeFileSync(
-      registryFile,
-      JSON.stringify({ donations: [] }, null, 2),
-      "utf8"
-    );
-  }
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: #041423;
+  color: #ffffff;
 }
 
-// Run validator on startup
-ensureRegistry();
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
 
-// -----------------------------------------------
-// 1. ROOT PING
-// -----------------------------------------------
-app.get("/", (req, res) => {
-  res.send("FundTrackerAI backend is running.");
-});
+/* Core card shell used across pages */
+.card {
+  background: #0c2238;
+  padding: 28px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
+}
 
-// -----------------------------------------------
-// 2. CREATE CHECKOUT SESSION
-// -----------------------------------------------
-app.post("/create-checkout-session", async (req, res) => {
-  try {
-    const { name, email, amount } = req.body;
+/* For index donate layout (narrower) */
+.card--narrow {
+  max-width: 450px;
+}
 
-    if (!amount || amount < 1) {
-      return res.status(400).json({ error: "Invalid amount" });
-    }
+/* Headings & subtext */
+h1 {
+  margin: 0;
+}
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer_email: email,
+h2 {
+  margin: 0;
+}
 
-      // ⭐ STORE NAME in Stripe metadata so we retrieve it later
-      metadata: {
-        name: name || ""
-      },
+.subtext {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: #b9c5d1;
+}
 
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { name: "Donation" },
-            unit_amount: amount * 100
-          },
-          quantity: 1
-        }
-      ],
+/* Labels & values */
+.label {
+  margin-top: 14px;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  color: #b9c5d1;
+}
 
-      success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/index.html`
-    });
+.value {
+  font-size: 0.98rem;
+  font-weight: 500;
+}
 
-    res.json({ url: session.url });
+/* Info paragraph */
+.info {
+  margin-top: 14px;
+  font-size: 0.86rem;
+  color: #c0ccd9;
+}
 
-  } catch (err) {
-    console.error("SESSION ERROR:", err);
-    res.status(500).json({ error: "Session creation failed" });
+/* ---------------------------------------
+   BRAND HEADER
+---------------------------------------- */
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #47c28a22;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #47c28a;
+  font-size: 1.2rem;
+}
+
+.brand-row h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #47c28a;
+}
+
+.brand-row h2 {
+  margin: 0;
+  margin-top: 2px;
+  font-size: 0.95rem;
+  color: #9ca3af;
+}
+
+/* ---------------------------------------
+   BUTTONS
+---------------------------------------- */
+
+.btn-primary,
+.btn-secondary,
+.module-btn,
+.pill-button,
+.chip-button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 14px 16px;
+  margin-top: 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  background: #47c28a;
+  color: #041423;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #3eb17c;
+}
+
+.btn-secondary {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 12px 16px;
+  margin-top: 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.96rem;
+  background: #f8bc07;
+  color: #041423;
+  transition: 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #e4a404;
+}
+
+/* Inline pill button beside SoulMark preview */
+.pill-button {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f8bc07;
+  color: #041423;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.pill-button:hover {
+  background: #e4a404;
+}
+
+/* Chip-style quick buttons (dashboard moods) */
+.chip-button {
+  background: #122b44;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+/* ---------------------------------------
+   STATUS
+---------------------------------------- */
+
+.status {
+  margin-top: 16px;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  text-align: center;
+  background: #122b44;
+}
+
+.success {
+  color: #47c28a;
+}
+
+.fail {
+  color: #ff6b6b;
+}
+
+/* ---------------------------------------
+   CHIPS
+---------------------------------------- */
+
+.chip {
+  display: inline-block;
+  background: #47c28a22;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: #47c28a;
+  margin-bottom: 4px;
+}
+
+/* ---------------------------------------
+   REF ROW (SoulMark preview)
+---------------------------------------- */
+
+.ref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ref-value {
+  font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  background: #122b44;
+  padding: 6px 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------
+   INPUTS
+---------------------------------------- */
+
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.96rem;
+  margin-top: 4px;
+  margin-bottom: 10px;
+  background: #0a2a44;
+  color: #ffffff;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Error text */
+.input-hint {
+  font-size: 0.8rem;
+  color: #f97373;
+  margin-top: -6px;
+  margin-bottom: 6px;
+}
+
+/* ---------------------------------------
+   DONATION GRID
+---------------------------------------- */
+
+.amount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
+
+.amount-btn {
+  padding: 12px 8px;
+  border-radius: 10px;
+  background: #0a2a44;
+  text-align: center;
+  font-size: 0.96rem;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 2px solid transparent;
+}
+
+.amount-btn.active {
+  background: #f8bc07;
+  color: #041423;
+  border-color: #f8bc07;
+  font-weight: 600;
+}
+
+/* ---------------------------------------
+   DASHBOARD
+---------------------------------------- */
+
+.header-card {
+  background: linear-gradient(to bottom right, #13314d, #0b2236);
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 26px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+.header-card h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #47c28a;
+}
+
+.header-card p {
+  margin-top: 6px;
+  margin-bottom: 0;
+  color: #c0ccd9;
+  font-size: 0.92rem;
+}
+
+.identity-pill {
+  display: inline-block;
+  background: #47c28a22;
+  padding: 8px 14px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  color: #47c28a;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.dash-card {
+  background: #0c2238;
+  padding: 22px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.35);
+}
+
+.dash-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.small-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.module-btn {
+  width: 100%;
+  padding: 14px;
+  background: #122b44;
+  color: #ffffff;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 0.98rem;
+  border: 1px solid #1d3a56;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-bottom: 10px;
+}
+
+.module-btn:hover {
+  background: #163554;
+}
+
+.tag {
+  display: inline-block;
+  background: #f8bc07;
+  color: #041423;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 50px;
+  margin-left: 8px;
+}
+
+/* Logout link */
+.logout-btn {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  cursor: pointer;
+  text-decoration: underline;
+  text-align: center;
+}
+
+/* ---------------------------------------
+   TABLES
+---------------------------------------- */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  background: #0c2238;
+}
+
+thead {
+  background: #0f2c47;
+}
+
+th,
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #2d4358;
+  font-size: 0.9rem;
+}
+
+tr:hover {
+  background: #15395a;
+}
+
+/* Truncate long SoulMarks */
+.truncate {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------
+   RESPONSIVE
+---------------------------------------- */
+
+@media (max-width: 480px) {
+  .card {
+    padding: 22px;
   }
-});
 
-// -----------------------------------------------
-// 3. VERIFY PAYMENT + MINT SOULMARK
-// -----------------------------------------------
-app.get("/verify-donation/:id", async (req, res) => {
-  try {
-    ensureRegistry();
-
-    const session = await stripe.checkout.sessions.retrieve(req.params.id);
-
-    if (!session || session.payment_status !== "paid") {
-      return res.json({ verified: false });
-    }
-
-    // Extract donor name from metadata (REAL FIX)
-    const donorName = session.metadata?.name || "";
-
-    const email = session.customer_details?.email || "unknown";
-    const amount = session.amount_total;
-    const now = new Date().toISOString();
-    const nonce = crypto.randomUUID();
-
-    // Generate SoulMark
-    const soulmark = crypto
-      .createHash("sha256")
-      .update(email + now + SOULMARK_SECRET + nonce)
-      .digest("hex");
-
-    // Full registry entry
-    const entry = {
-      id: session.id,
-      name: donorName || "Donor",
-      email,
-      amount,
-      timestamp: now,
-      soulmark
-    };
-
-    // Load registry
-    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-
-    json.donations.push(entry);
-
-    fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
-
-    res.json({ verified: true, entry });
-
-  } catch (err) {
-    console.error("VERIFY ERROR:", err);
-    res.status(500).json({ error: "Verification failed" });
+  .amount-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-});
 
-// -----------------------------------------------
-// 4. READ ALL DONATIONS
-// -----------------------------------------------
-app.get("/donations", (req, res) => {
-  try {
-    ensureRegistry();
-    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
-    res.json(json);
-  } catch (err) {
-    console.error("READ ERROR:", err);
-    res.status(500).json({ error: "Failed to read registry" });
+  .ref-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
-});
 
-// -----------------------------------------------
-// 5. START SERVER
-// -----------------------------------------------
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`);
-});
+  .ref-value {
+    width: 100%;
+  }
+
+  .pill-button {
+    align-self: flex-end;
+  }
+}
