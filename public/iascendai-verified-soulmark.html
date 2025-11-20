@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My SoulMark Records — iAscendAi</title>
+  <title>My SoulMarksⓈ — iAscendAi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -12,38 +12,51 @@
     <div class="card">
 
       <div class="brand-row">
-        <div class="brand-mark">Ⓢ</div>
+        <div class="brand-mark">🔐</div>
         <div>
-          <h1>My SoulMarkⓈ</h1>
-          <h2>Verified Identity Records</h2>
+          <h1>My SoulMarksⓈ</h1>
+          <h2>Authored Identity Ledger</h2>
         </div>
       </div>
 
       <p class="subtext">
-        This view shows the SoulMarkⓈ and recent transaction linked to your
-        iAscendAi identity on this device.
+        These SoulMarksⓈ are tied to the verified email on this device.
+        Each entry represents a cryptographic proof of a real, recorded event.
       </p>
 
-      <p class="label">Username</p>
-      <div id="usernameVal" class="value"></div>
+      <!-- SUMMARY -->
+      <div class="dash-card">
+        <div class="dash-title">SoulMarkⓈ Summary</div>
+        <p class="small-label">Total SoulMarksⓈ</p>
+        <div id="smTotalCount" class="value">0</div>
 
-      <p class="label">Primary Email</p>
-      <div id="emailVal" class="value"></div>
+        <p class="small-label" style="margin-top:10px;">Total Verified Amount</p>
+        <div id="smTotalAmount" class="value">$0.00</div>
+      </div>
 
-      <p class="label">Latest SoulMarkⓈ</p>
-      <div id="soulmarkVal" class="value" style="word-wrap:break-word;"></div>
+      <!-- LIST -->
+      <div class="dash-card">
+        <div class="dash-title">SoulMarkⓈ Records</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>SoulMarkⓈ</th>
+                <th>Amount</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody id="smRows">
+              <tr><td colspan="3">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small-label" style="margin-top:8px;">
+          Tap a SoulMarkⓈ row to copy the full value for verification or support.
+        </p>
+      </div>
 
-      <p class="label">Most Recent Amount</p>
-      <div id="amountVal" class="value"></div>
-
-      <p class="label">Last Session ID</p>
-      <div id="sessionVal" class="value truncate"></div>
-
-      <button class="btn-secondary" onclick="openRegistry()">
-        Open Public Soul Registry
-      </button>
-
-      <button class="btn-primary" style="margin-top:10px;" onclick="goBack()">
+      <button class="btn-secondary" onclick="goBack()">
         Back to iAscendAi Dashboard
       </button>
 
@@ -51,38 +64,106 @@
   </div>
 
   <script>
-    function maskEmail(email) {
-      if (!email) return "unknown";
-      const [u, d] = email.split("@");
-      return u[0] + "•••@" + d;
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    function maskSoulmark(sm) {
+      if (!sm) return "N/A";
+      if (sm.length <= 16) return sm;
+      return sm.substring(0, 10) + "…" + sm.substring(sm.length - 6);
     }
 
-    const uname = localStorage.getItem("ias_username") || "user@iascendai";
-    const email = localStorage.getItem("ias_email") ||
-                  localStorage.getItem("fta_email") || "";
-    const soulmark = localStorage.getItem("ias_soulmark") ||
-                     localStorage.getItem("fta_soulmark") || "";
-    const amount = localStorage.getItem("fta_amount") || "";
-    const sessionId = localStorage.getItem("fta_last_session") || "";
+    async function loadSoulmarks() {
+      const tbody = document.getElementById("smRows");
+      const totalCountEl = document.getElementById("smTotalCount");
+      const totalAmountEl = document.getElementById("smTotalAmount");
 
-    document.getElementById("usernameVal").textContent = uname;
-    document.getElementById("emailVal").textContent = email ? maskEmail(email) : "Not set";
+      const identityEmail =
+        localStorage.getItem("ias_email") ||
+        localStorage.getItem("fta_email") ||
+        "";
 
-    document.getElementById("soulmarkVal").textContent =
-      soulmark || "No SoulMark found on this device.";
+      if (!identityEmail) {
+        tbody.innerHTML =
+          "<tr><td colspan='3'>No identity email found on this device.</td></tr>";
+        return;
+      }
 
-    document.getElementById("amountVal").textContent =
-      amount ? "$" + (parseInt(amount, 10) / 100).toFixed(2) : "N/A";
+      try {
+        const res = await fetch(`${BACKEND_URL}/donations`);
+        const data = await res.json();
+        const donations = data.donations || [];
 
-    document.getElementById("sessionVal").textContent = sessionId || "N/A";
+        // Filter to this user
+        const mine = donations.filter(
+          d => d.email &&
+               d.email.toLowerCase() === identityEmail.toLowerCase()
+        );
 
-    function openRegistry() {
-      window.location.href = "iascendai-soulregistry.html";
+        if (!mine.length) {
+          tbody.innerHTML =
+            "<tr><td colspan='3'>No SoulMarksⓈ found for this identity.</td></tr>";
+          totalCountEl.textContent = "0";
+          totalAmountEl.textContent = "$0.00";
+          return;
+        }
+
+        const totalAmount = mine.reduce((sum, d) => sum + (d.amount || 0), 0);
+        totalAmountEl.textContent = "$" + (totalAmount / 100).toFixed(2);
+        totalCountEl.textContent = String(mine.length);
+
+        const rowsHtml = mine
+          .slice()
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .map(d => {
+            const full = d.soulmark || "";
+            const short = maskSoulmark(full);
+            const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
+            const when = d.timestamp
+              ? new Date(d.timestamp).toLocaleString()
+              : "N/A";
+
+            const escFull = full.replace(/"/g, "&quot;");
+
+            return `<tr class="clickable-row" data-full="${escFull}">
+              <td class="truncate" title="${escFull}">${short}</td>
+              <td>${amt}</td>
+              <td>${when}</td>
+            </tr>`;
+          })
+          .join("");
+
+        tbody.innerHTML = rowsHtml;
+
+        // Attach copy handlers
+        document.querySelectorAll(".clickable-row").forEach(row => {
+          row.addEventListener("click", () => {
+            const sm = row.getAttribute("data-full");
+            if (!sm) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(sm).then(() => {
+                row.classList.add("copied");
+                setTimeout(() => row.classList.remove("copied"), 400);
+              }).catch(() => {
+                alert("Full SoulMarkⓈ: " + sm);
+              });
+            } else {
+              alert("Full SoulMarkⓈ: " + sm);
+            }
+          });
+        });
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML =
+          "<tr><td colspan='3'>Error loading SoulMarksⓈ.</td></tr>";
+      }
     }
 
     function goBack() {
       window.location.href = "iascendai-dashboard.html";
     }
+
+    loadSoulmarks();
   </script>
 </body>
 </html>
