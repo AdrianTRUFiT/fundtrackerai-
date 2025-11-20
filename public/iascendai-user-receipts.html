@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Verified Receipts — iAscendAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card">
+
+      <div class="brand-row">
+        <div class="brand-mark">📊</div>
+        <div>
+          <h1>My Receipts</h1>
+          <h2>Verified Contributions</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        These entries are filtered to the email tied to your iAscendAi identity
+        on this device.
+      </p>
+
+      <div class="dash-card">
+        <div class="dash-title">Receipt Summary</div>
+        <p class="small-label">Total Verified Donations</p>
+        <div id="rcptTotalCount" class="value">0</div>
+
+        <p class="small-label" style="margin-top:10px;">Total Amount</p>
+        <div id="rcptTotalAmount" class="value">$0.00</div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Donation History</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Amount</th>
+                <th>When</th>
+                <th>SoulMark</th>
+              </tr>
+            </thead>
+            <tbody id="rcptRows">
+              <tr><td colspan="3">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <button class="btn-secondary" onclick="goBack()">
+        Back to iAscendAi Dashboard
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    function maskSoulmark(sm) {
+      if (!sm) return "N/A";
+      if (sm.length <= 14) return sm;
+      return sm.substring(0, 8) + "…" + sm.substring(sm.length - 6);
+    }
+
+    async function loadReceipts() {
+      const tbody = document.getElementById("rcptRows");
+      const totalCountEl = document.getElementById("rcptTotalCount");
+      const totalAmountEl = document.getElementById("rcptTotalAmount");
+
+      const identityEmail = localStorage.getItem("ias_email") ||
+                            localStorage.getItem("fta_email") || "";
+
+      if (!identityEmail) {
+        tbody.innerHTML = "<tr><td colspan='3'>No identity email found on this device.</td></tr>";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/donations`);
+        const data = await res.json();
+        const donations = data.donations || [];
+
+        const mine = donations.filter(d =>
+          d.email && d.email.toLowerCase() === identityEmail.toLowerCase()
+        );
+
+        if (!mine.length) {
+          tbody.innerHTML = "<tr><td colspan='3'>No receipts found for this identity.</td></tr>";
+          totalCountEl.textContent = "0";
+          totalAmountEl.textContent = "$0.00";
+          return;
+        }
+
+        const totalAmount = mine.reduce((sum, d) => sum + (d.amount || 0), 0);
+        totalCountEl.textContent = String(mine.length);
+        totalAmountEl.textContent = "$" + (totalAmount / 100).toFixed(2);
+
+        const rows = mine
+          .slice()
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .map(d => {
+            const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
+            const when = d.timestamp ? new Date(d.timestamp).toLocaleString() : "N/A";
+            return `<tr>
+              <td>${amt}</td>
+              <td>${when}</td>
+              <td class="truncate" title="${d.soulmark || ""}">
+                ${maskSoulmark(d.soulmark)}
+              </td>
+            </tr>`;
+          })
+          .join("");
+
+        tbody.innerHTML = rows;
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = "<tr><td colspan='3'>Error loading receipts.</td></tr>";
+      }
+    }
+
+    function goBack() {
+      window.location.href = "iascendai-dashboard.html";
+    }
+
+    loadReceipts();
+  </script>
+</body>
+</html>
