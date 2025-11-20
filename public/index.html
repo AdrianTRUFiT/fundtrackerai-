@@ -11,6 +11,7 @@
   <div class="app-shell">
     <div class="card card--narrow">
 
+      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">$</div>
         <div>
@@ -21,18 +22,19 @@
 
       <h2>Make a Secure Donation</h2>
       <p class="subtext">
-        Your contribution is processed by Stripe and anchored with a SoulMarkⓈ
-        once verified.
+        Your contribution is processed safely and anchors a permanent SoulMarkⓈ once verified.
       </p>
 
+      <!-- NAME -->
       <label class="label">Full Name *</label>
       <input id="name" type="text" placeholder="Jane Donor" />
 
+      <!-- EMAIL -->
       <label class="label">Email Address *</label>
       <input id="email" type="email" placeholder="you@example.com" />
 
+      <!-- AMOUNT -->
       <label class="label">Select Amount *</label>
-
       <div class="amount-grid">
         <div class="amount-btn" data-value="25">$25</div>
         <div class="amount-btn" data-value="50">$50</div>
@@ -46,11 +48,13 @@
         <input id="customAmount" type="number" min="1" placeholder="Enter custom amount (USD)" />
       </div>
 
+      <!-- DONATE BUTTON -->
       <button id="donateBtn" class="btn-primary">
         Donate — SoulMarkⓈ Verified
       </button>
 
       <p id="donateStatus" class="small-label" style="margin-top:10px;"></p>
+
     </div>
   </div>
 
@@ -59,7 +63,9 @@
 
     let selectedAmount = null;
 
-    // Amount selection
+    // ---------------------------------
+    // HANDLE AMOUNT SELECTION
+    // ---------------------------------
     document.querySelectorAll(".amount-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".amount-btn").forEach(b => b.classList.remove("active"));
@@ -76,7 +82,9 @@
       });
     });
 
-    // Donate handler
+    // ---------------------------------
+    // DONATE HANDLER
+    // ---------------------------------
     document.getElementById("donateBtn").addEventListener("click", async () => {
       const statusEl = document.getElementById("donateStatus");
       statusEl.textContent = "";
@@ -97,6 +105,7 @@
 
       try {
         statusEl.textContent = "Connecting to Stripe...";
+
         const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -108,12 +117,13 @@
         });
 
         const data = await res.json();
+
         if (data.url) {
-          // Store basic context before redirecting
           try {
             localStorage.setItem("fta_name", name);
             localStorage.setItem("fta_email", email);
           } catch (e) {}
+
           window.location = data.url;
         } else {
           statusEl.textContent = "Error creating Stripe session.";
