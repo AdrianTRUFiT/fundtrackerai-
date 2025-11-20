@@ -40,8 +40,6 @@
         <p class="label">Reference ID</p>
         <div id="refRow" class="ref-row">
           <span id="refText" class="value ref-value"></span>
-
-          <!-- INLINE CTA BUTTON -->
           <button id="inlineRevealBtn" class="pill-button">
             Reveal SoulMarkⓈ →
           </button>
@@ -62,6 +60,8 @@
   </div>
 
   <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
     function maskEmail(email) {
       if (!email) return "unknown";
       const [u, d] = email.split("@");
@@ -84,7 +84,7 @@
       }
 
       try {
-        const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
+        const res = await fetch(`${BACKEND_URL}/verify-donation/${id}`);
         const data = await res.json();
 
         if (data.verified && data.entry) {
@@ -94,7 +94,7 @@
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
-          // NAME FROM BACKEND (REAL FIX)
+          // NAME (from backend, with fallback)
           document.getElementById("nameText").textContent =
             entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
 
@@ -109,7 +109,7 @@
           const shortRef = entry.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
-          // LOCAL STORAGE FOR REGISTER PAGE
+          // LOCAL STORAGE FOR REGISTER FLOW
           try {
             localStorage.setItem("fta_name", entry.name || "");
             localStorage.setItem("fta_email", entry.email || "");
@@ -124,7 +124,9 @@
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
-          const goToRegister = () => window.location.href = "register.html";
+          const goToRegister = () => {
+            window.location.href = "register.html";
+          };
 
           signupBtn.addEventListener("click", goToRegister);
           inlineRevealBtn.addEventListener("click", goToRegister);
@@ -135,6 +137,7 @@
         }
 
       } catch (err) {
+        console.error(err);
         statusEl.textContent = "Error verifying payment ❌";
         statusEl.classList.add("fail");
       }
