@@ -203,7 +203,7 @@ document.getElementById("donateBtn").addEventListener("click", async () => {
     return;
   }
 
-  const res = await fetch("YOUR_BACKEND_URL/create-checkout-session", {
+  const res = await fetch("https://fundtrackerai.onrender.com/create-checkout-session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
