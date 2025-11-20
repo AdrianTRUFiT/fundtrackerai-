@@ -2,74 +2,209 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Your iAscendAi Identity</title>
+  <title>iAscendAi Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* Dashboard-specific styling (safe to keep here) */
+    .dash-card {
+      background: #0c2238;
+      padding: 22px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.35);
+    }
+
+    .dash-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .small-label {
+      font-size: 0.80rem;
+      opacity: 0.65;
+      margin-bottom: 6px;
+    }
+
+    .module-btn {
+      width: 100%;
+      padding: 14px;
+      background: #122b44;
+      color: white;
+      border-radius: 12px;
+      text-align: left;
+      font-size: 1rem;
+      border: 1px solid #1d3a56;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .module-btn:hover {
+      background: #163554;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #F8BC07;
+      color: #041423;
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      border-radius: 50px;
+      margin-left: 8px;
+    }
+
+    .header-card {
+      background: linear-gradient(to bottom right, #13314d, #0b2236);
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 26px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    }
+
+    .header-card h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #47C28A;
+    }
+
+    .header-card p {
+      margin-top: 6px;
+      margin-bottom: 0;
+      color: #c0ccd9;
+      font-size: 0.92rem;
+    }
+
+    .identity-pill {
+      display: inline-block;
+      background: #47C28A22;
+      padding: 8px 14px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      color: #47C28A;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      cursor: pointer;
+      text-decoration: underline;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
   <div class="app-shell">
-    <div class="card">
+    <div class="card" style="max-width: 480px; width:100%;">
 
-      <!-- BRAND HEADER -->
-      <div class="brand-row">
-        <div class="brand-mark">$</div>
-        <div>
-          <h1>FundTrackerAI</h1>
-          <h2>Verified Transaction System</h2>
-        </div>
+      <!-- HEADER -->
+      <div class="header-card">
+        <h1>iAscendAi</h1>
+        <p>Your Identity • Your Presence • Your Signal</p>
+        <div id="identityTag" class="identity-pill">user@iascendai</div>
       </div>
 
-      <h2>Create Your iAscendAi Username</h2>
-      <p class="subtext">
-        Link this device to your verified donation and unlock your
-        SoulMarkⓈ-backed dashboard.  
-        No passwords — just this device.
-      </p>
+      <!-- QUICK MODULES -->
+      <div class="dash-card">
+        <div class="dash-title">Your Tools</div>
 
-      <p class="label">Verified Email</p>
-      <div id="emailChip" class="chip">unknown</div>
+        <button class="module-btn" onclick="openSoulmark()">
+          🔐  View My SoulMarkⓈ Records 
+        </button>
 
-      <p class="label">Last Donation</p>
-      <div id="amountText" class="value">$0.00</div>
+        <button class="module-btn" onclick="openCampaigns()">
+          💛  Jamaica We Rise <span class="tag">Live</span>
+        </button>
 
-      <p class="label" style="margin-top:20px;">Ready?</p>
-      <p class="info">
-        Tap below to continue.  
-        Your username will be created on the next step in your iAscendAi dashboard.
-      </p>
+        <button class="module-btn" onclick="openDonations()">
+          📊  My Verified Donations
+        </button>
 
-      <!-- CTA -->
-      <button id="continueBtn" class="btn-primary">
-        Continue — Create My iAscendAi Username →
-      </button>
+        <button class="module-btn" onclick="openTravel()">
+          🌍  TravelFlow AI 
+        </button>
+      </div>
+
+      <!-- DAILY CHECK-IN -->
+      <div class="dash-card">
+        <div class="dash-title">Daily Check-In</div>
+        <p class="small-label">How are you showing up today?</p>
+
+        <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+          <button class="chip" onclick="saveMood('🔥 Energized')">🔥 Energized</button>
+          <button class="chip" onclick="saveMood('💪 Strong')">💪 Strong</button>
+          <button class="chip" onclick="saveMood('🌊 Calm')">🌊 Calm</button>
+          <button class="chip" onclick="saveMood('🌱 Growing')">🌱 Growing</button>
+          <button class="chip" onclick="saveMood('😔 Need Support')">😔 Need Support</button>
+        </div>
+
+        <p id="moodStatus" class="small-label" style="margin-top:12px;"></p>
+      </div>
+
+      <!-- LOGOUT -->
+      <div class="logout-btn" onclick="logout()">
+        Log Out of This Device
+      </div>
 
     </div>
   </div>
 
+
+  <!-- DASHBOARD LOGIC -->
   <script>
-    function maskEmail(email) {
-      if (!email) return "unknown";
-      const [u, d] = email.split("@");
-      return u[0] + "•••@" + d;
+    // Load identity from localStorage
+    const savedEmail = localStorage.getItem("fta_email") || "";
+    document.getElementById("identityTag").textContent =
+      savedEmail ? savedEmail.split("@")[0] + "@iascendai" : "user@iascendai";
+
+    // Mood check-in
+    function saveMood(mood) {
+      localStorage.setItem("ias_mood", mood);
+      document.getElementById("moodStatus").textContent =
+        "✔ Checked in: " + mood;
     }
 
-    // Load localStorage
-    try {
-      const email = localStorage.getItem("fta_email") || "";
-      const amount = Number(localStorage.getItem("fta_amount") || 0);
-
-      document.getElementById("emailChip").textContent = maskEmail(email);
-      document.getElementById("amountText").textContent =
-        "$" + (amount / 100).toFixed(2);
-    } catch (e) {
-      console.warn("localStorage error:", e);
+    // Load mood if exists
+    const prevMood = localStorage.getItem("ias_mood");
+    if (prevMood) {
+      document.getElementById("moodStatus").textContent =
+        "✔ Checked in: " + prevMood;
     }
 
-    // Redirect to main dashboard
-    document.getElementById("continueBtn").onclick = () => {
-      window.location.href = "iascendai-dashboard.html";
-    };
+    // Navigation
+    function openSoulmark() {
+      window.location.href = "iascendai-dashboard-soulmark.html";
+    }
+
+    function openCampaigns() {
+      window.location.href = "iascendai-dashboard-campaigns.html";
+    }
+
+    function openDonations() {
+      window.location.href = "iascendai-dashboard-donations.html";
+    }
+
+    function openTravel() {
+      window.location.href = "iascendai-dashboard-travel.html";
+    }
+
+    function logout() {
+      localStorage.removeItem("fta_email");
+      localStorage.removeItem("fta_name");
+      localStorage.removeItem("fta_amount");
+      localStorage.removeItem("fta_soulmark");
+      localStorage.removeItem("fta_last_session");
+
+      window.location.href = "index.html";
+    }
   </script>
 
 </body>
