@@ -21,7 +21,7 @@
 
       <p class="subtext">
         Paste a full SoulMarkⓈ below to verify that it exists in the FundTrackerAI ledger
-        and see its public-facing metadata.
+        and view its public metadata.
       </p>
 
       <label class="label">SoulMarkⓈ</label>
@@ -33,6 +33,7 @@
 
       <p id="lookupStatus" class="small-label" style="margin-top:10px;"></p>
 
+      <!-- RESULT BOX -->
       <div id="resultBox" class="dash-card" style="display:none; margin-top:18px;">
         <div class="dash-title">Lookup Result</div>
 
@@ -69,7 +70,7 @@
     }
 
     document.getElementById("lookupBtn").addEventListener("click", lookup);
-    document.getElementById("smInput").addEventListener("keydown", e => {
+    document.getElementById("smInput").addEventListener("keydown", (e) => {
       if (e.key === "Enter") lookup();
     });
 
@@ -78,8 +79,8 @@
       const statusEl = document.getElementById("lookupStatus");
       const box = document.getElementById("resultBox");
 
-      box.style.display = "none";
       statusEl.textContent = "";
+      box.style.display = "none";
 
       if (!sm) {
         statusEl.textContent = "Please paste a SoulMarkⓈ.";
@@ -110,7 +111,9 @@
         document.getElementById("resAmount").textContent =
           "$" + ((match.amount || 0) / 100).toFixed(2);
         document.getElementById("resTime").textContent =
-          match.timestamp ? new Date(match.timestamp).toLocaleString() : "N/A";
+          match.timestamp
+            ? new Date(match.timestamp).toLocaleString()
+            : "N/A";
 
       } catch (err) {
         console.error(err);
