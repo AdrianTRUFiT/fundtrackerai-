@@ -25,11 +25,11 @@
 
       <div id="statusText" class="status">Checking...</div>
 
-      <!-- BASIC RECEIPT — SAFE TO SHOW PUBLICLY -->
+      <!-- BASIC RECEIPT (SAFE PUBLIC OUTPUT) -->
       <div id="details" style="margin-top:16px; display:none;">
 
         <p class="label">Name</p>
-        <div id="nameText" class="value">Donor</div>
+        <div id="nameText" class="value"></div>
 
         <p class="label">Email</p>
         <div id="emailChip" class="chip"></div>
@@ -40,13 +40,15 @@
         <p class="label">Reference ID</p>
         <div id="refRow" class="ref-row">
           <span id="refText" class="value ref-value"></span>
+
+          <!-- INLINE CTA BUTTON -->
           <button id="inlineRevealBtn" class="pill-button">
             Reveal SoulMarkⓈ →
           </button>
         </div>
 
         <p class="info">
-          To access your full verified SoulMarkⓈ and real-time impact dashboard,
+          To access your full verified SoulMarkⓈ and your real-time impact dashboard,
           create your iAscendAi username below.
         </p>
       </div>
@@ -62,8 +64,8 @@
   <script>
     function maskEmail(email) {
       if (!email) return "unknown";
-      const [user, domain] = email.split("@");
-      return user[0] + "•••@" + domain;
+      const [u, d] = email.split("@");
+      return u[0] + "•••@" + d;
     }
 
     async function verify() {
@@ -88,26 +90,28 @@
         if (data.verified && data.entry) {
           const entry = data.entry;
 
-          // basic status
+          // STATUS
           statusEl.textContent = "Payment Verified ✔";
           statusEl.classList.add("success");
 
-          // name (we don't have a real name yet, so just show Donor for now)
-          document.getElementById("nameText").textContent = "Donor";
+          // NAME FROM BACKEND (REAL FIX)
+          document.getElementById("nameText").textContent =
+            entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
 
-          // email + amount
+          // EMAIL + AMOUNT
           document.getElementById("emailChip").textContent =
             maskEmail(entry.email);
 
           document.getElementById("amountText").textContent =
             "$" + (entry.amount / 100).toFixed(2);
 
-          // reference (partial SoulMark)
+          // PARTIAL SOULMARK PREVIEW
           const shortRef = entry.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
-          // persist latest record so register.html can preload it
+          // LOCAL STORAGE FOR REGISTER PAGE
           try {
+            localStorage.setItem("fta_name", entry.name || "");
             localStorage.setItem("fta_email", entry.email || "");
             localStorage.setItem("fta_amount", String(entry.amount || ""));
             localStorage.setItem("fta_soulmark", entry.soulmark || "");
@@ -116,12 +120,12 @@
             console.warn("localStorage unavailable:", e);
           }
 
+          // REVEAL UI
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
-          const goToRegister = () => {
-            window.location.href = "register.html";
-          };
+          const goToRegister = () => window.location.href = "register.html";
+
           signupBtn.addEventListener("click", goToRegister);
           inlineRevealBtn.addEventListener("click", goToRegister);
 
