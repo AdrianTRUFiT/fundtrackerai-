@@ -1,147 +1,196 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>FundTrackerAI — Payment Status</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
+// -----------------------------------------------
+// FundTrackerAI Backend — With SoulMark Minting
+// -----------------------------------------------
 
-<body>
-  <div class="app-shell">
-    <div class="card">
+import express from "express";
+import Stripe from "stripe";
+import fs from "fs";
+import path from "path";
+import cors from "cors";
+import dotenv from "dotenv";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
 
-      <!-- BRAND HEADER -->
-      <div class="brand-row">
-        <div class="brand-mark">$</div>
-        <div>
-          <h1>FundTrackerAI</h1>
-          <h2>Verified Transaction System</h2>
-        </div>
-      </div>
+dotenv.config();
 
-      <h2>Payment Status</h2>
-      <p class="subtext">Your transaction has been securely processed.</p>
+// -----------------------------------------------
+// 0. APP SETUP
+// -----------------------------------------------
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-      <div id="statusText" class="status">Checking...</div>
+// ENV VARS
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const FRONTEND_URL = process.env.FRONTEND_URL;
+const SOULMARK_SECRET = process.env.SOULMARK_SECRET;
 
-      <!-- BASIC RECEIPT (SAFE PUBLIC OUTPUT) -->
-      <div id="details" style="margin-top:16px; display:none;">
+if (!STRIPE_SECRET_KEY || !FRONTEND_URL || !SOULMARK_SECRET) {
+  console.warn("⚠️ Missing env vars: STRIPE_SECRET_KEY, FRONTEND_URL, SOULMARK_SECRET");
+}
 
-        <p class="label">Name</p>
-        <div id="nameText" class="value"></div>
+const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-        <p class="label">Email</p>
-        <div id="emailChip" class="chip"></div>
+// Resolve path relative to THIS FILE (server.js), not process.cwd()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-        <p class="label">Amount</p>
-        <div id="amountText" class="value"></div>
+// registry.json lives in SAME directory as server.js
+const registryFile = path.join(__dirname, "registry.json");
 
-        <p class="label">Reference ID</p>
-        <div id="refRow" class="ref-row">
-          <span id="refText" class="value ref-value"></span>
+console.log("📁 Registry path:", registryFile);
 
-          <!-- INLINE CTA BUTTON -->
-          <button id="inlineRevealBtn" class="pill-button">
-            Reveal SoulMarkⓈ →
-          </button>
-        </div>
-
-        <p class="info">
-          To access your full verified SoulMarkⓈ and your real-time impact dashboard,
-          create your iAscendAi username below.
-        </p>
-      </div>
-
-      <!-- MAIN SIGN-UP CTA -->
-      <button id="signupBtn" class="btn-primary" style="display:none;">
-        Reveal My Verified SoulMarkⓈ →
-      </button>
-
-    </div>
-  </div>
-
-  <script>
-    function maskEmail(email) {
-      if (!email) return "unknown";
-      const [u, d] = email.split("@");
-      return u[0] + "•••@" + d;
+// Ensure registry file exists and is valid JSON
+function ensureRegistry() {
+  try {
+    if (!fs.existsSync(registryFile)) {
+      console.log("🆕 Creating registry.json");
+      fs.writeFileSync(
+        registryFile,
+        JSON.stringify({ donations: [] }, null, 2),
+        "utf8"
+      );
+      return;
     }
 
-    async function verify() {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("session_id");
+    // Validate JSON
+    const raw = fs.readFileSync(registryFile, "utf8");
+    JSON.parse(raw);
 
-      const statusEl = document.getElementById("statusText");
-      const detailsEl = document.getElementById("details");
-      const signupBtn = document.getElementById("signupBtn");
-      const inlineRevealBtn = document.getElementById("inlineRevealBtn");
+  } catch (err) {
+    console.error("⚠️ registry.json invalid, resetting:", err.message);
+    fs.writeFileSync(
+      registryFile,
+      JSON.stringify({ donations: [] }, null, 2),
+      "utf8"
+    );
+  }
+}
 
-      if (!id) {
-        statusEl.textContent = "Invalid session ❌";
-        statusEl.classList.add("fail");
-        return;
-      }
+// Run validator on startup
+ensureRegistry();
 
-      try {
-        const res = await fetch(`https://fundtrackerai.onrender.com/verify-donation/${id}`);
-        const data = await res.json();
+// -----------------------------------------------
+// 1. ROOT PING
+// -----------------------------------------------
+app.get("/", (req, res) => {
+  res.send("FundTrackerAI backend is running.");
+});
 
-        if (data.verified && data.entry) {
-          const entry = data.entry;
+// -----------------------------------------------
+// 2. CREATE CHECKOUT SESSION
+// -----------------------------------------------
+app.post("/create-checkout-session", async (req, res) => {
+  try {
+    const { name, email, amount } = req.body;
 
-          // STATUS
-          statusEl.textContent = "Payment Verified ✔";
-          statusEl.classList.add("success");
+    if (!amount || amount < 1) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
 
-          // NAME FROM BACKEND (REAL FIX)
-          document.getElementById("nameText").textContent =
-            entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_email: email,
 
-          // EMAIL + AMOUNT
-          document.getElementById("emailChip").textContent =
-            maskEmail(entry.email);
+      // ⭐ STORE NAME in Stripe metadata so we retrieve it later
+      metadata: {
+        name: name || ""
+      },
 
-          document.getElementById("amountText").textContent =
-            "$" + (entry.amount / 100).toFixed(2);
-
-          // PARTIAL SOULMARK PREVIEW
-          const shortRef = entry.soulmark.substring(0, 10) + "••••••••";
-          document.getElementById("refText").textContent = shortRef;
-
-          // LOCAL STORAGE FOR REGISTER PAGE
-          try {
-            localStorage.setItem("fta_name", entry.name || "");
-            localStorage.setItem("fta_email", entry.email || "");
-            localStorage.setItem("fta_amount", String(entry.amount || ""));
-            localStorage.setItem("fta_soulmark", entry.soulmark || "");
-            localStorage.setItem("fta_last_session", entry.id || "");
-          } catch (e) {
-            console.warn("localStorage unavailable:", e);
-          }
-
-          // REVEAL UI
-          detailsEl.style.display = "block";
-          signupBtn.style.display = "block";
-
-          const goToRegister = () => window.location.href = "register.html";
-
-          signupBtn.addEventListener("click", goToRegister);
-          inlineRevealBtn.addEventListener("click", goToRegister);
-
-        } else {
-          statusEl.textContent = "Verification Failed ❌";
-          statusEl.classList.add("fail");
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: { name: "Donation" },
+            unit_amount: amount * 100
+          },
+          quantity: 1
         }
+      ],
 
-      } catch (err) {
-        statusEl.textContent = "Error verifying payment ❌";
-        statusEl.classList.add("fail");
-      }
+      success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/index.html`
+    });
+
+    res.json({ url: session.url });
+
+  } catch (err) {
+    console.error("SESSION ERROR:", err);
+    res.status(500).json({ error: "Session creation failed" });
+  }
+});
+
+// -----------------------------------------------
+// 3. VERIFY PAYMENT + MINT SOULMARK
+// -----------------------------------------------
+app.get("/verify-donation/:id", async (req, res) => {
+  try {
+    ensureRegistry();
+
+    const session = await stripe.checkout.sessions.retrieve(req.params.id);
+
+    if (!session || session.payment_status !== "paid") {
+      return res.json({ verified: false });
     }
 
-    verify();
-  </script>
+    // Extract donor name from metadata (REAL FIX)
+    const donorName = session.metadata?.name || "";
 
-</body>
-</html>
+    const email = session.customer_details?.email || "unknown";
+    const amount = session.amount_total;
+    const now = new Date().toISOString();
+    const nonce = crypto.randomUUID();
+
+    // Generate SoulMark
+    const soulmark = crypto
+      .createHash("sha256")
+      .update(email + now + SOULMARK_SECRET + nonce)
+      .digest("hex");
+
+    // Full registry entry
+    const entry = {
+      id: session.id,
+      name: donorName || "Donor",
+      email,
+      amount,
+      timestamp: now,
+      soulmark
+    };
+
+    // Load registry
+    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+
+    json.donations.push(entry);
+
+    fs.writeFileSync(registryFile, JSON.stringify(json, null, 2));
+
+    res.json({ verified: true, entry });
+
+  } catch (err) {
+    console.error("VERIFY ERROR:", err);
+    res.status(500).json({ error: "Verification failed" });
+  }
+});
+
+// -----------------------------------------------
+// 4. READ ALL DONATIONS
+// -----------------------------------------------
+app.get("/donations", (req, res) => {
+  try {
+    ensureRegistry();
+    const json = JSON.parse(fs.readFileSync(registryFile, "utf8"));
+    res.json(json);
+  } catch (err) {
+    console.error("READ ERROR:", err);
+    res.status(500).json({ error: "Failed to read registry" });
+  }
+});
+
+// -----------------------------------------------
+// 5. START SERVER
+// -----------------------------------------------
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
+});
