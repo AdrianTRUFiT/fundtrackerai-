@@ -9,98 +9,71 @@
 
 <body>
   <div class="app-shell">
-    <div class="card card--narrow">
+    <div class="card" style="max-width:420px; width:100%;">
 
-      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">@</div>
         <div>
           <h1>iAscendAi</h1>
-          <h2>Access Your Identity</h2>
+          <h2>Login</h2>
         </div>
       </div>
 
       <p class="subtext">
-        Enter your username and the email that was originally linked to your SoulMarkⓈ identity.
+        Enter your username to access your authored identity.
       </p>
 
       <label class="label">Username</label>
-      <input id="login_username" type="text" placeholder="yourname@iascendai" />
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input id="uname" type="text" placeholder="yourname"
+               style="flex:1;" autocomplete="off" />
+        <span>@iascendai</span>
+      </div>
 
-      <label class="label" style="margin-top:14px;">Email</label>
-      <input id="login_email" type="email" placeholder="you@example.com" />
+      <p id="loginStatus" class="small-label" style="margin-top:6px;"></p>
 
-      <p id="login_status" class="small-label" style="margin-top:10px;"></p>
-
-      <button class="btn-primary" id="loginBtn">
-        Login to Dashboard
+      <button class="btn-primary" id="loginBtn" style="margin-top:10px;">
+        Login
       </button>
 
       <button class="btn-secondary" style="margin-top:14px;"
-              onclick="window.location.href='iascendai-forgot-username.html'">
-        Forgot Username?
-      </button>
-
-      <button class="btn-secondary" style="margin-top:10px;"
               onclick="window.location.href='iascendai-auth.html'">
-        Back to Identity Options
+        Back
       </button>
 
     </div>
   </div>
 
   <script>
-    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const loginStatus = document.getElementById("loginStatus");
+      const raw = document.getElementById("uname").value.trim().toLowerCase();
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const uname = document.getElementById("login_username").value.trim().toLowerCase();
-      const email = document.getElementById("login_email").value.trim().toLowerCase();
-      const status = document.getElementById("login_status");
-
-      status.textContent = "";
-
-      if (!uname || !email) {
-        status.textContent = "Please enter both username and email.";
+      if (!raw) {
+        loginStatus.textContent = "Enter your username.";
         return;
       }
 
-      // Validate that this username/email pair exists
-      try {
-        const res = await fetch(`${BACKEND_URL}/donations`);
-        const data = await res.json();
+      const full = raw.replace(/[^a-z0-9._-]/g, "") + "@iascendai";
+      const savedUser = localStorage.getItem("ias_username");
 
-        const identities = data.identities || [];
-
-        const match = identities.find(i =>
-          i.username.toLowerCase() === uname &&
-          i.email.toLowerCase() === email
-        );
-
-        if (!match) {
-          status.textContent = "No identity found for this username/email combination.";
-          return;
-        }
-
-        // Save & redirect
-        try {
-          localStorage.setItem("ias_username", match.username);
-          localStorage.setItem("ias_email", match.email);
-          localStorage.setItem("ias_soulmark", match.soulmarks[0] || "");
-          localStorage.setItem("ias_identity_id", match.identity_id);
-        } catch (e) {}
-
-        status.textContent = "Identity verified. Redirecting…";
-
-        setTimeout(() => {
-          window.location.href = "iascendai-dashboard.html";
-        }, 600);
-
-      } catch (err) {
-        console.error(err);
-        status.textContent = "Error verifying identity.";
+      if (!savedUser) {
+        loginStatus.textContent =
+          "No identity found on this device. Try creating one.";
+        return;
       }
+
+      if (savedUser.toLowerCase() !== full.toLowerCase()) {
+        loginStatus.textContent = "Username not found on this device.";
+        return;
+      }
+
+      // SUCCESS
+      loginStatus.textContent = "Logging in…";
+      setTimeout(() => {
+        window.location.href = "iascendai-dashboard.html";
+      }, 300);
     });
   </script>
-
 </body>
 </html>
