@@ -9,7 +9,7 @@
 
 <body>
   <div class="app-shell">
-    <div class="card" style="max-width:480px; width:100%;">
+    <div class="card" style="max-width:480px; width:100%">
 
       <!-- HEADER -->
       <div class="header-card">
@@ -38,16 +38,23 @@
       <!-- AI WELLNESS 360 -->
       <div class="dash-card">
         <div class="dash-title">Daily Check-In</div>
-        <p class="small-label">How are you showing up today?</p>
+        <p class="small-label">How are you feeling today?</p>
 
-        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;">
-          <button class="chip-button" onclick="saveMood('👍 OK')">👍 OK</button>
-          <button class="chip-button" onclick="saveMood('🆘 Need Help')">🆘 Need Help</button>
-          <button class="chip-button" onclick="saveMood('❤️‍🩹 Recovering')">❤️‍🩹 Recovering</button>
-          <button class="chip-button" onclick="saveMood('⚖️ Balanced')">⚖️ Balanced</button>
-          <button class="chip-button" onclick="saveMood('💪 Strong')">💪 Strong</button>
+        <!-- Mood Buttons -->
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+          <button class="chip-button" onclick="selectMood('👍 OK')">👍 OK</button>
+          <button class="chip-button" onclick="selectMood('🆘 Need Help')">🆘 Need Help</button>
+          <button class="chip-button" onclick="selectMood('❤️‍🩹 Recovering')">❤️‍🩹 Recovering</button>
+          <button class="chip-button" onclick="selectMood('⚖️ Balanced')">⚖️ Balanced</button>
+          <button class="chip-button" onclick="selectMood('💪 Strong')">💪 Strong</button>
         </div>
 
+        <!-- Submit Button -->
+        <button id="submitMoodBtn" class="btn-primary" style="margin-top:14px; opacity:0.5;" disabled>
+          Submit Check-In
+        </button>
+
+        <!-- Status -->
         <p id="todayStatus" class="small-label" style="margin-top:14px;"></p>
         <p id="lastStatus" class="small-label"></p>
       </div>
@@ -56,80 +63,113 @@
       <div class="logout-btn" onclick="logout()">
         Log Out of This Device
       </div>
+
     </div>
   </div>
 
-  <script>
-    // Identity Pill
-    const savedUsername = localStorage.getItem("ias_username");
-    const savedEmail =
-      localStorage.getItem("ias_email") ||
-      localStorage.getItem("fta_email") || "";
+<script>
+/* ------------------------------
+   IDENTITY TAG
+-------------------------------- */
+const savedUsername = localStorage.getItem("ias_username");
+const savedEmail =
+  localStorage.getItem("ias_email") ||
+  localStorage.getItem("fta_email") || "";
 
-    const identityTag = document.getElementById("identityTag");
-    identityTag.textContent =
-      savedUsername || (savedEmail ? savedEmail.split("@")[0] + "@iascendai" : "user@iascendai");
+document.getElementById("identityTag").textContent =
+  savedUsername || (savedEmail ? savedEmail.split("@")[0] + "@iascendai" : "user@iascendai");
 
-    // AI WELLNESS 360
-    function saveMood(mood) {
-      const today = new Date().toISOString().split("T")[0];
 
-      localStorage.setItem("ias_mood_today", mood);
-      localStorage.setItem("ias_mood_today_date", today);
 
-      if (!localStorage.getItem("ias_last_mood") ||
-          localStorage.getItem("ias_last_mood_date") !== today) {
-        localStorage.setItem("ias_last_mood", mood);
-        localStorage.setItem("ias_last_mood_date", today);
-      }
+/* ------------------------------
+   AI WELLNESS 360 — Submit Flow
+-------------------------------- */
+let selectedMood = null;
 
-      renderMood();
-    }
+// Called when the user taps a mood button
+function selectMood(mood) {
+  selectedMood = mood;
+  const btn = document.getElementById("submitMoodBtn");
+  btn.disabled = false;
+  btn.style.opacity = "1";
+}
 
-    function renderMood() {
-      const mood = localStorage.getItem("ias_mood_today");
-      const date = localStorage.getItem("ias_mood_today_date");
-      const lastMood = localStorage.getItem("ias_last_mood");
-      const lastDate = localStorage.getItem("ias_last_mood_date");
+// On Submit
+document.getElementById("submitMoodBtn").addEventListener("click", () => {
+  if (!selectedMood) return;
 
-      const todayStatus = document.getElementById("todayStatus");
-      const lastStatus = document.getElementById("lastStatus");
+  const today = new Date().toISOString().split("T")[0];
 
-      if (mood && date) {
-        todayStatus.textContent = `✔ Checked in today: ${mood}`;
-      } else {
-        todayStatus.textContent = "Not checked in today.";
-      }
+  // Save Today
+  localStorage.setItem("ias_mood_today", selectedMood);
+  localStorage.setItem("ias_mood_today_date", today);
 
-      if (lastMood && lastDate) {
-        lastStatus.textContent = `Last check-in: ${lastMood}`;
-      } else {
-        lastStatus.textContent = "";
-      }
-    }
+  // Update last check-in ONLY if this is a NEW DAY
+  const storedTodayDate = localStorage.getItem("ias_last_mood_date");
+  if (storedTodayDate !== today) {
+    localStorage.setItem("ias_last_mood", selectedMood);
+    localStorage.setItem("ias_last_mood_date", today);
+  }
 
-    renderMood();
+  renderMood();
+});
 
-    // Navigation
-    function openSoulmark() {
-      window.location.href = "iascendai-soulregistry.html";
-    }
-    function openCampaigns() {
-      window.location.href = "iascendai-campaigns.html";
-    }
-    function openReceipts() {
-      window.location.href = "iascendai-user-receipts.html";
-    }
 
-    // Logout
-    function logout() {
-      localStorage.removeItem("ias_username");
-      localStorage.removeItem("ias_email");
-      localStorage.removeItem("ias_soulmark");
-      localStorage.removeItem("ias_identity_id");
+// Display Today + Last Check-In
+function renderMood() {
+  const mood = localStorage.getItem("ias_mood_today");
+  const todayDate = localStorage.getItem("ias_mood_today_date");
 
-      window.location.href = "iascendai-auth.html";
-    }
-  </script>
+  const lastMood = localStorage.getItem("ias_last_mood");
+  const lastDate = localStorage.getItem("ias_last_mood_date");
+
+  const todayStatus = document.getElementById("todayStatus");
+  const lastStatus = document.getElementById("lastStatus");
+
+  if (mood && todayDate) {
+    todayStatus.textContent = `✔ Checked in today (${todayDate}): ${mood}`;
+  } else {
+    todayStatus.textContent = "Not checked in today.";
+  }
+
+  if (lastMood && lastDate) {
+    lastStatus.textContent = `Last check-in (${lastDate}): ${lastMood}`;
+  } else {
+    lastStatus.textContent = "";
+  }
+}
+
+renderMood();
+
+
+
+/* ------------------------------
+   NAVIGATION
+-------------------------------- */
+function openSoulmark() {
+  window.location.href = "iascendai-soulregistry.html";
+}
+function openCampaigns() {
+  window.location.href = "iascendai-campaigns.html";
+}
+function openReceipts() {
+  window.location.href = "iascendai-user-receipts.html";
+}
+
+
+
+/* ------------------------------
+   LOGOUT
+-------------------------------- */
+function logout() {
+  localStorage.removeItem("ias_username");
+  localStorage.removeItem("ias_email");
+  localStorage.removeItem("ias_soulmark");
+  localStorage.removeItem("ias_identity_id");
+
+  window.location.href = "iascendai-auth.html";
+}
+</script>
+
 </body>
 </html>
