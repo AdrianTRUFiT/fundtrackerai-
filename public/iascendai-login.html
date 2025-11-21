@@ -45,7 +45,9 @@
   </div>
 
   <script>
-    document.getElementById("loginBtn").addEventListener("click", () => {
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
       const loginStatus = document.getElementById("loginStatus");
       const raw = document.getElementById("uname").value.trim().toLowerCase();
 
@@ -54,25 +56,41 @@
         return;
       }
 
-      const full = raw.replace(/[^a-z0-9._-]/g, "") + "@iascendai";
-      const savedUser = localStorage.getItem("ias_username");
+      const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+      const full = cleaned + "@iascendai";
 
-      if (!savedUser) {
-        loginStatus.textContent =
-          "No identity found on this device. Try creating one.";
-        return;
+      loginStatus.textContent = "Checking identity…";
+
+      try {
+        // Pull entire identity list
+        const res = await fetch(`${BACKEND_URL}/identities`);
+        const data = await res.json();
+        const identities = data.identities || [];
+
+        const match = identities.find(
+          i => i.username.toLowerCase() === full.toLowerCase()
+        );
+
+        if (!match) {
+          loginStatus.textContent = "Username not found.";
+          return;
+        }
+
+        // SAVE identity locally on this device
+        localStorage.setItem("ias_username", match.username);
+        localStorage.setItem("ias_email", match.email);
+        localStorage.setItem("ias_identity_id", match.identity_id);
+
+        loginStatus.textContent = "Logging in…";
+
+        setTimeout(() => {
+          window.location.href = "iascendai-dashboard.html";
+        }, 300);
+
+      } catch (err) {
+        console.error(err);
+        loginStatus.textContent = "Network error. Try again.";
       }
-
-      if (savedUser.toLowerCase() !== full.toLowerCase()) {
-        loginStatus.textContent = "Username not found on this device.";
-        return;
-      }
-
-      // SUCCESS
-      loginStatus.textContent = "Logging in…";
-      setTimeout(() => {
-        window.location.href = "iascendai-dashboard.html";
-      }, 300);
     });
   </script>
 </body>
