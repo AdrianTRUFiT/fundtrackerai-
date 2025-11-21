@@ -1,5 +1,5 @@
 // -----------------------------------------------
-// FundTrackerAI Backend — Donations + Identities + Subscriptions
+// FundTrackerAI Backend — Donations + Identities + Orders
 // -----------------------------------------------
 
 import express from "express";
@@ -15,12 +15,13 @@ dotenv.config();
 
 // ---------- 0. APP + ENV SETUP ----------
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL; // e.g. https://fundtrackerai.vercel.app
-const SOULMARK_SECRET = process.env.SOULMARK_SECRET || "CHANGE_ME_SOULMARK_SECRET";
+const SOULMARK_SECRET =
+  process.env.SOULMARK_SECRET || "CHANGE_ME_SOULMARK_SECRET";
 
 if (!STRIPE_SECRET_KEY || !FRONTEND_URL) {
   console.warn(
@@ -37,12 +38,11 @@ const __dirname = path.dirname(__filename);
 // registry.json lives beside server.js
 const registryFile = path.join(__dirname, "registry.json");
 
-// ---------- REGISTRY HELPERS ----------
 function ensureRegistry() {
   try {
     if (!fs.existsSync(registryFile)) {
       console.log("🆕 Creating registry.json");
-      const initial = { donations: [], identities: [], subscriptions: [] };
+      const initial = { donations: [], identities: [], orders: [] };
       fs.writeFileSync(registryFile, JSON.stringify(initial, null, 2), "utf8");
       return;
     }
@@ -53,12 +53,8 @@ function ensureRegistry() {
       parsed = JSON.parse(raw);
     } catch {
       console.warn("⚠️ registry.json invalid JSON, backing up and resetting.");
-      fs.writeFileSync(
-        registryFile + ".backup-" + Date.now(),
-        raw,
-        "utf8"
-      );
-      const reset = { donations: [], identities: [], subscriptions: [] };
+      fs.writeFileSync(registryFile + ".backup-" + Date.now(), raw, "utf8");
+      const reset = { donations: [], identities: [], orders: [] };
       fs.writeFileSync(registryFile, JSON.stringify(reset, null, 2), "utf8");
       return;
     }
@@ -72,11 +68,10 @@ function ensureRegistry() {
       parsed.identities = [];
       changed = true;
     }
-    if (!Array.isArray(parsed.subscriptions)) {
-      parsed.subscriptions = [];
+    if (!Array.isArray(parsed.orders)) {
+      parsed.orders = [];
       changed = true;
     }
-
     if (changed) {
       fs.writeFileSync(registryFile, JSON.stringify(parsed, null, 2), "utf8");
     }
@@ -89,29 +84,24 @@ function readRegistry() {
   ensureRegistry();
   try {
     const raw = fs.readFileSync(registryFile, "utf8");
-    const parsed = JSON.parse(raw);
-    return {
-      donations: parsed.donations || [],
-      identities: parsed.identities || [],
-      subscriptions: parsed.subscriptions || []
-    };
+    return JSON.parse(raw);
   } catch (err) {
     console.error("READ registry error:", err);
-    return { donations: [], identities: [], subscriptions: [] };
+    return { donations: [], identities: [], orders: [] };
   }
 }
 
 function writeRegistry(data) {
   try {
-    const safe = {
-      donations: data.donations || [],
-      identities: data.identities || [],
-      subscriptions: data.subscriptions || []
-    };
-    fs.writeFileSync(registryFile, JSON.stringify(safe, null, 2), "utf8");
+    fs.writeFileSync(registryFile, JSON.stringify(data, null, 2), "utf8");
   } catch (err) {
     console.error("WRITE registry error:", err);
   }
+}
+
+// Simple helper for order IDs
+function createOrderId() {
+  return "ord-" + crypto.randomUUID();
 }
 
 // ---------- 1. ROOT PING ----------
@@ -119,13 +109,17 @@ app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
 
-// ---------- 2. CREATE ONE-TIME CHECKOUT SESSION (DONATIONS) ----------
+// --------------------------------------------------
+// 2. DONATION CHECKOUT (EXISTING FLOW — UNCHANGED)
+// --------------------------------------------------
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const { name, email, amount } = req.body;
 
     if (!email || !amount || amount < 1) {
-      return res.status(400).json({ error: "Missing or invalid amount/email." });
+      return res
+        .status(400)
+        .json({ error: "Missing or invalid amount/email." });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -159,7 +153,194 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-// ---------- 3. VERIFY PAYMENT + MINT SOULMARKⓈ ----------
+// --------------------------------------------------
+// 3. UNIVERSAL ORDER ENGINE (NEW)
+// --------------------------------------------------
+
+/**
+ * POST /create-order
+ * Create an internal order FIRST (our cart), before Stripe.
+ *
+ * Body:
+ * {
+ *   "app": "LawAidAI" | "TravelFlowAI" | ...,
+ *   "email": "user@example.com",
+ *   "items": [
+ *     {
+ *       "sku": "lawaid_basic_monthly",
+ *       "label": "LawAidAI Basic",
+ *       "type": "subscription" | "one_time",
+ *       "interval": "month" | "year" | null,
+ *       "amount_cents": 999
+ *     }
+ *   ],
+ *   "billing_mode": "one_time" | "subscription"
+ * }
+ */
+app.post("/create-order", (req, res) => {
+  try {
+    const { app: appName, email, items, billing_mode } = req.body || {};
+
+    if (!email || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing email or items for order."
+      });
+    }
+
+    const billingMode = billing_mode || "one_time";
+
+    // Compute total in cents (allow amount_cents or amount in dollars)
+    const totalAmountCents = items.reduce((sum, item) => {
+      if (!item) return sum;
+      if (typeof item.amount_cents === "number") {
+        return sum + item.amount_cents;
+      }
+      if (typeof item.amount === "number") {
+        return sum + Math.round(item.amount * 100);
+      }
+      return sum;
+    }, 0);
+
+    if (totalAmountCents <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Order total must be greater than zero."
+      });
+    }
+
+    const registry = readRegistry();
+    const orders = registry.orders || [];
+
+    const order_id = createOrderId();
+    const now = new Date().toISOString();
+
+    const order = {
+      order_id,
+      app: appName || "generic",
+      email,
+      items,
+      billing_mode: billingMode,
+      total_amount_cents: totalAmountCents,
+      status: "pending_payment",
+      created_at: now,
+      stripe_session_id: null,
+      stripe_subscription_id: null,
+      soulmark: null
+    };
+
+    orders.push(order);
+    registry.orders = orders;
+    writeRegistry(registry);
+
+    return res.json({
+      success: true,
+      order: {
+        order_id: order.order_id,
+        app: order.app,
+        email: order.email,
+        items: order.items,
+        billing_mode: order.billing_mode,
+        total_amount_cents: order.total_amount_cents,
+        status: order.status
+      }
+    });
+  } catch (err) {
+    console.error("CREATE ORDER ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create order."
+    });
+  }
+});
+
+/**
+ * POST /create-checkout-session-from-order
+ * Turn an internal order into a Stripe Checkout session.
+ *
+ * Body:
+ * { "order_id": "ord-..." }
+ */
+app.post("/create-checkout-session-from-order", async (req, res) => {
+  try {
+    const { order_id } = req.body || {};
+    if (!order_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing order_id." });
+    }
+
+    const registry = readRegistry();
+    const orders = registry.orders || [];
+    const order = orders.find(o => o.order_id === order_id);
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found." });
+    }
+
+    if (order.status === "paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Order is already paid."
+      });
+    }
+
+    const amountCents = order.total_amount_cents || 0;
+    if (amountCents <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Order total is invalid."
+      });
+    }
+
+    // Phase 1: treat everything as a one_time payment.
+    // Later we can branch on order.billing_mode for true subscriptions.
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: order.email,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `${order.app} Order`,
+              metadata: {
+                order_id: order.order_id
+              }
+            },
+            unit_amount: amountCents
+          },
+          quantity: 1
+        }
+      ],
+      success_url: `${FRONTEND_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/index.html`,
+      metadata: {
+        order_id: order.order_id,
+        app: order.app
+      }
+    });
+
+    // Store the Stripe session ID so we can link it on verification
+    order.stripe_session_id = session.id;
+    registry.orders = orders;
+    writeRegistry(registry);
+
+    return res.json({ success: true, url: session.url });
+  } catch (err) {
+    console.error("CHECKOUT FROM ORDER ERROR:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to create checkout session." });
+  }
+});
+
+// --------------------------------------------------
+// 4. VERIFY PAYMENT + MINT SOULMARKⓈ
+// --------------------------------------------------
 app.get("/verify-donation/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -185,7 +366,17 @@ app.get("/verify-donation/:id", async (req, res) => {
     const now = new Date().toISOString();
 
     const registry = readRegistry();
-    let donation = registry.donations.find(d => d.id === session.id);
+    const donations = registry.donations || [];
+    const orders = registry.orders || [];
+
+    let donation = donations.find(d => d.id === session.id);
+
+    // Try to see if this session was linked to an order
+    const linkedOrderId = session.metadata?.order_id || null;
+    let linkedOrder = null;
+    if (linkedOrderId) {
+      linkedOrder = orders.find(o => o.order_id === linkedOrderId);
+    }
 
     if (!donation) {
       // Mint new SoulMarkⓈ
@@ -203,12 +394,14 @@ app.get("/verify-donation/:id", async (req, res) => {
         timestamp: now,
         soulmark,
         username_created: false,
-        identity_username: null
+        identity_username: null,
+        order_id: linkedOrderId || null
       };
-      registry.donations.push(donation);
-      writeRegistry(registry);
+
+      donations.push(donation);
+      registry.donations = donations;
     } else {
-      // Ensure fields are filled even if created by older code
+      // Backfill any missing fields on older entries
       donation.name = donation.name || donorName || "Donor";
       donation.email = donation.email || email;
       donation.amount = donation.amount || amount;
@@ -219,18 +412,37 @@ app.get("/verify-donation/:id", async (req, res) => {
           .createHash("sha256")
           .update(email + now + SOULMARK_SECRET + nonce)
           .digest("hex");
-        writeRegistry(registry);
       }
+      if (linkedOrderId && !donation.order_id) {
+        donation.order_id = linkedOrderId;
+      }
+      registry.donations = donations;
     }
 
-    res.json({ verified: true, entry: donation });
+    // If there is a linked order, mark it paid and attach the SoulMarkⓈ
+    if (linkedOrder) {
+      linkedOrder.status = "paid";
+      linkedOrder.soulmark = linkedOrder.soulmark || donation.soulmark;
+      linkedOrder.updated_at = now;
+      registry.orders = orders;
+    }
+
+    writeRegistry(registry);
+
+    res.json({
+      verified: true,
+      entry: donation,
+      order_id: linkedOrderId || null
+    });
   } catch (err) {
     console.error("VERIFY ERROR:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });
 
-// ---------- 4. PUBLIC DONATIONS VIEW ----------
+// --------------------------------------------------
+// 5. PUBLIC DONATIONS VIEW
+// --------------------------------------------------
 app.get("/donations", (req, res) => {
   try {
     const registry = readRegistry();
@@ -241,7 +453,9 @@ app.get("/donations", (req, res) => {
   }
 });
 
-// ---------- 5. USERNAME AVAILABILITY ----------
+// --------------------------------------------------
+// 6. USERNAME AVAILABILITY
+// --------------------------------------------------
 app.get("/check-username/:username", (req, res) => {
   const rawUsername = req.params.username;
 
@@ -262,7 +476,9 @@ app.get("/check-username/:username", (req, res) => {
   res.json({ available: !taken });
 });
 
-// ---------- 6. REGISTER USERNAME + IDENTITY ----------
+// --------------------------------------------------
+// 7. REGISTER USERNAME + IDENTITY
+// --------------------------------------------------
 app.post("/register-username", (req, res) => {
   const { email, username, soulmark } = req.body;
 
@@ -336,7 +552,7 @@ app.post("/register-username", (req, res) => {
 
   console.log(
     `Identity registered for ${email} (${canonicalUsername}), ` +
-    `${updatedCount} donation(s) updated.`
+      `${updatedCount} donation(s) updated.`
   );
 
   res.json({
@@ -351,163 +567,9 @@ app.post("/register-username", (req, res) => {
   });
 });
 
-// ===================================================
-// 7. SUBSCRIPTIONS: ENTERPRISE LAYER (C)
-// ===================================================
-
-// 7.1 CREATE SUBSCRIPTION CHECKOUT SESSION
-// Body: { email, planId, appName?, tier?, successPath?, cancelPath? }
-app.post("/create-subscription-session", async (req, res) => {
-  try {
-    const {
-      email,
-      planId,      // Stripe Price ID (e.g. price_123...)
-      appName,     // e.g. "LawAidAI"
-      tier,        // e.g. "Premium"
-      successPath, // e.g. "subscription-success.html"
-      cancelPath   // e.g. "index.html"
-    } = req.body;
-
-    if (!email || !planId) {
-      return res.status(400).json({ error: "Missing email or planId." });
-    }
-
-    const successPage = successPath || "subscription-success.html";
-    const cancelPage = cancelPath || "index.html";
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      customer_email: email,
-      line_items: [
-        {
-          price: planId,
-          quantity: 1
-        }
-      ],
-      success_url: `${FRONTEND_URL}/${successPage}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/${cancelPage}`,
-      metadata: {
-        appName: appName || "",
-        tier: tier || ""
-      },
-      subscription_data: {
-        metadata: {
-          appName: appName || "",
-          tier: tier || ""
-        }
-      }
-    });
-
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error("SUBSCRIPTION SESSION ERROR:", err);
-    res.status(500).json({ error: "Subscription session creation failed" });
-  }
-});
-
-// 7.2 VERIFY SUBSCRIPTION SESSION & RECORD TO REGISTRY
-// Frontend will call: /verify-subscription/:session_id
-app.get("/verify-subscription/:id", async (req, res) => {
-  const sessionId = req.params.id;
-
-  try {
-    ensureRegistry();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (
-      !session ||
-      session.mode !== "subscription" ||
-      session.payment_status !== "paid"
-    ) {
-      return res.json({
-        verified: false,
-        reason: "unpaid_or_not_subscription"
-      });
-    }
-
-    const email =
-      session.customer_details?.email ||
-      session.customer_email ||
-      "unknown@example.com";
-
-    const appName = session.metadata?.appName || "";
-    const tier = session.metadata?.tier || "";
-    const stripeSubscriptionId = session.subscription
-      ? session.subscription.toString()
-      : null;
-
-    let subscriptionDetails = null;
-    if (stripeSubscriptionId) {
-      subscriptionDetails = await stripe.subscriptions.retrieve(
-        stripeSubscriptionId
-      );
-    }
-
-    const registry = readRegistry();
-    const subscriptions = registry.subscriptions || [];
-
-    const nowIso = new Date().toISOString();
-
-    const baseRecord = {
-      subscription_id: stripeSubscriptionId,
-      email,
-      app: appName,
-      tier,
-      price_id:
-        subscriptionDetails?.items?.data?.[0]?.price?.id || null,
-      status: subscriptionDetails?.status || "active",
-      current_period_end: subscriptionDetails?.current_period_end
-        ? new Date(
-            subscriptionDetails.current_period_end * 1000
-          ).toISOString()
-        : null,
-      cancel_at_period_end: !!subscriptionDetails?.cancel_at_period_end,
-      created_at: nowIso,
-      updated_at: nowIso,
-      checkout_session_id: session.id
-    };
-
-    let existing = subscriptions.find(
-      s => s.subscription_id === stripeSubscriptionId
-    );
-
-    if (existing) {
-      // Update existing record
-      existing = Object.assign(existing, {
-        ...baseRecord,
-        created_at: existing.created_at || baseRecord.created_at
-      });
-    } else {
-      subscriptions.push(baseRecord);
-      existing = baseRecord;
-    }
-
-    registry.subscriptions = subscriptions;
-    writeRegistry(registry);
-
-    res.json({
-      verified: true,
-      subscription: existing
-    });
-  } catch (err) {
-    console.error("VERIFY SUBSCRIPTION ERROR:", err);
-    res.status(500).json({ error: "Subscription verification failed" });
-  }
-});
-
-// 7.3 PUBLIC / INTERNAL VIEW OF SUBSCRIPTIONS
-app.get("/subscriptions", (req, res) => {
-  try {
-    const registry = readRegistry();
-    res.json({ subscriptions: registry.subscriptions || [] });
-  } catch (err) {
-    console.error("SUBSCRIPTIONS READ ERROR:", err);
-    res.status(500).json({ error: "Failed to read subscriptions" });
-  }
-});
-
-// ---------- 8. START SERVER ----------
+// --------------------------------------------------
+// 8. START SERVER
+// --------------------------------------------------
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
