@@ -7,14 +7,10 @@
   <link rel="stylesheet" href="styles.css" />
 
   <style>
-    .mood-active {
-      background: #47C28A22 !important;
-      border: 1px solid #47C28A !important;
-      color: #47C28A !important;
-      font-weight: 600;
-    }
-    .submit-hidden {
-      display: none;
+    /* Highlight for selected mood pill */
+    .chip-button.chip-active {
+      box-shadow: 0 0 0 1px rgba(71, 194, 138, 0.9);
+      transform: translateY(-1px);
     }
   </style>
 </head>
@@ -49,10 +45,10 @@
 
       <!-- AI WELLNESS 360 -->
       <div class="dash-card">
-        <div class="dash-title">Daily Check-In</div>
-        <p class="small-label">How are you feeling today?</p>
+        <div class="dash-title">AI Wellness 360</div>
+        <p class="small-label">Daily Check-In — How are you feeling today?</p>
 
-        <div id="moodButtons" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;">
           <button class="chip-button" data-mood="👍 OK">👍 OK</button>
           <button class="chip-button" data-mood="🆘 Need Help">🆘 Need Help</button>
           <button class="chip-button" data-mood="❤️‍🩹 Recovering">❤️‍🩹 Recovering</button>
@@ -60,12 +56,22 @@
           <button class="chip-button" data-mood="💪 Strong">💪 Strong</button>
         </div>
 
-        <button id="submitBtn" class="btn-primary" style="margin-top:18px;">
-          Submit Check-In
-        </button>
+        <!-- Submit area (only shown if NOT checked in today) -->
+        <div id="checkinAction" style="margin-top:16px;">
+          <button id="submitCheckinBtn" class="btn-primary">
+            Submit Check-In
+          </button>
+          <p id="checkinError" class="small-label" style="margin-top:8px;"></p>
+        </div>
 
-        <p id="todayStatus" class="small-label" style="margin-top:18px;"></p>
-        <p id="lastStatus" class="small-label" style="margin-top:6px;"></p>
+        <!-- Log area (appears once user has check-ins) -->
+        <div id="checkinLog" style="margin-top:16px; display:none;">
+          <div style="padding:10px 12px; border-radius:10px; background:#0c2238;">
+            <p id="todayStatus" class="small-label" style="margin-bottom:6px;"></p>
+            <p id="lastStatus" class="small-label"></p>
+          </div>
+          <p id="checkinMessage" class="small-label" style="margin-top:8px;"></p>
+        </div>
       </div>
 
       <!-- LOGOUT -->
@@ -76,88 +82,132 @@
   </div>
 
   <script>
-    /* -----------------------------------------
-       IDENTITY PILL
-    ------------------------------------------*/
+    // ---------------- Identity Pill ----------------
     const savedUsername = localStorage.getItem("ias_username");
-    const savedEmail = localStorage.getItem("ias_email") || localStorage.getItem("fta_email") || "";
+    const savedEmail =
+      localStorage.getItem("ias_email") ||
+      localStorage.getItem("fta_email") ||
+      "";
+
     const identityTag = document.getElementById("identityTag");
     identityTag.textContent =
-      savedUsername || (savedEmail ? savedEmail.split("@")[0] + "@iascendai" : "user@iascendai");
+      savedUsername || (savedEmail
+        ? savedEmail.split("@")[0] + "@iascendai"
+        : "user@iascendai");
 
-    /* -----------------------------------------
-       AI WELLNESS 360 CHECK-IN
-    ------------------------------------------*/
-    const moodButtons = document.querySelectorAll("#moodButtons button");
-    const submitBtn = document.getElementById("submitBtn");
+    // ---------------- AI WELLNESS 360 ----------------
+    const moodButtons = document.querySelectorAll(".chip-button");
+    const submitBtn = document.getElementById("submitCheckinBtn");
+    const checkinAction = document.getElementById("checkinAction");
+    const checkinError = document.getElementById("checkinError");
+    const checkinLog = document.getElementById("checkinLog");
     const todayStatus = document.getElementById("todayStatus");
     const lastStatus = document.getElementById("lastStatus");
+    const checkinMessage = document.getElementById("checkinMessage");
 
     let selectedMood = null;
+    let checkedInToday = false;
 
-    // Highlight selected mood
+    const TODAY = new Date().toISOString().split("T")[0];
+
+    function highlightMood(moodValue) {
+      moodButtons.forEach(btn => {
+        if (btn.dataset.mood === moodValue) {
+          btn.classList.add("chip-active");
+        } else {
+          btn.classList.remove("chip-active");
+        }
+      });
+    }
+
     moodButtons.forEach(btn => {
       btn.addEventListener("click", () => {
-        moodButtons.forEach(b => b.classList.remove("mood-active"));
-        btn.classList.add("mood-active");
-        selectedMood = btn.getAttribute("data-mood");
+        if (checkedInToday) return; // lock after check-in
+        selectedMood = btn.dataset.mood;
+        highlightMood(selectedMood);
+        checkinError.textContent = "";
       });
     });
 
-    // Submit
-    submitBtn.addEventListener("click", () => {
-      if (!selectedMood) return;
+    function renderLog() {
+      const lastDate = localStorage.getItem("ias_checkin_last_date");
+      const lastMood = localStorage.getItem("ias_checkin_last_mood");
+      const prevDate = localStorage.getItem("ias_checkin_prev_date");
+      const prevMood = localStorage.getItem("ias_checkin_prev_mood");
 
-      const today = new Date().toISOString().split("T")[0];
-
-      localStorage.setItem("ias_mood_today", selectedMood);
-      localStorage.setItem("ias_mood_today_date", today);
-      
-      // Save last check-in
-      localStorage.setItem("ias_last_mood", selectedMood);
-      localStorage.setItem("ias_last_mood_date", today);
-
-      submitBtn.classList.add("submit-hidden");
-      renderMood();
-    });
-
-    function renderMood() {
-      const mood = localStorage.getItem("ias_mood_today");
-      const date = localStorage.getItem("ias_mood_today_date");
-      const lastMood = localStorage.getItem("ias_last_mood");
-      const lastDate = localStorage.getItem("ias_last_mood_date");
-
-      const today = new Date().toISOString().split("T")[0];
-
-      // If already checked in today → lock system
-      if (date === today && mood) {
-        submitBtn.classList.add("submit-hidden");
-
-        // Highlight today's mood
-        moodButtons.forEach(b => {
-          if (b.getAttribute("data-mood") === mood) {
-            b.classList.add("mood-active");
-          } else {
-            b.classList.remove("mood-active");
-          }
-        });
-
-        todayStatus.textContent = `✔ Checked in today (${today}): ${mood}`;
+      if (lastDate && lastMood) {
+        todayStatus.textContent = `✔ Checked in: ${lastDate} — ${lastMood}`;
       } else {
-        todayStatus.textContent = "Not checked in today.";
-        submitBtn.classList.remove("submit-hidden");
+        todayStatus.textContent = "No check-ins recorded yet.";
       }
 
-      if (lastMood && lastDate) {
-        lastStatus.textContent = `Last check-in (${lastDate}): ${lastMood}`;
+      if (prevDate && prevMood) {
+        lastStatus.textContent = `Last check-in: ${prevDate} — ${prevMood}`;
+      } else {
+        lastStatus.textContent = "";
+      }
+
+      if (lastDate) {
+        checkinLog.style.display = "block";
+        checkinMessage.textContent = "Good job checking in.";
+      } else {
+        checkinLog.style.display = "none";
+        checkinMessage.textContent = "";
       }
     }
 
-    renderMood();
+    function loadCheckinState() {
+      const lastDate = localStorage.getItem("ias_checkin_last_date");
+      const lastMood = localStorage.getItem("ias_checkin_last_mood");
 
-    /* -----------------------------------------
-       NAVIGATION
-    ------------------------------------------*/
+      checkedInToday = lastDate === TODAY;
+
+      renderLog();
+
+      if (checkedInToday) {
+        // Lock UI for today
+        checkinAction.style.display = "none";
+        if (lastMood) {
+          highlightMood(lastMood);
+        }
+      } else {
+        // Can submit today
+        checkinAction.style.display = "block";
+      }
+    }
+
+    submitBtn.addEventListener("click", () => {
+      if (checkedInToday) return;
+
+      if (!selectedMood) {
+        checkinError.textContent = "Please choose how you're feeling before submitting.";
+        return;
+      }
+
+      const prevDate = localStorage.getItem("ias_checkin_last_date");
+      const prevMood = localStorage.getItem("ias_checkin_last_mood");
+
+      // Shift last → prev
+      if (prevDate && prevMood && prevDate !== TODAY) {
+        localStorage.setItem("ias_checkin_prev_date", prevDate);
+        localStorage.setItem("ias_checkin_prev_mood", prevMood);
+      }
+
+      // Save new "last" as today's entry
+      localStorage.setItem("ias_checkin_last_date", TODAY);
+      localStorage.setItem("ias_checkin_last_mood", selectedMood);
+
+      checkedInToday = true;
+      checkinAction.style.display = "none";
+      checkinError.textContent = "";
+
+      renderLog();
+      highlightMood(selectedMood);
+    });
+
+    loadCheckinState();
+
+    // ---------------- Navigation ----------------
     function openSoulmark() {
       window.location.href = "iascendai-soulregistry.html";
     }
@@ -168,15 +218,12 @@
       window.location.href = "iascendai-user-receipts.html";
     }
 
-    /* -----------------------------------------
-       LOGOUT
-    ------------------------------------------*/
+    // ---------------- Logout ----------------
     function logout() {
       localStorage.removeItem("ias_username");
       localStorage.removeItem("ias_email");
       localStorage.removeItem("ias_soulmark");
       localStorage.removeItem("ias_identity_id");
-
       window.location.href = "iascendai-auth.html";
     }
   </script>
