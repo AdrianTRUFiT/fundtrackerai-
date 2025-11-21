@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recover Username — iAscendAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card" style="max-width:420px; width:100%;">
+
+      <div class="brand-row">
+        <div class="brand-mark">@</div>
+        <div>
+          <h1>iAscendAi</h1>
+          <h2>Recover Username</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        Enter your email to look up all usernames attached to your verified
+        SoulMarkⓈ activity.
+      </p>
+
+      <label class="label">Email Address</label>
+      <input id="email" type="email" placeholder="you@example.com" />
+
+      <button class="btn-primary" id="recoverBtn" style="margin-top:18px;">
+        Find My Username
+      </button>
+
+      <p id="recoverStatus" class="small-label" style="margin-top:12px;"></p>
+
+      <div id="resultsBox" class="dash-card" style="display:none; margin-top:18px;">
+        <div class="dash-title">Recovery Result</div>
+
+        <p class="label">Email</p>
+        <div id="resEmail" class="value"></div>
+
+        <p class="label" style="margin-top:10px;">Linked Usernames</p>
+        <div id="resUsernames" class="value" style="white-space:pre-line;"></div>
+      </div>
+
+      <button class="btn-secondary" onclick="goBack()" style="margin-top:18px;">
+        Back to Login
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    function goBack() {
+      window.location.href = "iascendai-login.html";
+    }
+
+    document.getElementById("recoverBtn").addEventListener("click", lookup);
+
+    async function lookup() {
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const status = document.getElementById("recoverStatus");
+      const box = document.getElementById("resultsBox");
+
+      status.textContent = "";
+      box.style.display = "none";
+
+      if (!email) {
+        status.textContent = "Enter your email to search.";
+        return;
+      }
+
+      status.textContent = "Searching…";
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/donations`);
+        const data = await res.json();
+        const donations = data.donations || [];
+
+        const matches = donations.filter(d =>
+          d.email &&
+          d.email.toLowerCase() === email.toLowerCase() &&
+          d.identity_username
+        );
+
+        if (!matches.length) {
+          status.textContent = "No usernames found for this email.";
+          return;
+        }
+
+        const uniqueUsernames = [...new Set(matches.map(m => m.identity_username))];
+
+        status.textContent = "✔ Username(s) found";
+        box.style.display = "block";
+
+        document.getElementById("resEmail").textContent = email;
+        document.getElementById("resUsernames").textContent =
+          uniqueUsernames.join("\n");
+
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Error searching registry.";
+      }
+    }
+  </script>
+</body>
+</html>
