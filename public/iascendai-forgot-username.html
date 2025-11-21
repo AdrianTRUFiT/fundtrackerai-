@@ -9,42 +9,59 @@
 
 <body>
   <div class="app-shell">
-    <div class="card" style="max-width:420px; width:100%;">
+    <div class="card card--narrow">
 
+      <!-- BRAND HEADER -->
       <div class="brand-row">
-        <div class="brand-mark">@</div>
+        <div class="brand-mark">❓</div>
         <div>
-          <h1>iAscendAi</h1>
-          <h2>Recover Username</h2>
+          <h1>Recover Username</h1>
+          <h2>Find Your iAscendAi Identity</h2>
         </div>
       </div>
 
       <p class="subtext">
-        Enter your email to look up all usernames attached to your verified
-        SoulMarkⓈ activity.
+        Enter the email you used when making a SoulMarkⓈ-verified donation.
+        If we find an identity tied to that email, we’ll reveal your official
+        iAscendAi username.
       </p>
 
-      <label class="label">Email Address</label>
-      <input id="email" type="email" placeholder="you@example.com" />
+      <label class="label">Email</label>
+      <input id="rec_email" type="email" placeholder="you@example.com" />
 
-      <button class="btn-primary" id="recoverBtn" style="margin-top:18px;">
-        Find My Username
+      <label class="label" style="margin-top:14px;">
+        (Optional) Any SoulMarkⓈ you remember
+      </label>
+      <input id="rec_soulmark" type="text" placeholder="Paste SoulMark fragment or full code" />
+
+      <button id="recoverBtn" class="btn-primary" style="margin-top:18px;">
+        Recover Username
       </button>
 
-      <p id="recoverStatus" class="small-label" style="margin-top:12px;"></p>
+      <p id="rec_status" class="small-label" style="margin-top:14px;"></p>
 
-      <div id="resultsBox" class="dash-card" style="display:none; margin-top:18px;">
-        <div class="dash-title">Recovery Result</div>
+      <div id="resultBox" class="dash-card" style="display:none; margin-top:18px;">
+        <div class="dash-title">Identity Found</div>
 
-        <p class="label">Email</p>
+        <p class="label">Your Username</p>
+        <div id="resUsername" class="value"></div>
+
+        <p class="label">Registered Email</p>
         <div id="resEmail" class="value"></div>
 
-        <p class="label" style="margin-top:10px;">Linked Usernames</p>
-        <div id="resUsernames" class="value" style="white-space:pre-line;"></div>
+        <p class="info" style="margin-top:12px;">
+          You can now log in using your username and email.
+        </p>
+
+        <button class="btn-secondary" style="margin-top:12px;"
+          onclick="window.location.href='iascendai-login.html'">
+          Proceed to Login →
+        </button>
       </div>
 
-      <button class="btn-secondary" onclick="goBack()" style="margin-top:18px;">
-        Back to Login
+      <button class="btn-secondary" style="margin-top:14px;"
+        onclick="window.location.href='iascendai-auth.html'">
+        Back to Identity Options
       </button>
 
     </div>
@@ -53,55 +70,65 @@
   <script>
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-    function goBack() {
-      window.location.href = "iascendai-login.html";
-    }
+    const statusEl = document.getElementById("rec_status");
+    const resultBox = document.getElementById("resultBox");
 
-    document.getElementById("recoverBtn").addEventListener("click", lookup);
+    document.getElementById("recoverBtn").addEventListener("click", recover);
+    
+    async function recover() {
+      const email = document.getElementById("rec_email").value.trim().toLowerCase();
+      const smFragment = document.getElementById("rec_soulmark").value.trim().toLowerCase();
 
-    async function lookup() {
-      const email = document.getElementById("email").value.trim().toLowerCase();
-      const status = document.getElementById("recoverStatus");
-      const box = document.getElementById("resultsBox");
-
-      status.textContent = "";
-      box.style.display = "none";
+      statusEl.textContent = "";
+      resultBox.style.display = "none";
 
       if (!email) {
-        status.textContent = "Enter your email to search.";
+        statusEl.textContent = "Please enter the email tied to your donation.";
         return;
       }
 
-      status.textContent = "Searching…";
+      statusEl.textContent = "Searching identity registry…";
 
       try {
         const res = await fetch(`${BACKEND_URL}/donations`);
         const data = await res.json();
+
+        const identities = data.identities || [];
         const donations = data.donations || [];
 
-        const matches = donations.filter(d =>
-          d.email &&
-          d.email.toLowerCase() === email.toLowerCase() &&
-          d.identity_username
+        // Find identity by email
+        const identity = identities.find(i =>
+          i.email.toLowerCase() === email
         );
 
-        if (!matches.length) {
-          status.textContent = "No usernames found for this email.";
+        if (!identity) {
+          statusEl.textContent = "No identity found for this email.";
           return;
         }
 
-        const uniqueUsernames = [...new Set(matches.map(m => m.identity_username))];
+        // Optional SoulMark cross-check
+        if (smFragment) {
+          const match = identity.soulmarks.find(sm =>
+            sm.toLowerCase().includes(smFragment)
+          );
 
-        status.textContent = "✔ Username(s) found";
-        box.style.display = "block";
+          if (!match) {
+            statusEl.textContent =
+              "Email found, but SoulMarkⓈ fragment does not match this identity.";
+            return;
+          }
+        }
 
-        document.getElementById("resEmail").textContent = email;
-        document.getElementById("resUsernames").textContent =
-          uniqueUsernames.join("\n");
+        // Success
+        statusEl.textContent = "Identity located.";
+        document.getElementById("resUsername").textContent = identity.username;
+        document.getElementById("resEmail").textContent = identity.email;
+
+        resultBox.style.display = "block";
 
       } catch (err) {
         console.error(err);
-        status.textContent = "Error searching registry.";
+        statusEl.textContent = "Error reading registry.";
       }
     }
   </script>
