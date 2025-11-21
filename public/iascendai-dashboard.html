@@ -35,37 +35,39 @@
         </button>
       </div>
 
-      <!-- DAILY CHECK-IN -->
+      <!-- AI WELLNESS 360 — DAILY CHECK-IN -->
       <div class="dash-card">
         <div class="dash-title">Daily Check-In</div>
         <p class="small-label">How are you showing up today?</p>
 
         <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
-          <button class="chip-button" onclick="saveMood('✅ OK')">✅ OK</button>
+          <button class="chip-button" onclick="saveMood('👍 OK')">👍 OK</button>
           <button class="chip-button" onclick="saveMood('🆘 Need Help')">🆘 Need Help</button>
           <button class="chip-button" onclick="saveMood('❤️‍🩹 Recovering')">❤️‍🩹 Recovering</button>
-          <button class="chip-button" onclick="saveMood('🔥 Energized')">🔥 Energized</button>
-          <button class="chip-button" onclick="saveMood('💪 Strong')">💪 Strong</button>
           <button class="chip-button" onclick="saveMood('⚖️ Balanced')">⚖️ Balanced</button>
+          <button class="chip-button" onclick="saveMood('💪 Strong')">💪 Strong</button>
         </div>
 
-        <p id="moodStatus" class="small-label" style="margin-top:12px;"></p>
+        <p id="todayStatus" class="small-label" style="margin-top:14px;"></p>
+        <p id="lastStatus" class="small-label" style="margin-top:4px;"></p>
       </div>
 
       <!-- LOGOUT -->
       <div class="logout-btn" onclick="logout()">
         Log Out of This Device
       </div>
+
     </div>
   </div>
 
   <script>
-    // Identity tag
+    /* ---------------------------------------------------------
+       IDENTITY TAG
+    --------------------------------------------------------- */
     const savedUsername = localStorage.getItem("ias_username");
     const savedEmail =
       localStorage.getItem("ias_email") ||
-      localStorage.getItem("fta_email") ||
-      "";
+      localStorage.getItem("fta_email") || "";
 
     const identityTag = document.getElementById("identityTag");
 
@@ -77,22 +79,68 @@
       identityTag.textContent = "user@iascendai";
     }
 
-    // Mood check-in
+    /* ---------------------------------------------------------
+       AI WELLNESS 360 — DAILY CHECK-IN
+    --------------------------------------------------------- */
     function saveMood(mood) {
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+      // Save today's mood and timestamp
       localStorage.setItem("ias_mood", mood);
-      document.getElementById("moodStatus").textContent =
-        "✔ Checked in: " + mood;
+      localStorage.setItem("ias_mood_date", today);
+
+      // If there was a previous checked-in day different from today → store as last
+      const prevDate = localStorage.getItem("ias_last_mood_date");
+      const prevMood = localStorage.getItem("ias_last_mood");
+
+      const storedToday = localStorage.getItem("ias_mood_date");
+      const storedMood = localStorage.getItem("ias_mood");
+
+      // If last mood is different day → update "last"
+      if (prevDate !== today) {
+        localStorage.setItem("ias_last_mood", storedMood);
+        localStorage.setItem("ias_last_mood_date", storedToday);
+      }
+
+      renderMood();
     }
 
-    const prevMood = localStorage.getItem("ias_mood");
-    if (prevMood) {
-      document.getElementById("moodStatus").textContent =
-        "✔ Checked in: " + prevMood;
+    function renderMood() {
+      const today = new Date().toISOString().split("T")[0];
+      const todayMood = localStorage.getItem("ias_mood");
+      const todayDate = localStorage.getItem("ias_mood_date");
+
+      const lastMood = localStorage.getItem("ias_last_mood");
+      const lastDate = localStorage.getItem("ias_last_mood_date");
+
+      const todayStatus = document.getElementById("todayStatus");
+      const lastStatus = document.getElementById("lastStatus");
+
+      // Today's Check-In
+      if (todayMood && todayDate === today) {
+        todayStatus.textContent = `✔ Checked in today: ${todayMood}`;
+      } else {
+        todayStatus.textContent = `No check-in yet today`;
+      }
+
+      // Last Check-In
+      if (lastMood && lastDate && lastDate !== today) {
+        const pretty = new Date(lastDate).toLocaleDateString();
+        lastStatus.textContent = `Last check-in (${pretty}): ${lastMood}`;
+      } else {
+        lastStatus.textContent = "";
+      }
     }
 
-    // Navigation modules
+    // Run on load
+    renderMood();
+
+
+    /* ---------------------------------------------------------
+       Navigation
+    --------------------------------------------------------- */
     function openSoulmark() {
-      window.location.href = "iascendai-soulregistry.html";   // FIXED
+      window.location.href = "iascendai-soulregistry.html";
     }
 
     function openCampaigns() {
@@ -103,14 +151,16 @@
       window.location.href = "iascendai-user-receipts.html";
     }
 
-    // Identity logout
+    /* ---------------------------------------------------------
+       LOGOUT
+    --------------------------------------------------------- */
     function logout() {
       localStorage.removeItem("ias_username");
       localStorage.removeItem("ias_email");
       localStorage.removeItem("ias_soulmark");
       localStorage.removeItem("ias_identity_id");
 
-      window.location.href = "iascendai-auth.html";  // FIXED
+      window.location.href = "iascendai-auth.html";
     }
   </script>
 </body>
