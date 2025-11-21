@@ -2,42 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login — iAscendAi Identity Portal</title>
+  <title>iAscendAi — Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
   <div class="app-shell">
-    <div class="card" style="max-width:420px; width:100%;">
+    <div class="card card--narrow">
 
-      <!-- HEADER -->
+      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">@</div>
         <div>
           <h1>iAscendAi</h1>
-          <h2>Identity Login</h2>
+          <h2>Access Your Identity</h2>
         </div>
       </div>
 
       <p class="subtext">
-        Enter your verified username to return to your iAscendAi dashboard.
+        Enter your username and the email that was originally linked to your SoulMarkⓈ identity.
       </p>
 
       <label class="label">Username</label>
-      <input id="uname" type="text" placeholder="yourname@iascendai" />
+      <input id="login_username" type="text" placeholder="yourname@iascendai" />
 
-      <label class="label" style="margin-top:12px;">Email</label>
-      <input id="email" type="email" placeholder="you@example.com" />
+      <label class="label" style="margin-top:14px;">Email</label>
+      <input id="login_email" type="email" placeholder="you@example.com" />
 
-      <button class="btn-primary" id="loginBtn" style="margin-top:18px;">
-        Log In
+      <p id="login_status" class="small-label" style="margin-top:10px;"></p>
+
+      <button class="btn-primary" id="loginBtn">
+        Login to Dashboard
       </button>
 
-      <p id="loginStatus" class="small-label" style="margin-top:12px;"></p>
+      <button class="btn-secondary" style="margin-top:14px;"
+              onclick="window.location.href='iascendai-forgot-username.html'">
+        Forgot Username?
+      </button>
 
-      <button class="btn-secondary" onclick="goBack()" style="margin-top:18px;">
-        Back to Identity Portal
+      <button class="btn-secondary" style="margin-top:10px;"
+              onclick="window.location.href='iascendai-auth.html'">
+        Back to Identity Options
       </button>
 
     </div>
@@ -46,50 +52,45 @@
   <script>
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-    function goBack() {
-      window.location.href = "iascendai-auth.html";
-    }
-
     document.getElementById("loginBtn").addEventListener("click", async () => {
-      const uname = document.getElementById("uname").value.trim().toLowerCase();
-      const email = document.getElementById("email").value.trim().toLowerCase();
-      const status = document.getElementById("loginStatus");
+      const uname = document.getElementById("login_username").value.trim().toLowerCase();
+      const email = document.getElementById("login_email").value.trim().toLowerCase();
+      const status = document.getElementById("login_status");
 
       status.textContent = "";
 
       if (!uname || !email) {
-        status.textContent = "Please enter both fields.";
+        status.textContent = "Please enter both username and email.";
         return;
       }
 
-      status.textContent = "Checking identity…";
-
+      // Validate that this username/email pair exists
       try {
         const res = await fetch(`${BACKEND_URL}/donations`);
         const data = await res.json();
-        const donations = data.donations || [];
 
-        // Check any donation in registry that matches email + username
-        const matchDonation = donations.find(d =>
-          d.email &&
-          d.email.toLowerCase() === email &&
-          d.identity_username &&
-          d.identity_username.toLowerCase() === uname
+        const identities = data.identities || [];
+
+        const match = identities.find(i =>
+          i.username.toLowerCase() === uname &&
+          i.email.toLowerCase() === email
         );
 
-        if (!matchDonation) {
-          status.textContent = "Identity not found. Check username or email.";
+        if (!match) {
+          status.textContent = "No identity found for this username/email combination.";
           return;
         }
 
-        // Save identity locally for session
+        // Save & redirect
         try {
-          localStorage.setItem("ias_username", uname);
-          localStorage.setItem("ias_email", email);
-          localStorage.setItem("ias_soulmark", matchDonation.soulmark || "");
+          localStorage.setItem("ias_username", match.username);
+          localStorage.setItem("ias_email", match.email);
+          localStorage.setItem("ias_soulmark", match.soulmarks[0] || "");
+          localStorage.setItem("ias_identity_id", match.identity_id);
         } catch (e) {}
 
-        status.textContent = "Success! Redirecting…";
+        status.textContent = "Identity verified. Redirecting…";
+
         setTimeout(() => {
           window.location.href = "iascendai-dashboard.html";
         }, 600);
@@ -100,5 +101,6 @@
       }
     });
   </script>
+
 </body>
 </html>
