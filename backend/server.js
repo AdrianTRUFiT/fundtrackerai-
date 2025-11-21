@@ -1,6 +1,5 @@
 // -----------------------------------------------
-// FundTrackerAI Backend — Donations + Identities
-// Phase-1 Anti-Fraud Locks Enabled
+// FundTrackerAI Backend — Donations + Identities + Subscriptions
 // -----------------------------------------------
 
 import express from "express";
@@ -16,13 +15,12 @@ dotenv.config();
 
 // ---------- 0. APP + ENV SETUP ----------
 const app = express();
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL; // e.g. https://fundtrackerai.vercel.app
-const SOULMARK_SECRET =
-  process.env.SOULMARK_SECRET || "CHANGE_ME_SOULMARK_SECRET";
+const SOULMARK_SECRET = process.env.SOULMARK_SECRET || "CHANGE_ME_SOULMARK_SECRET";
 
 if (!STRIPE_SECRET_KEY || !FRONTEND_URL) {
   console.warn(
@@ -39,14 +37,12 @@ const __dirname = path.dirname(__filename);
 // registry.json lives beside server.js
 const registryFile = path.join(__dirname, "registry.json");
 
-// ---------- HELPERS ----------
-
-// Ensure registry file exists and has both arrays
+// ---------- REGISTRY HELPERS ----------
 function ensureRegistry() {
   try {
     if (!fs.existsSync(registryFile)) {
       console.log("🆕 Creating registry.json");
-      const initial = { donations: [], identities: [] };
+      const initial = { donations: [], identities: [], subscriptions: [] };
       fs.writeFileSync(registryFile, JSON.stringify(initial, null, 2), "utf8");
       return;
     }
@@ -62,7 +58,7 @@ function ensureRegistry() {
         raw,
         "utf8"
       );
-      const reset = { donations: [], identities: [] };
+      const reset = { donations: [], identities: [], subscriptions: [] };
       fs.writeFileSync(registryFile, JSON.stringify(reset, null, 2), "utf8");
       return;
     }
@@ -76,6 +72,11 @@ function ensureRegistry() {
       parsed.identities = [];
       changed = true;
     }
+    if (!Array.isArray(parsed.subscriptions)) {
+      parsed.subscriptions = [];
+      changed = true;
+    }
+
     if (changed) {
       fs.writeFileSync(registryFile, JSON.stringify(parsed, null, 2), "utf8");
     }
@@ -88,37 +89,29 @@ function readRegistry() {
   ensureRegistry();
   try {
     const raw = fs.readFileSync(registryFile, "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      donations: parsed.donations || [],
+      identities: parsed.identities || [],
+      subscriptions: parsed.subscriptions || []
+    };
   } catch (err) {
     console.error("READ registry error:", err);
-    return { donations: [], identities: [] };
+    return { donations: [], identities: [], subscriptions: [] };
   }
 }
 
 function writeRegistry(data) {
   try {
-    fs.writeFileSync(registryFile, JSON.stringify(data, null, 2), "utf8");
+    const safe = {
+      donations: data.donations || [],
+      identities: data.identities || [],
+      subscriptions: data.subscriptions || []
+    };
+    fs.writeFileSync(registryFile, JSON.stringify(safe, null, 2), "utf8");
   } catch (err) {
     console.error("WRITE registry error:", err);
   }
-}
-
-// Very small Phase-1 disposable email gate
-function isDisposableEmail(email) {
-  if (!email || !email.includes("@")) return false;
-  const domain = email.split("@")[1].toLowerCase();
-
-  const bannedDomains = [
-    "mailinator.com",
-    "10minutemail.com",
-    "tempmail.com",
-    "guerrillamail.com",
-    "trashmail.com",
-    "yopmail.com",
-    "sharklasers.com"
-  ];
-
-  return bannedDomains.some(d => domain === d || domain.endsWith("." + d));
 }
 
 // ---------- 1. ROOT PING ----------
@@ -126,15 +119,13 @@ app.get("/", (req, res) => {
   res.send("FundTrackerAI backend is running.");
 });
 
-// ---------- 2. CREATE CHECKOUT SESSION ----------
+// ---------- 2. CREATE ONE-TIME CHECKOUT SESSION (DONATIONS) ----------
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const { name, email, amount } = req.body;
 
     if (!email || !amount || amount < 1) {
-      return res
-        .status(400)
-        .json({ error: "Missing or invalid amount/email." });
+      return res.status(400).json({ error: "Missing or invalid amount/email." });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -149,7 +140,7 @@ app.post("/create-checkout-session", async (req, res) => {
               name: "FundTrackerAI Donation",
               metadata: { donorName: name || "" }
             },
-            unit_amount: amount * 100 // amount in cents
+            unit_amount: amount * 100
           },
           quantity: 1
         }
@@ -168,7 +159,7 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-// ---------- 3. VERIFY PAYMENT + MINT SOULMARK ----------
+// ---------- 3. VERIFY PAYMENT + MINT SOULMARKⓈ ----------
 app.get("/verify-donation/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -186,7 +177,9 @@ app.get("/verify-donation/:id", async (req, res) => {
       "unknown@example.com";
 
     const donorName =
-      session.customer_details?.name || session.metadata?.donorName || "";
+      session.customer_details?.name ||
+      session.metadata?.donorName ||
+      "";
 
     const amount = session.amount_total || 0;
     const now = new Date().toISOString();
@@ -195,7 +188,7 @@ app.get("/verify-donation/:id", async (req, res) => {
     let donation = registry.donations.find(d => d.id === session.id);
 
     if (!donation) {
-      // Mint new SoulMark — primary identity anchor
+      // Mint new SoulMarkⓈ
       const nonce = crypto.randomUUID();
       const soulmark = crypto
         .createHash("sha256")
@@ -215,12 +208,11 @@ app.get("/verify-donation/:id", async (req, res) => {
       registry.donations.push(donation);
       writeRegistry(registry);
     } else {
-      // Normalize older records
+      // Ensure fields are filled even if created by older code
       donation.name = donation.name || donorName || "Donor";
       donation.email = donation.email || email;
       donation.amount = donation.amount || amount;
       donation.timestamp = donation.timestamp || now;
-
       if (!donation.soulmark) {
         const nonce = crypto.randomUUID();
         donation.soulmark = crypto
@@ -271,13 +263,8 @@ app.get("/check-username/:username", (req, res) => {
 });
 
 // ---------- 6. REGISTER USERNAME + IDENTITY ----------
-// Phase-1 anti-fraud:
-//  - One email → one lifetime identity
-//  - Username frozen after first successful registration
-//  - SoulMark must already exist in donations[] for that email
-//  - Simple disposable-email block
 app.post("/register-username", (req, res) => {
-  const { email, username, soulmark, device_id } = req.body || {};
+  const { email, username, soulmark } = req.body;
 
   if (!email || !username || !soulmark) {
     return res.status(400).json({
@@ -289,36 +276,11 @@ app.post("/register-username", (req, res) => {
   const canonicalUsername = username.toLowerCase();
   const canonicalEmail = email.toLowerCase();
 
-  // Disposable email guard (Phase-1)
-  if (isDisposableEmail(email)) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "Disposable or temporary email addresses are not supported for identity registration."
-    });
-  }
-
   const registry = readRegistry();
   const identities = registry.identities || [];
   const donations = registry.donations || [];
 
-  // 6A. SoulMark must belong to this email (hard anchor)
-  const ownsSoulmark = donations.some(
-    d =>
-      d.soulmark === soulmark &&
-      d.email &&
-      d.email.toLowerCase() === canonicalEmail
-  );
-
-  if (!ownsSoulmark) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "SoulMark does not belong to this email or is not found in the ledger."
-    });
-  }
-
-  // 6B. Username can never be reused by a different email
+  // Check if username is taken by a different email
   const conflict = identities.find(
     i =>
       (i.username || "").toLowerCase() === canonicalUsername &&
@@ -332,7 +294,7 @@ app.post("/register-username", (req, res) => {
     });
   }
 
-  // 6C. Find existing identity by email (one email → one identity)
+  // Find or create identity by email
   let identity = identities.find(
     i => (i.email || "").toLowerCase() === canonicalEmail
   );
@@ -340,55 +302,25 @@ app.post("/register-username", (req, res) => {
   const now = new Date().toISOString();
 
   if (!identity) {
-    // New identity
     identity = {
       identity_id: "ias-" + crypto.randomUUID(),
       username: canonicalUsername,
       email,
       soulmarks: [soulmark],
-      registered_since: now,
-      device_ids: [] // reserved for future behavioral anti-fraud
+      registered_since: now
     };
-
-    if (device_id && !identity.device_ids.includes(device_id)) {
-      identity.device_ids.push(device_id);
-    }
-
     identities.push(identity);
   } else {
-    // Existing identity: enforce username freeze
-    const existingUsername = (identity.username || "").toLowerCase();
-
-    if (existingUsername && existingUsername !== canonicalUsername) {
-      // Email already bound to a different username → hard stop
-      return res.status(409).json({
-        success: false,
-        message:
-          "This email is already bound to a different username and cannot be reassigned."
-      });
-    }
-
-    // If no username was ever set (legacy), allow first-time set
     identity.username = canonicalUsername;
-
-    // SoulMark history list
     if (!Array.isArray(identity.soulmarks)) {
       identity.soulmarks = [];
     }
     if (!identity.soulmarks.includes(soulmark)) {
       identity.soulmarks.push(soulmark);
     }
-
-    // Attach optional device_id for future anti-fraud (no blocking yet)
-    if (!Array.isArray(identity.device_ids)) {
-      identity.device_ids = [];
-    }
-    if (device_id && !identity.device_ids.includes(device_id)) {
-      identity.device_ids.push(device_id);
-    }
   }
 
-  // 6D. Update all donations for this email with identity_username
+  // Update all donations for this email
   let updatedCount = 0;
   donations.forEach(d => {
     if (d.email && d.email.toLowerCase() === canonicalEmail) {
@@ -403,7 +335,8 @@ app.post("/register-username", (req, res) => {
   writeRegistry(registry);
 
   console.log(
-    `Identity registered for ${email} (${canonicalUsername}), ${updatedCount} donation(s) updated.`
+    `Identity registered for ${email} (${canonicalUsername}), ` +
+    `${updatedCount} donation(s) updated.`
   );
 
   res.json({
@@ -418,7 +351,163 @@ app.post("/register-username", (req, res) => {
   });
 });
 
-// ---------- 7. START SERVER ----------
+// ===================================================
+// 7. SUBSCRIPTIONS: ENTERPRISE LAYER (C)
+// ===================================================
+
+// 7.1 CREATE SUBSCRIPTION CHECKOUT SESSION
+// Body: { email, planId, appName?, tier?, successPath?, cancelPath? }
+app.post("/create-subscription-session", async (req, res) => {
+  try {
+    const {
+      email,
+      planId,      // Stripe Price ID (e.g. price_123...)
+      appName,     // e.g. "LawAidAI"
+      tier,        // e.g. "Premium"
+      successPath, // e.g. "subscription-success.html"
+      cancelPath   // e.g. "index.html"
+    } = req.body;
+
+    if (!email || !planId) {
+      return res.status(400).json({ error: "Missing email or planId." });
+    }
+
+    const successPage = successPath || "subscription-success.html";
+    const cancelPage = cancelPath || "index.html";
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      customer_email: email,
+      line_items: [
+        {
+          price: planId,
+          quantity: 1
+        }
+      ],
+      success_url: `${FRONTEND_URL}/${successPage}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/${cancelPage}`,
+      metadata: {
+        appName: appName || "",
+        tier: tier || ""
+      },
+      subscription_data: {
+        metadata: {
+          appName: appName || "",
+          tier: tier || ""
+        }
+      }
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("SUBSCRIPTION SESSION ERROR:", err);
+    res.status(500).json({ error: "Subscription session creation failed" });
+  }
+});
+
+// 7.2 VERIFY SUBSCRIPTION SESSION & RECORD TO REGISTRY
+// Frontend will call: /verify-subscription/:session_id
+app.get("/verify-subscription/:id", async (req, res) => {
+  const sessionId = req.params.id;
+
+  try {
+    ensureRegistry();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (
+      !session ||
+      session.mode !== "subscription" ||
+      session.payment_status !== "paid"
+    ) {
+      return res.json({
+        verified: false,
+        reason: "unpaid_or_not_subscription"
+      });
+    }
+
+    const email =
+      session.customer_details?.email ||
+      session.customer_email ||
+      "unknown@example.com";
+
+    const appName = session.metadata?.appName || "";
+    const tier = session.metadata?.tier || "";
+    const stripeSubscriptionId = session.subscription
+      ? session.subscription.toString()
+      : null;
+
+    let subscriptionDetails = null;
+    if (stripeSubscriptionId) {
+      subscriptionDetails = await stripe.subscriptions.retrieve(
+        stripeSubscriptionId
+      );
+    }
+
+    const registry = readRegistry();
+    const subscriptions = registry.subscriptions || [];
+
+    const nowIso = new Date().toISOString();
+
+    const baseRecord = {
+      subscription_id: stripeSubscriptionId,
+      email,
+      app: appName,
+      tier,
+      price_id:
+        subscriptionDetails?.items?.data?.[0]?.price?.id || null,
+      status: subscriptionDetails?.status || "active",
+      current_period_end: subscriptionDetails?.current_period_end
+        ? new Date(
+            subscriptionDetails.current_period_end * 1000
+          ).toISOString()
+        : null,
+      cancel_at_period_end: !!subscriptionDetails?.cancel_at_period_end,
+      created_at: nowIso,
+      updated_at: nowIso,
+      checkout_session_id: session.id
+    };
+
+    let existing = subscriptions.find(
+      s => s.subscription_id === stripeSubscriptionId
+    );
+
+    if (existing) {
+      // Update existing record
+      existing = Object.assign(existing, {
+        ...baseRecord,
+        created_at: existing.created_at || baseRecord.created_at
+      });
+    } else {
+      subscriptions.push(baseRecord);
+      existing = baseRecord;
+    }
+
+    registry.subscriptions = subscriptions;
+    writeRegistry(registry);
+
+    res.json({
+      verified: true,
+      subscription: existing
+    });
+  } catch (err) {
+    console.error("VERIFY SUBSCRIPTION ERROR:", err);
+    res.status(500).json({ error: "Subscription verification failed" });
+  }
+});
+
+// 7.3 PUBLIC / INTERNAL VIEW OF SUBSCRIPTIONS
+app.get("/subscriptions", (req, res) => {
+  try {
+    const registry = readRegistry();
+    res.json({ subscriptions: registry.subscriptions || [] });
+  } catch (err) {
+    console.error("SUBSCRIPTIONS READ ERROR:", err);
+    res.status(500).json({ error: "Failed to read subscriptions" });
+  }
+});
+
+// ---------- 8. START SERVER ----------
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
