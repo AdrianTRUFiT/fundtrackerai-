@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>iAscendAi — Identity Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card" style="max-width:420px; width:100%;">
+
+      <!-- HEADER -->
+      <div class="brand-row">
+        <div class="brand-mark">@</div>
+        <div>
+          <h1>iAscendAi</h1>
+          <h2>Identity Access Portal</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        Enter the iAscendAi ecosystem.  
+        Create a verified identity or return with your username.
+      </p>
+
+      <!-- PRIMARY CTA -->
+      <button class="btn-primary" onclick="goRegister()">
+        ✨ Create My iAscendAi Identity
+      </button>
+
+      <!-- SECONDARY CTA -->
+      <button class="btn-secondary" onclick="goLogin()" style="margin-top:12px;">
+        🔐 I Already Have a Username
+      </button>
+
+      <p class="small-label" style="margin-top:16px; text-align:center;">
+        Secure. SoulMarkⓈ-Anchored. Identity-Driven.
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+    function goRegister() {
+      window.location.href = "register.html";
+    }
+
+    function goLogin() {
+      window.location.href = "iascendai-login.html";
+    }
+  </script>
+
+</body>
+</html>
