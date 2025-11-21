@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login — iAscendAi Identity Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card" style="max-width:420px; width:100%;">
+
+      <!-- HEADER -->
+      <div class="brand-row">
+        <div class="brand-mark">@</div>
+        <div>
+          <h1>iAscendAi</h1>
+          <h2>Identity Login</h2>
+        </div>
+      </div>
+
+      <p class="subtext">
+        Enter your verified username to return to your iAscendAi dashboard.
+      </p>
+
+      <label class="label">Username</label>
+      <input id="uname" type="text" placeholder="yourname@iascendai" />
+
+      <label class="label" style="margin-top:12px;">Email</label>
+      <input id="email" type="email" placeholder="you@example.com" />
+
+      <button class="btn-primary" id="loginBtn" style="margin-top:18px;">
+        Log In
+      </button>
+
+      <p id="loginStatus" class="small-label" style="margin-top:12px;"></p>
+
+      <button class="btn-secondary" onclick="goBack()" style="margin-top:18px;">
+        Back to Identity Portal
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    function goBack() {
+      window.location.href = "iascendai-auth.html";
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const uname = document.getElementById("uname").value.trim().toLowerCase();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const status = document.getElementById("loginStatus");
+
+      status.textContent = "";
+
+      if (!uname || !email) {
+        status.textContent = "Please enter both fields.";
+        return;
+      }
+
+      status.textContent = "Checking identity…";
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/donations`);
+        const data = await res.json();
+        const donations = data.donations || [];
+
+        // Check any donation in registry that matches email + username
+        const matchDonation = donations.find(d =>
+          d.email &&
+          d.email.toLowerCase() === email &&
+          d.identity_username &&
+          d.identity_username.toLowerCase() === uname
+        );
+
+        if (!matchDonation) {
+          status.textContent = "Identity not found. Check username or email.";
+          return;
+        }
+
+        // Save identity locally for session
+        try {
+          localStorage.setItem("ias_username", uname);
+          localStorage.setItem("ias_email", email);
+          localStorage.setItem("ias_soulmark", matchDonation.soulmark || "");
+        } catch (e) {}
+
+        status.textContent = "Success! Redirecting…";
+        setTimeout(() => {
+          window.location.href = "iascendai-dashboard.html";
+        }, 600);
+
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Error verifying identity.";
+      }
+    });
+  </script>
+</body>
+</html>
