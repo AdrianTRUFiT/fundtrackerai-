@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subscription Activated — iAscendAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    .status-box {
+      padding: 16px;
+      border-radius: 12px;
+      background: #0c2238;
+      margin-top: 16px;
+    }
+    .value {
+      font-size: 1rem;
+      color: #fff;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card" style="max-width:480px; width:100%;">
+
+      <div class="brand-row">
+        <div class="brand-mark">✨</div>
+        <div>
+          <h1>Subscription Activated</h1>
+          <h2>Your Access Is Live</h2>
+        </div>
+      </div>
+
+      <p id="statusMsg" class="subtext">Verifying your subscription…</p>
+
+      <div id="subBox" class="status-box" style="display:none;">
+        <p class="small-label">App</p>
+        <div id="subApp" class="value"></div>
+
+        <p class="small-label" style="margin-top:10px;">Tier</p>
+        <div id="subTier" class="value"></div>
+
+        <p class="small-label" style="margin-top:10px;">Next Billing</p>
+        <div id="subNext" class="value"></div>
+
+        <p class="small-label" style="margin-top:10px;">Status</p>
+        <div id="subStatus" class="value"></div>
+      </div>
+
+      <button class="btn-primary" id="goDash" style="margin-top:22px; display:none;">
+        Go to Dashboard
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    async function verifySubscription() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("session_id");
+
+      const statusMsg = document.getElementById("statusMsg");
+      const subBox = document.getElementById("subBox");
+      const goDash = document.getElementById("goDash");
+
+      if (!id) {
+        statusMsg.textContent = "Missing session ID.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/verify-subscription/${id}`);
+        const data = await res.json();
+
+        if (!data.verified) {
+          statusMsg.textContent = "Subscription could not be verified.";
+          return;
+        }
+
+        const sub = data.subscription;
+
+        // Store locally
+        localStorage.setItem("ias_subscription_app", sub.app || "");
+        localStorage.setItem("ias_subscription_tier", sub.tier || "");
+        localStorage.setItem("ias_subscription_status", sub.status || "");
+        localStorage.setItem("ias_subscription_next", sub.current_period_end || "");
+
+        // Fill UI
+        document.getElementById("subApp").textContent = sub.app || "—";
+        document.getElementById("subTier").textContent = sub.tier || "—";
+        document.getElementById("subStatus").textContent = sub.status || "active";
+
+        document.getElementById("subNext").textContent =
+          sub.current_period_end
+            ? new Date(sub.current_period_end).toLocaleString()
+            : "—";
+
+        statusMsg.textContent = "Your subscription is active.";
+        subBox.style.display = "block";
+        goDash.style.display = "block";
+
+        goDash.onclick = () => {
+          window.location.href = "iascendai-dashboard.html";
+        };
+
+      } catch (err) {
+        console.error(err);
+        statusMsg.textContent = "Verification failed.";
+      }
+    }
+
+    verifySubscription();
+  </script>
+</body>
+</html>
