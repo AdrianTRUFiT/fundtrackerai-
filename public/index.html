@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FundTrackerAI — Donate</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FundTrackerAI — Donate</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -59,13 +59,14 @@
   </div>
 
   <script>
+    /* DIRECT BACKEND URL — NO CONFIG.JS */
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
     let selectedAmount = null;
 
-    // ---------------------------------
+    // ------------------------------
     // HANDLE AMOUNT SELECTION
-    // ---------------------------------
+    // ------------------------------
     document.querySelectorAll(".amount-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".amount-btn").forEach(b => b.classList.remove("active"));
@@ -82,9 +83,9 @@
       });
     });
 
-    // ---------------------------------
+    // ------------------------------
     // DONATE HANDLER
-    // ---------------------------------
+    // ------------------------------
     document.getElementById("donateBtn").addEventListener("click", async () => {
       const statusEl = document.getElementById("donateStatus");
       statusEl.textContent = "";
@@ -104,16 +105,12 @@
       }
 
       try {
-        statusEl.textContent = "Connecting to Stripe...";
+        statusEl.textContent = "Connecting to payment processor...";
 
         const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            amount: amountToSend
-          })
+          body: JSON.stringify({ name, email, amount: amountToSend })
         });
 
         const data = await res.json();
@@ -126,7 +123,7 @@
 
           window.location = data.url;
         } else {
-          statusEl.textContent = "Error creating Stripe session.";
+          statusEl.textContent = "Error creating session.";
         }
       } catch (err) {
         console.error(err);
@@ -134,5 +131,6 @@
       }
     });
   </script>
+
 </body>
 </html>
