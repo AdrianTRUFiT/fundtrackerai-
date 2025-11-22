@@ -69,6 +69,7 @@
         latestSoulmark = localStorage.getItem("fta_soulmark") || "";
 
         emailEl.textContent = baseEmail || "missing-email@example.com";
+
         smEl.textContent = latestSoulmark
           ? latestSoulmark.substring(0, 18) + "..."
           : "No SoulMark found. You may need to donate again.";
@@ -106,7 +107,7 @@
 
       try {
         const res = await fetch(
-          `${BACKEND_URL}/check-username/${encodeURIComponent(name + "@iascendai")}`
+          `${BACKEND_URL}/check-username/${encodeURIComponent(name)}`
         );
         const data = await res.json();
 
@@ -138,7 +139,6 @@
         return;
       }
 
-      const fullUsername = `${uname}@iascendai`;
       registerStatus.textContent = "Creating your identity…";
 
       try {
@@ -147,7 +147,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: baseEmail,
-            username: fullUsername,
+            username: uname,
             soulmark: latestSoulmark
           })
         });
@@ -161,10 +161,10 @@
 
         // Save identity locally
         try {
-          localStorage.setItem("ias_username", data.identity.ias_username || fullUsername);
-          localStorage.setItem("ias_email", data.identity.ias_email || baseEmail);
-          localStorage.setItem("ias_soulmark", data.identity.ias_soulmark || latestSoulmark);
-          localStorage.setItem("ias_identity_id", data.identity.ias_identity_id || "");
+          localStorage.setItem("ias_username", data.identity.username || uname);
+          localStorage.setItem("ias_email", data.identity.email || baseEmail);
+          localStorage.setItem("ias_soulmark", data.identity.soulmark || latestSoulmark);
+          localStorage.setItem("ias_identity_id", data.identity.identity_id || "");
         } catch (e) {}
 
         registerStatus.textContent = "Identity created. Redirecting to dashboard…";
