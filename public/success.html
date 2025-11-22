@@ -5,6 +5,61 @@
   <title>FundTrackerAI — Payment Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- NEW STYLES — ONLY ADDED HERE, NO CHANGES TO styles.css -->
+  <style>
+    .success-status {
+      background: #f8bc07;
+      color: #041423;
+      font-weight: 700;
+      font-size: 18px;
+      text-align: center;
+      padding: 16px 32px;
+      border-radius: 14px;
+      margin: 24px 0;
+      line-height: 1.4;
+    }
+
+    .reveal-pill {
+      background: #f8bc07;
+      color: #041423;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 16px;
+      display: inline-block;
+    }
+
+    .reveal-pill:hover {
+      background: #e0a800;
+    }
+
+    .chip {
+      background: #334155;
+      padding: 10px 16px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 8px 0;
+    }
+
+    .ref-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    @media (min-width: 480px) {
+      .ref-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -23,21 +78,13 @@
       <h2>Payment Status</h2>
       <p class="subtext">Your transaction has been securely processed.</p>
 
-      <!-- UPDATED: PAYMENT VERIFIED BAR (Yellow Style) -->
-      <div id="statusText"
-        class="status"
-        style="
-          background:#f8bc07;
-          color:#041423;
-          font-weight:700;
-          border-radius:10px;
-        ">
+      <!-- YELLOW VERIFIED BADGE (PERFECTLY PADDED) -->
+      <div id="statusText" class="success-status">
         Checking...
       </div>
 
-      <!-- BASIC RECEIPT (SAFE TO DISPLAY PUBLICLY) -->
+      <!-- RECEIPT DETAILS -->
       <div id="details" style="margin-top:16px; display:none;">
-
         <p class="label">Name</p>
         <div id="nameText" class="value"></div>
 
@@ -50,24 +97,21 @@
         <p class="label">Reference ID</p>
         <div id="refRow" class="ref-row">
           <span id="refText" class="value ref-value"></span>
-
-          <!-- Reveal button (same yellow styling) -->
-          <button id="inlineRevealBtn" class="pill-button">
-            Reveal SoulMarkⓈ →
+          <button id="inlineRevealBtn" class="reveal-pill">
+            Reveal SoulMark® →
           </button>
         </div>
 
-        <p class="info">
-          To access your full verified SoulMarkⓈ and your real-time impact dashboard,
+        <p class="info" style="margin-top:24px;">
+          To access your full verified SoulMark® and your real-time impact dashboard,
           create your iAscendAi username below.
         </p>
       </div>
 
-      <!-- MAIN SIGN-UP CTA -->
-      <button id="signupBtn" class="btn-primary" style="display:none;">
-        Reveal My Verified SoulMarkⓈ →
+      <!-- MAIN CTA BUTTON -->
+      <button id="signupBtn" class="btn-primary" style="display:none; margin-top:32px;">
+        Reveal My Verified SoulMark® →
       </button>
-
     </div>
   </div>
 
@@ -90,9 +134,9 @@
       const inlineRevealBtn = document.getElementById("inlineRevealBtn");
 
       if (!id) {
-        statusEl.textContent = "Invalid session ❌";
+        statusEl.textContent = "Invalid session";
         statusEl.style.background = "#ff6b6b";
-        statusEl.style.color = "#ffffff";
+        statusEl.style.color = "#fff";
         return;
       }
 
@@ -101,64 +145,46 @@
         const data = await res.json();
 
         if (data.verified && data.entry) {
-          const entry = data.entry;
+          const e = data.entry;
 
-          // STATUS (Already yellow; just update text)
-          statusEl.textContent = "Payment Verified ✔";
+          statusEl.textContent = "Payment Verified";
 
-          // NAME
-          document.getElementById("nameText").textContent =
-            entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
+          document.getElementById("nameText").textContent = e.name?.trim() || "Donor";
+          document.getElementById("emailChip").textContent = maskEmail(e.email);
+          document.getElementById("amountText").textContent = "$" + (e.amount / 100).toFixed(2);
 
-          // EMAIL + AMOUNT
-          document.getElementById("emailChip").textContent =
-            maskEmail(entry.email);
-
-          document.getElementById("amountText").textContent =
-            "$" + (entry.amount / 100).toFixed(2);
-
-          // PARTIAL SOULMARK PREVIEW
-          const shortRef = entry.soulmark.substring(0, 10) + "••••••••";
+          const shortRef = e.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
-          // LOCAL STORAGE FOR REGISTER FLOW
-          try {
-            localStorage.setItem("fta_name", entry.name || "");
-            localStorage.setItem("fta_email", entry.email || "");
-            localStorage.setItem("fta_amount", String(entry.amount || ""));
-            localStorage.setItem("fta_soulmark", entry.soulmark || "");
-            localStorage.setItem("fta_last_session", entry.id || "");
-          } catch (e) {
-            console.warn("localStorage unavailable:", e);
-          }
+          // Save to localStorage for register page
+          localStorage.setItem("fta_name", e.name || "");
+          localStorage.setItem("fta_email", e.email || "");
+          localStorage.setItem("fta_amount", String(e.amount || ""));
+          localStorage.setItem("fta_soulmark", e.soulmark || "");
+          localStorage.setItem("fta_last_session", e.id || "");
 
-          // Show UI
+          // Show everything
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
-          const goToRegister = () => {
-            window.location.href = "register.html";
-          };
-
-          signupBtn.addEventListener("click", goToRegister);
-          inlineRevealBtn.addEventListener("click", goToRegister);
+          const go = () => window.location.href = "register.html";
+          signupBtn.onclick = go;
+          inlineRevealBtn.onclick = go;
 
         } else {
-          statusEl.textContent = "Verification Failed ❌";
+          statusEl.textContent = "Verification Failed";
           statusEl.style.background = "#ff6b6b";
-          statusEl.style.color = "#ffffff";
+          statusEl.style.color = "#fff";
         }
-
       } catch (err) {
         console.error(err);
-        statusEl.textContent = "Error verifying payment ❌";
+        statusEl.textContent = "Error verifying payment";
         statusEl.style.background = "#ff6b6b";
-        statusEl.style.color = "#ffffff";
+        statusEl.style.color = "#fff";
       }
     }
 
     verify();
   </script>
-
 </body>
 </html>
