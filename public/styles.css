@@ -410,7 +410,8 @@ tr:hover {
 .display-options label {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  /* CHANGE: Use center for single-line visual alignment */
+  align-items: center; 
   gap: 10px;
   width: 100%;
   white-space: normal;
@@ -426,5 +427,6 @@ tr:hover {
 .display-options input[type="radio"],
 .display-options input[type="checkbox"] {
   flex-shrink: 0;
-  margin-top: 3px;
+  /* REMOVE: Remove margin-top as align-items: center will handle it */
+  margin-top: 0;
 }
