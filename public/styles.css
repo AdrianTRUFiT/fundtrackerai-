@@ -22,7 +22,7 @@ body {
   padding: 24px;
 }
 
-/* Core card shell used across pages */
+/* Core card */
 .card {
   background: #0c2238;
   padding: 28px;
@@ -36,10 +36,11 @@ body {
   max-width: 450px;
 }
 
-/* Headings & subtext */
-h1, h2 {
-  margin: 0;
-}
+/* ---------------------------------------
+   TEXT
+---------------------------------------- */
+
+h1, h2 { margin: 0; }
 
 .subtext {
   margin-top: 6px;
@@ -47,7 +48,6 @@ h1, h2 {
   color: #b9c5d1;
 }
 
-/* Labels & values */
 .label {
   margin-top: 14px;
   margin-bottom: 4px;
@@ -60,7 +60,6 @@ h1, h2 {
   font-weight: 500;
 }
 
-/* Info */
 .info {
   margin-top: 14px;
   font-size: 0.86rem;
@@ -129,9 +128,7 @@ h1, h2 {
   transition: 0.2s;
 }
 
-.btn-primary:hover {
-  background: #3eb17c;
-}
+.btn-primary:hover { background: #3eb17c; }
 
 .btn-secondary {
   width: 100%;
@@ -145,9 +142,7 @@ h1, h2 {
   transition: 0.2s;
 }
 
-.btn-secondary:hover {
-  background: #e4a404;
-}
+.btn-secondary:hover { background: #e4a404; }
 
 .pill-button {
   padding: 6px 10px;
@@ -159,9 +154,7 @@ h1, h2 {
   margin-left: 8px;
 }
 
-.pill-button:hover {
-  background: #e4a404;
-}
+.pill-button:hover { background: #e4a404; }
 
 .chip-button {
   background: #122b44;
@@ -169,27 +162,6 @@ h1, h2 {
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 0.8rem;
-}
-
-/* ---------------------------------------
-   STATUS
----------------------------------------- */
-
-.status {
-  margin-top: 16px;
-  padding: 12px;
-  font-size: 1rem;
-  border-radius: 10px;
-  text-align: center;
-  background: #122b44;
-}
-
-.success {
-  color: #47c28a;
-}
-
-.fail {
-  color: #ff6b6b;
 }
 
 /* ---------------------------------------
@@ -218,7 +190,7 @@ h1, h2 {
 }
 
 .ref-value {
-  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
   font-size: 0.78rem;
   background: #122b44;
   padding: 6px 10px;
@@ -342,9 +314,7 @@ input::placeholder {
    TABLES
 ---------------------------------------- */
 
-.table-wrap {
-  overflow-x: auto;
-}
+.table-wrap { overflow-x: auto; }
 
 table {
   width: 100%;
@@ -378,55 +348,43 @@ tr:hover {
 ---------------------------------------- */
 
 @media (max-width: 480px) {
-  .card {
-    padding: 22px;
-  }
-  .amount-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .ref-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .ref-value {
-    width: 100%;
-  }
-  .pill-button {
-    align-self: flex-end;
-  }
+  .card { padding: 22px; }
+  .amount-grid { grid-template-columns: repeat(2, 1fr); }
+  .ref-row { flex-direction: column; align-items: flex-start; }
+  .ref-value { width: 100%; }
+  .pill-button { align-self: flex-end; }
 }
 
 /* ---------------------------------------
    ✔ FIXED RADIO / CHECKBOX ALIGNMENT
-   (Corrected exact issue)
 ---------------------------------------- */
 
-.display-options {
+.display-option-group {
   width: 100%;
-  margin-top: 8px; 
-  font-size: 0.88rem; 
-}
-
-.display-options label {
   display: flex;
-  flex-direction: row;
-  /* CHANGE: Use center for single-line visual alignment */
-  align-items: center; 
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  margin-top: 8px;
+}
+
+.display-option-group label {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  width: 100%;
-  white-space: normal;
+  margin: 4px 0;
   line-height: 1.35;
-  margin-bottom: 8px;
 }
 
-.display-options label span {
-  display: block;
-  flex-grow: 1;
+.display-option-group label span {
+  flex: 1;
+  white-space: normal;
 }
 
-.display-options input[type="radio"],
-.display-options input[type="checkbox"] {
+.display-option-group input[type="radio"],
+.display-option-group input[type="checkbox"] {
+  width: auto;
   flex-shrink: 0;
-  /* REMOVE: Remove margin-top as align-items: center will handle it */
-  margin-top: 0;
+  transform: scale(1.0);
+  accent-color: #47c28a;
 }
