@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- POLISH & VISUAL UPGRADES — ADDED HERE ONLY -->
   <style>
     .info-box {
       background: #1e293b;
@@ -78,7 +77,6 @@
       font-size: 15px;
     }
 
-    /* Radio & Checkbox — Text on same line, proper spacing */
     .option-group {
       background: #1e293b;
       border: 1px solid #334155;
@@ -123,7 +121,6 @@
   <div class="app-shell">
     <div class="card card--narrow">
 
-      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">@</div>
         <div>
@@ -138,7 +135,6 @@
         iAscendAi identity. One username per identity — forever.
       </p>
 
-      <!-- LOCKED DONATION EMAIL -->
       <div class="info-box">
         <div class="info-row">
           <div class="label">Donation email on record</div>
@@ -146,15 +142,12 @@
         </div>
       </div>
 
-      <!-- CONTACT EMAIL -->
       <p class="label">Contact email for your identity *</p>
       <input id="contactEmail" type="email" placeholder="you@example.com" autocomplete="email" />
 
-      <!-- FULL NAME -->
       <p class="label" style="margin-top:14px;">Full Name *</p>
       <input id="fullName" type="text" placeholder="Adrian McKenzie" autocomplete="name" />
 
-      <!-- LATEST SOULMARK -->
       <div class="info-box" style="margin-top:20px;">
         <div class="info-row">
           <div class="label">Latest SoulMark</div>
@@ -162,7 +155,6 @@
         </div>
       </div>
 
-      <!-- USERNAME -->
       <p class="label">Choose Username *</p>
       <div class="input-with-suffix">
         <input id="username" type="text" placeholder="yourname" autocomplete="off" />
@@ -170,7 +162,6 @@
       </div>
       <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
-      <!-- DISPLAY PREFERENCES -->
       <p class="label" style="margin-top:20px;">Public display settings</p>
       <p class="small-note">
         Control how your contribution appears on the public impact board.
@@ -201,7 +192,6 @@
         <p id="displayNote" class="small-note"></p>
       </div>
 
-      <!-- SUBMIT -->
       <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
         Create My iAscendAi Identity
       </button>
@@ -211,8 +201,8 @@
     </div>
   </div>
 
-  <!-- Your existing script (unchanged) -->
   <script>
+    // (SCRIPT IS CLEAN — NO HTML COMMENT BLOCK)
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
     const emailEl           = document.getElementById("lockedEmail");
@@ -270,7 +260,7 @@
       const mode = getIdentityMode();
       const showAmount = showAmountCb.checked;
 
-      displayNoteEl.textContent = "";
+      displayNoteEl.textContent =("");
 
       if (mode === "anonymous" && !showAmount) {
         showAmountCb.checked = true;
