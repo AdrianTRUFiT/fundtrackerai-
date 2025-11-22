@@ -156,27 +156,6 @@ h1, h2 { margin: 0; }
 
 .pill-button:hover { background: #e4a404; }
 
-.module-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* keeps text left, tag right */
-  padding: 14px 16px;
-  margin-top: 12px;
-  border-radius: 12px;
-  background: #0a2a44;
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 500;
-  text-align: left;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.module-btn span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
 
 .tag {
   background: #f8bc07;
