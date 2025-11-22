@@ -139,7 +139,7 @@ h2 {
 }
 
 .btn-primary:hover {
-  background: #3eb17c;
+ background: #3eb17c;
 }
 
 .btn-secondary {
@@ -465,19 +465,32 @@ tr:hover {
   }
 }
 
-.display-option-group label {
-  width: 100%;
-  white-space: normal;      /* allow clean wrapping */
-  align-items: flex-start;  /* align bullet to top */
-  line-height: 1.4;
-}
+/* ---------------------------------------
+   FIXED RADIO / CHECKBOX ALIGNMENT
+---------------------------------------- */
 
 .display-option-group {
   width: 100%;
 }
 
-.display-option-group input[type="radio"],
-.display-option-group input[type="checkbox"] {
-  margin-top: 2px;          /* bullet aligns with first line */
+.display-option-group label {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.35;
+  margin-bottom: 8px;
 }
 
+.display-option-group label span {
+  display: block;
+  flex-grow: 1;
+}
+
+.display-option-group input[type="radio"],
+.display-option-group input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
