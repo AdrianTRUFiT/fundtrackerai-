@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>FundTrackerAI — Payment Status</title>
+  <title>Donation Verified – FundTrackerAI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -11,140 +11,143 @@
   <div class="app-shell">
     <div class="card">
 
-      <!-- BRAND HEADER -->
-      <div class="brand-row">
-        <div class="brand-mark">$</div>
-        <div>
-          <h1>FundTrackerAI</h1>
-          <h2>Verified Transaction System</h2>
-        </div>
+      <!-- HEADER -->
+      <div class="header-card">
+        <h1>FundTrackerAI</h1>
+        <p>Verified Transaction System</p>
       </div>
 
-      <h2>Payment Status</h2>
-      <p class="subtext">Your transaction has been securely processed.</p>
+      <h2 style="margin-bottom:6px;">Payment Status</h2>
+      <p style="margin-top:0;margin-bottom:14px;color:#9ca3af;">
+        Your transaction has been securely processed.
+      </p>
 
-      <div id="statusText" class="status">Checking...</div>
+      <!-- VERIFIED BADGE -->
+      <div style="
+        width:100%;
+        padding:10px;
+        margin-bottom:20px;
+        border-radius:10px;
+        text-align:center;
+        background:rgba(22,163,74,0.15);
+        border:1px solid rgba(34,197,94,0.5);
+        color:#86efac;">
+        Payment Verified ✓
+      </div>
 
-      <!-- BASIC RECEIPT (SAFE TO DISPLAY PUBLICLY) -->
-      <div id="details" style="margin-top:16px; display:none;">
+      <!-- DONATION DETAILS -->
+      <div class="section">
 
-        <p class="label">Name</p>
-        <div id="nameText" class="value"></div>
-
-        <p class="label">Email</p>
-        <div id="emailChip" class="chip"></div>
-
-        <p class="label">Amount</p>
-        <div id="amountText" class="value"></div>
-
-        <p class="label">Reference ID</p>
-        <div id="refRow" class="ref-row">
-          <span id="refText" class="value ref-value"></span>
-          <button id="inlineRevealBtn" class="pill-button">
-            Reveal SoulMarkⓈ →
-          </button>
+        <div class="form-row">
+          <label>Name</label>
+          <div id="donorName" style="font-weight:600;">Loading...</div>
         </div>
 
-        <p class="info">
-          To access your full verified SoulMarkⓈ and your real-time impact dashboard,
+        <div class="form-row">
+          <label>Email</label>
+          <div id="donorEmail" class="identity-pill"></div>
+        </div>
+
+        <div class="form-row">
+          <label>Amount</label>
+          <div id="donorAmount" style="font-weight:600;">Loading...</div>
+        </div>
+
+        <div class="form-row">
+          <label>Reference ID</label>
+
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="maskedRef" style="
+              font-family:monospace;
+              letter-spacing:1px;
+              padding:6px 10px;
+              background:rgba(30,41,59,0.8);
+              border-radius:8px;
+              color:#e5e7eb;">
+              ************
+            </div>
+
+            <button id="revealBtn" class="copy-btn" style="
+              background:#facc15;
+              color:#1f2937;
+              border:1px solid #eab308;
+            ">
+              Reveal SoulMarkⓈ →
+            </button>
+          </div>
+
+        </div>
+
+        <p style="margin-top:20px;font-size:0.85rem;color:#9ca3af;line-height:1.45;">
+          To access your full verified SoulMark and your real-time impact dashboard,
           create your iAscendAi username below.
         </p>
-      </div>
 
-      <!-- MAIN SIGN-UP CTA -->
-      <button id="signupBtn" class="btn-primary" style="display:none;">
-        Reveal My Verified SoulMarkⓈ →
-      </button>
+        <!-- CONTINUE -->
+        <button id="continueBtn" class="primary-btn" style="width:100%;margin-top:14px;">
+          Reveal My Verified SoulMarkⓈ →
+        </button>
+
+      </div>
 
     </div>
   </div>
 
   <script>
-    const BACKEND_URL = "https://fundtrackerai.onrender.com";
-
-    function maskEmail(email) {
-      if (!email) return "unknown";
-      const [u, d] = email.split("@");
-      return u[0] + "•••@" + d;
-    }
-
-    async function verify() {
+    async function loadVerification() {
       const params = new URLSearchParams(window.location.search);
-      const id = params.get("session_id");
+      const sessionId = params.get("session_id");
 
-      const statusEl = document.getElementById("statusText");
-      const detailsEl = document.getElementById("details");
-      const signupBtn = document.getElementById("signupBtn");
-      const inlineRevealBtn = document.getElementById("inlineRevealBtn");
-
-      if (!id) {
-        statusEl.textContent = "Invalid session ❌";
-        statusEl.classList.add("fail");
+      if (!sessionId) {
+        document.getElementById("donorName").innerText = "Error";
         return;
       }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/verify-donation/${id}`);
+        const res = await fetch(`/verify-donation/${sessionId}`);
         const data = await res.json();
 
-        if (data.verified && data.entry) {
-          const entry = data.entry;
-
-          // STATUS
-          statusEl.textContent = "Payment Verified ✔";
-          statusEl.classList.add("success");
-
-          // NAME (from backend, fallback to Donor)
-          document.getElementById("nameText").textContent =
-            entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
-
-          // EMAIL + AMOUNT
-          document.getElementById("emailChip").textContent =
-            maskEmail(entry.email);
-
-          document.getElementById("amountText").textContent =
-            "$" + (entry.amount / 100).toFixed(2);
-
-          // PARTIAL SOULMARK PREVIEW
-          const shortRef = entry.soulmark.substring(0, 10) + "••••••••";
-          document.getElementById("refText").textContent = shortRef;
-
-          // LOCAL STORAGE FOR REGISTER FLOW
-          try {
-            localStorage.setItem("fta_name", entry.name || "");
-            localStorage.setItem("fta_email", entry.email || "");
-            localStorage.setItem("fta_amount", String(entry.amount || ""));
-            localStorage.setItem("fta_soulmark", entry.soulmark || "");
-            localStorage.setItem("fta_last_session", entry.id || "");
-          } catch (e) {
-            console.warn("localStorage unavailable:", e);
-          }
-
-          // REVEAL UI
-          detailsEl.style.display = "block";
-          signupBtn.style.display = "block";
-
-          const goToRegister = () => {
-            window.location.href = "register.html";
-          };
-
-          signupBtn.addEventListener("click", goToRegister);
-          inlineRevealBtn.addEventListener("click", goToRegister);
-
-        } else {
-          statusEl.textContent = "Verification Failed ❌";
-          statusEl.classList.add("fail");
+        if (data.error) {
+          alert("Error verifying donation: " + data.error);
+          return;
         }
 
+        // Display fields
+        document.getElementById("donorName").innerText = data.name;
+        document.getElementById("donorEmail").innerText = data.email;
+        document.getElementById("donorAmount").innerText =
+          "$" + Number(data.amount).toFixed(2);
+
+        // Store for register.html handoff
+        localStorage.setItem("donor_name", data.name);
+        localStorage.setItem("donor_email", data.email);
+        localStorage.setItem("donor_amount", data.amount);
+        localStorage.setItem("donor_soulmark", data.soulMark);
+
+        // Masked reference
+        const masked =
+          data.soulMark.substring(0, 4) +
+          "••••••••••" +
+          data.soulMark.substring(data.soulMark.length - 4);
+
+        document.getElementById("maskedRef").innerText = masked;
+
+        // Reveal button shows masked explanation ONLY
+        document.getElementById("revealBtn").onclick = () => {
+          alert("Create your identity to reveal your full SoulMark.");
+        };
+
+        // Continue to register
+        document.getElementById("continueBtn").onclick = () => {
+          window.location.href = "register.html";
+        };
+
       } catch (err) {
-        console.error(err);
-        statusEl.textContent = "Error verifying payment ❌";
-        statusEl.classList.add("fail");
+        alert("Verification failed.");
       }
     }
 
-    verify();
+    loadVerification();
   </script>
-
 </body>
 </html>
