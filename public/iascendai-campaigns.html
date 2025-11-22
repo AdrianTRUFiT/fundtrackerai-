@@ -12,7 +12,7 @@
     <div class="card">
 
       <div class="brand-row">
-        <div class="brand-mark">🇯🇲</div>
+        <div class="brand-mark">Jamaica Flag</div>
         <div>
           <h1>Jamaica We Rise</h1>
           <h2>Live Impact Overview</h2>
@@ -34,21 +34,13 @@
         <div id="totalDonors" class="value">0</div>
       </div>
 
+      <!-- CHANGED: No more table — now a clean vertical list -->
       <div class="dash-card">
         <div class="dash-title">Recent Verified Donations</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Donor</th>
-                <th>Amount</th>
-                <th>When</th>
-              </tr>
-            </thead>
-            <tbody id="donationRows">
-              <tr><td colspan="3">Loading…</td></tr>
-            </tbody>
-          </table>
+        
+        <div class="donations-list" id="donationRows">
+          <!-- JavaScript will fill this with beautiful vertical cards -->
+          <div class="donation-item loading">Loading…</div>
         </div>
       </div>
 
@@ -63,7 +55,7 @@
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
     async function loadDonations() {
-      const tbody = document.getElementById("donationRows");
+      const container = document.getElementById("donationRows");
       const totalAmountEl = document.getElementById("totalAmount");
       const totalDonorsEl = document.getElementById("totalDonors");
 
@@ -72,8 +64,9 @@
         const data = await res.json();
         const donations = data.donations || [];
 
-        if (!donations.length) {
-          tbody.innerHTML = "<tr><td colspan='3'>No donations recorded yet.</td></tr>";
+        // Update totals
+        if (donations.length === 0) {
+          container.innerHTML = '<div class="donation-item empty">No donations recorded yet.</div>';
           totalAmountEl.textContent = "$0.00";
           totalDonorsEl.textContent = "0";
           return;
@@ -83,31 +76,35 @@
         totalAmountEl.textContent = "$" + (totalAmount / 100).toFixed(2);
         totalDonorsEl.textContent = donations.length.toString();
 
-        const rows = donations
+        // Sort newest first
+        const sorted = donations
           .slice()
-          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-          .map(d => {
-            const name = d.name && d.name.trim() ? d.name : "Donor";
-            const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
-            const dt = new Date(d.timestamp);
-            const when = d.timestamp
-  ? dt.toLocaleDateString() + "<br>" + dt.toLocaleTimeString()
-  : "N/A";
-            return `
-              <tr>
-                <td>${name}</td>
-                <td>${amt}</td>
-                <td>${when}</td>
-              </tr>
-            `;
-          })
-          .join("");
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        tbody.innerHTML = rows;
+        const itemsHTML = sorted.map(d => {
+          const name = d.name && d.name.trim() ? d.name : "Donor";
+          ";
+          const amount = "$" + ((d.amount || 0) / 100).toFixed(2);
+
+          const date = d.timestamp ? new Date(d.timestamp) : null;
+          const dateStr = date ? date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' }) : "N/A";
+          const timeStr = date ? date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : "";
+
+          return `
+            <div class="donation-item">
+              <div class="donor-name">${name}</div>
+              <div class="donation-amount">${amount}</div>
+              <div class="donation-date">${dateStr}</div>
+              <div class="donation-time">${timeStr}</div>
+            </div>
+          `;
+        }).join("");
+
+        container.innerHTML = itemsHTML;
 
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = "<tr><td colspan='3'>Error loading donations.</td></tr>";
+        container.innerHTML = '<div class="donation-item error">Error loading donations.</div>';
       }
     }
 
@@ -115,6 +112,7 @@
       window.location.href = "iascendai-dashboard.html";
     }
 
+    // Load immediately
     loadDonations();
   </script>
 </body>
