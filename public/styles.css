@@ -189,10 +189,11 @@ h1, h2 { margin: 0; }
 
 
 /* ---------------------------------------
-   ✔ FIXED MODULE-BTN (THE MOST IMPORTANT FIX)
+   ✔ MODULE BUTTONS — DASHBOARD ONLY
+   (Safe: does NOT affect donation page)
 ---------------------------------------- */
 
-.module-btn {
+.dash-card .module-btn {
   width: 100%;
   padding: 14px;
   background: #122b44;
@@ -207,21 +208,28 @@ h1, h2 { margin: 0; }
 
   display: flex;
   align-items: center;
-  justify-content: space-between;  /* FIX: aligns text left + tag right */
-  gap: 10px;                       /* FIX: spacing like your screenshot */
+  justify-content: space-between; /* text left, tag right */
+  gap: 10px;
 }
 
-.module-btn:hover {
+.dash-card .module-btn:hover {
   background: #163554;
 }
 
+/* Tag badge (safe globally) */
 .tag {
   background: #f8bc07;
   color: #041423;
   font-size: 0.78rem;
   padding: 4px 10px;
   border-radius: 999px;
+  font-weight: 600;
 }
+
+/* ---------------------------------------
+   REMOVE ANY GLOBAL .module-btn RULES
+   (This prevents breaking donation page)
+---------------------------------------- */
 
 /* ---------------------------------------
    CHIPS
