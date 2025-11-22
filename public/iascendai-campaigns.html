@@ -89,7 +89,10 @@
           .map(d => {
             const name = d.name && d.name.trim() ? d.name : "Donor";
             const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
-            const when = d.timestamp ? new Date(d.timestamp).toLocaleString() : "N/A";
+            const dt = new Date(d.timestamp);
+            const when = d.timestamp
+  ? dt.toLocaleDateString() + "<br>" + dt.toLocaleTimeString()
+  : "N/A";
             return `
               <tr>
                 <td>${name}</td>
