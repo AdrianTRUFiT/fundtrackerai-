@@ -585,3 +585,33 @@ input:focus {
   padding-bottom: 8px;
 }
 
+
+/* Stacked donation layout */
+.donation-row td {
+  padding: 0;
+  border-bottom: 1px solid #2d4358;
+}
+
+.donation-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: #0c2238;
+}
+
+.donor-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.donor-amount {
+  font-size: 1rem;
+  color: #4fd1a5;
+}
+
+.donor-date,
+.donor-time {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
