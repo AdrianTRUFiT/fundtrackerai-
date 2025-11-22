@@ -291,6 +291,7 @@ input::placeholder {
   font-size: 0.9rem;
   color: #47c28a;
   margin-top: 12px;
+  margin-bottom: 12px;
   font-weight: 600;
 }
 
@@ -305,7 +306,7 @@ input::placeholder {
 .dash-title {
   font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 /* ---------------------------------------
