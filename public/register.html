@@ -5,13 +5,13 @@
   <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
-
-  </head>
+</head>
 
 <body>
   <div class="app-shell">
     <div class="card card--narrow">
 
+      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">@</div>
         <div>
@@ -23,18 +23,31 @@
       <h2>Create Your Identity</h2>
       <p class="subtext">
         Link your recent SoulMark-verified transaction to a permanent
-        iAscendAi identity. One username per email — forever.
+        iAscendAi identity. One username per identity — forever.
       </p>
 
-      <p class="label">Email (locked from your donation)</p>
+      <!-- DONATION EMAIL (READ-ONLY) -->
+      <p class="label">Donation email on record</p>
       <div id="lockedEmail" class="chip"></div>
 
+      <!-- CONTACT EMAIL (EDITABLE / ACCESS CHANNEL) -->
+      <p class="label" style="margin-top:10px;">Contact email for your identity *</p>
+      <input
+        id="contactEmail"
+        type="email"
+        placeholder="you@example.com"
+        autocomplete="email"
+      />
+
+      <!-- FULL NAME -->
       <p class="label" style="margin-top:14px;">Full Name *</p>
       <input id="fullName" type="text" placeholder="Adrian McKenzie" autocomplete="name" />
 
+      <!-- LATEST SOULMARK -->
       <p class="label" style="margin-top:10px;">Latest SoulMark</p>
       <div id="lockedSoulmark" class="value truncate"></div>
 
+      <!-- USERNAME -->
       <p class="label" style="margin-top:14px;">Choose Username *</p>
       <div style="display:flex; align-items:center; gap:6px;">
         <input id="username" type="text" placeholder="yourname"
@@ -43,6 +56,7 @@
       </div>
       <p id="usernameStatus" class="small-label"></p>
 
+      <!-- DISPLAY PREFERENCES -->
       <p class="label" style="margin-top:16px;">Public display settings</p>
       <p class="small-label">
         Control how your contribution appears on the public impact board.
@@ -50,7 +64,6 @@
       </p>
 
       <div class="display-options">
-
         <label>
           <input type="radio" name="identityMode" value="username" checked />
           <span>Show my <strong>username@iascendai</strong></span>
@@ -74,6 +87,7 @@
         <p id="displayNote" class="small-label" style="margin-top:4px;"></p>
       </div>
 
+      <!-- SUBMIT -->
       <button id="registerBtn" class="btn-primary" style="margin-top:18px;">
         Create My iAscendAi Identity
       </button>
@@ -86,34 +100,48 @@
   <script>
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-    const emailEl        = document.getElementById("lockedEmail");
-    const smEl           = document.getElementById("lockedSoulmark");
-    const fullNameInput  = document.getElementById("fullName");
-    const usernameInput  = document.getElementById("username");
-    const usernameStatus = document.getElementById("usernameStatus");
-    const registerStatus = document.getElementById("registerStatus");
-    const registerBtn    = document.getElementById("registerBtn");
+    const emailEl           = document.getElementById("lockedEmail");
+    const contactEmailInput = document.getElementById("contactEmail");
+    const smEl              = document.getElementById("lockedSoulmark");
+    const fullNameInput     = document.getElementById("fullName");
+    const usernameInput     = document.getElementById("username");
+    const usernameStatus    = document.getElementById("usernameStatus");
+    const registerStatus    = document.getElementById("registerStatus");
+    const registerBtn       = document.getElementById("registerBtn");
 
     const identityRadios = document.querySelectorAll('input[name="identityMode"]');
     const showAmountCb   = document.getElementById("showAmount");
     const displayNoteEl  = document.getElementById("displayNote");
 
-    let baseEmail = "";
+    let baseEmail = "";       // donation email on record
     let latestSoulmark = "";
     let usernameTimer = null;
     let lastCheckName = "";
 
-    // -------- 1. PRELOAD --------
+    // -------- 1. PRELOAD (donation → register) --------
     (function preload() {
       try {
-        const nameStore    = localStorage.getItem("fta_name") || "";
-        const emailStore   = localStorage.getItem("fta_email") || "";
-        const soulStore    = localStorage.getItem("fta_soulmark") || "";
+        const nameStore   = localStorage.getItem("fta_name")      || "";
+        const emailStore  = localStorage.getItem("fta_email")     || ""; // donation email
+        const soulStore   = localStorage.getItem("fta_soulmark")  || "";
+        const accessEmail = localStorage.getItem("ias_access_email") || "";
 
         baseEmail      = emailStore;
         latestSoulmark = soulStore;
 
-        emailEl.textContent = baseEmail || "missing-email@example.com";
+        // Show donation email in chip (record only)
+        emailEl.textContent = baseEmail || "No donation email on record";
+
+        // Seed contact email:
+        // 1) previously chosen access email wins
+        // 2) else fall back to donation email
+        if (accessEmail) {
+          contactEmailInput.value = accessEmail;
+        } else if (baseEmail) {
+          contactEmailInput.value = baseEmail;
+        }
+
+        // SoulMark preview
         smEl.textContent = latestSoulmark
           ? latestSoulmark.substring(0, 18) + "..."
           : "No SoulMark found. Complete a donation first.";
@@ -153,6 +181,7 @@
 
       usernameInput.value = cleaned;
       usernameStatus.textContent = "";
+      usernameStatus.className = "small-label";
 
       if (cleaned.length < 3) return;
 
@@ -167,7 +196,9 @@
       const full = `${name}@iascendai`;
 
       try {
-        const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
+        const res = await fetch(
+          `${BACKEND_URL}/check-username/${encodeURIComponent(full)}`
+        );
         const data = await res.json();
 
         if (name !== lastCheckName) return;
@@ -185,12 +216,18 @@
     registerBtn.addEventListener("click", async () => {
       registerStatus.textContent = "";
 
-      const fullName = fullNameInput.value.trim();
-      const unameRaw = usernameInput.value.trim().toLowerCase();
-      const uname = unameRaw.replace(/[^a-z0-9._-]/g, "");
-      const mode = getIdentityMode();
-      const showAmt = showAmountCb.checked;
+      const fullName   = fullNameInput.value.trim();
+      const contactRaw = contactEmailInput.value.trim();
+      const unameRaw   = usernameInput.value.trim().toLowerCase();
+      const uname      = unameRaw.replace(/[^a-z0-9._-]/g, "");
+      const mode       = getIdentityMode();
+      const showAmt    = showAmountCb.checked;
 
+      // Basic validations
+      if (!contactRaw) {
+        registerStatus.textContent = "Please enter a contact email.";
+        return;
+      }
       if (!fullName) {
         registerStatus.textContent = "Please enter your full name.";
         return;
@@ -201,6 +238,12 @@
       }
 
       const fullUsername = `${uname}@iascendai`;
+      const accessEmail  = contactRaw;
+
+      // Final safety
+      if (mode === "anonymous" && !showAmt) {
+        showAmountCb.checked = true;
+      }
 
       registerBtn.disabled = true;
       registerBtn.textContent = "Creating identity…";
@@ -211,22 +254,31 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: fullName,
-            email: baseEmail,
+            // Email as ACCESS CHANNEL (protocol A)
+            email: accessEmail,
+            // Preserve original donation email for lineage / audit
+            donationEmail: baseEmail || null,
             username: fullUsername,
             soulmark: latestSoulmark || null,
-            displayIdentity: mode,
-            showDonationAmount: !!showAmt
+            displayIdentity: mode,        // "username" | "real" | "anonymous"
+            showDonationAmount: !!showAmt // true | false
           })
         });
 
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error);
 
-        // Save for dashboard
+        // Save for dashboard (access email as canonical channel)
         localStorage.setItem("ias_username", fullUsername);
         localStorage.setItem("ias_name", fullName);
-        localStorage.setItem("ias_email", baseEmail);
-        if (latestSoulmark) localStorage.setItem("ias_soulmark", latestSoulmark);
+        localStorage.setItem("ias_email", accessEmail);          // legacy key
+        localStorage.setItem("ias_access_email", accessEmail);   // explicit
+        if (baseEmail) {
+          localStorage.setItem("ias_donation_email", baseEmail);
+        }
+        if (latestSoulmark) {
+          localStorage.setItem("ias_soulmark", latestSoulmark);
+        }
         localStorage.setItem("displayIdentity", mode);
         localStorage.setItem("showDonationAmount", showAmt ? "1" : "0");
 
@@ -238,9 +290,9 @@
           showDonation: showAmt ? "1" : "0"
         });
 
-        setTimeout(() =>
-          window.location.href = `iascendai-dashboard.html?${qs.toString()}`, 600
-        );
+        setTimeout(() => {
+          window.location.href = `iascendai-dashboard.html?${qs.toString()}`;
+        }, 600);
 
       } catch (err) {
         registerStatus.textContent = err.message || "Registration error.";
