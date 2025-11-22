@@ -398,8 +398,14 @@ tr:hover {
 
 /* ---------------------------------------
    ✔ FIXED RADIO / CHECKBOX ALIGNMENT
-   (Corrected exact issue Gemini flagged)
+   (Corrected exact issue)
 ---------------------------------------- */
+
+.display-options {
+  width: 100%;
+  margin-top: 8px; 
+  font-size: 0.88rem; 
+}
 
 .display-options label {
   display: flex;
@@ -415,7 +421,6 @@ tr:hover {
 .display-options label span {
   display: block;
   flex-grow: 1;
-  white-space: normal;
 }
 
 .display-options input[type="radio"],
