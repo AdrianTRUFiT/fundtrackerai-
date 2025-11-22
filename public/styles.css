@@ -464,3 +464,20 @@ tr:hover {
     align-self: flex-end;
   }
 }
+
+.display-option-group label {
+  width: 100%;
+  white-space: normal;      /* allow clean wrapping */
+  align-items: flex-start;  /* align bullet to top */
+  line-height: 1.4;
+}
+
+.display-option-group {
+  width: 100%;
+}
+
+.display-option-group input[type="radio"],
+.display-option-group input[type="checkbox"] {
+  margin-top: 2px;          /* bullet aligns with first line */
+}
+
