@@ -23,7 +23,17 @@
       <h2>Payment Status</h2>
       <p class="subtext">Your transaction has been securely processed.</p>
 
-      <div id="statusText" class="status">Checking...</div>
+      <!-- UPDATED: PAYMENT VERIFIED BAR (Yellow Style) -->
+      <div id="statusText"
+        class="status"
+        style="
+          background:#f8bc07;
+          color:#041423;
+          font-weight:700;
+          border-radius:10px;
+        ">
+        Checking...
+      </div>
 
       <!-- BASIC RECEIPT (SAFE TO DISPLAY PUBLICLY) -->
       <div id="details" style="margin-top:16px; display:none;">
@@ -40,6 +50,8 @@
         <p class="label">Reference ID</p>
         <div id="refRow" class="ref-row">
           <span id="refText" class="value ref-value"></span>
+
+          <!-- Reveal button (same yellow styling) -->
           <button id="inlineRevealBtn" class="pill-button">
             Reveal SoulMarkⓈ →
           </button>
@@ -79,7 +91,8 @@
 
       if (!id) {
         statusEl.textContent = "Invalid session ❌";
-        statusEl.classList.add("fail");
+        statusEl.style.background = "#ff6b6b";
+        statusEl.style.color = "#ffffff";
         return;
       }
 
@@ -90,11 +103,10 @@
         if (data.verified && data.entry) {
           const entry = data.entry;
 
-          // STATUS
+          // STATUS (Already yellow; just update text)
           statusEl.textContent = "Payment Verified ✔";
-          statusEl.classList.add("success");
 
-          // NAME (from backend, fallback to Donor)
+          // NAME
           document.getElementById("nameText").textContent =
             entry.name && entry.name.trim() !== "" ? entry.name : "Donor";
 
@@ -120,7 +132,7 @@
             console.warn("localStorage unavailable:", e);
           }
 
-          // REVEAL UI
+          // Show UI
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
@@ -133,13 +145,15 @@
 
         } else {
           statusEl.textContent = "Verification Failed ❌";
-          statusEl.classList.add("fail");
+          statusEl.style.background = "#ff6b6b";
+          statusEl.style.color = "#ffffff";
         }
 
       } catch (err) {
         console.error(err);
         statusEl.textContent = "Error verifying payment ❌";
-        statusEl.classList.add("fail");
+        statusEl.style.background = "#ff6b6b";
+        statusEl.style.color = "#ffffff";
       }
     }
 
