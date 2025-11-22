@@ -9,149 +9,173 @@
 
 <body>
   <div class="app-shell">
-    <div class="card">
+    <div class="card card--narrow">
 
-      <!-- HEADER -->
-      <div class="header-card">
-        <h1>Create Your Identity</h1>
-        <p>Unlock your SoulMarkⓈ and real-time donation impact.</p>
+      <div class="brand-row">
+        <div class="brand-mark">@</div>
+        <div>
+          <h1>iAscendAi</h1>
+          <h2>Claim Your Verified Identity</h2>
+        </div>
       </div>
 
-      <!-- FORM -->
-      <form id="registerForm">
+      <h2>Create Username</h2>
+      <p class="subtext">
+        Link your recent SoulMarkⓈ-verified transaction to a permanent
+        iAscendAi identity. One username per email — forever.
+      </p>
 
-        <!-- Name -->
-        <div class="form-row">
-          <label for="name">Full Name</label>
-          <input type="text" id="name" placeholder="Your name" required />
-        </div>
+      <p class="label">Email (locked from your donation)</p>
+      <div id="lockedEmail" class="chip"></div>
 
-        <!-- Email -->
-        <div class="form-row">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="you@example.com" required />
-        </div>
+      <p class="label">Latest SoulMarkⓈ</p>
+      <div id="lockedSoulmark" class="value truncate"></div>
 
-        <!-- Username -->
-        <div class="form-row">
-          <label for="username">Choose Username</label>
-          <input
-            type="text"
-            id="username"
-            placeholder="yourname"
-            autocomplete="off"
-            required
-          />
-          <div id="usernameStatus" class="field-hint"></div>
-        </div>
+      <label class="label" style="margin-top:14px;">Choose Username *</label>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input id="username" type="text" placeholder="yourname"
+               style="flex:1;" autocomplete="off" />
+        <div style="font-size:0.9rem; opacity:0.8;">@iascendai</div>
+      </div>
+      <p id="usernameStatus" class="small-label"></p>
 
-        <!-- Location -->
-        <div class="form-row">
-          <label for="location">Location (Optional)</label>
-          <input type="text" id="location" placeholder="City / Country" />
-        </div>
+      <button id="registerBtn" class="btn-primary">
+        Create My iAscendAi Identity
+      </button>
 
-        <!-- Hidden fields for donation handoff -->
-        <input type="hidden" id="soulmark" />
-        <input type="hidden" id="amount" />
-
-        <!-- Submit -->
-        <button id="submitBtn" class="primary-btn" style="width:100%; margin-top:10px;">
-          Create My Identity →
-        </button>
-
-      </form>
+      <p id="registerStatus" class="small-label" style="margin-top:10px;"></p>
 
     </div>
   </div>
 
   <script>
-    // Load donor info from success.html handoff
-    document.getElementById("name").value =
-      localStorage.getItem("donor_name") || "";
-    document.getElementById("email").value =
-      localStorage.getItem("donor_email") || "";
-    document.getElementById("amount").value =
-      localStorage.getItem("donor_amount") || "";
-    document.getElementById("soulmark").value =
-      localStorage.getItem("donor_soulmark") || "";
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
+    const emailEl = document.getElementById("lockedEmail");
+    const smEl = document.getElementById("lockedSoulmark");
     const usernameInput = document.getElementById("username");
-    const statusEl = document.getElementById("usernameStatus");
-    const submitBtn = document.getElementById("submitBtn");
+    const usernameStatus = document.getElementById("usernameStatus");
+    const registerStatus = document.getElementById("registerStatus");
 
-    let usernameAvailable = false;
+    let baseEmail = "";
+    let latestSoulmark = "";
+    let usernameTimer = null;
+    let lastCheckName = "";
 
-    // Username check (live)
-    usernameInput.addEventListener("input", async () => {
-      const username = usernameInput.value.trim().toLowerCase();
+    // Load from localStorage
+    (function preload() {
+      try {
+        baseEmail = localStorage.getItem("fta_email") || "";
+        latestSoulmark = localStorage.getItem("fta_soulmark") || "";
 
-      if (!username) {
-        statusEl.textContent = "";
-        submitBtn.disabled = false;
+        emailEl.textContent = baseEmail || "missing-email@example.com";
+        smEl.textContent = latestSoulmark
+          ? latestSoulmark.substring(0, 18) + "..."
+          : "No SoulMark found. You may need to donate again.";
+      } catch (e) {
+        emailEl.textContent = "Unavailable";
+      }
+    })();
+
+    // Username availability check (debounced)
+    usernameInput.addEventListener("input", () => {
+      const raw = usernameInput.value.trim();
+      usernameStatus.textContent = "";
+      registerStatus.textContent = "";
+
+      if (!raw) return;
+
+      const cleaned = raw.toLowerCase().replace(/[^a-z0-9._-]/g, "");
+      if (cleaned !== raw.toLowerCase()) {
+        usernameStatus.textContent = "Use letters, numbers, dots, dashes, or underscores.";
+      }
+      if (cleaned.length < 3) {
+        usernameStatus.textContent = "Username must be at least 3 characters.";
         return;
       }
 
-      // Call backend
-      const res = await fetch(`/check-username/${username}`);
-      const data = await res.json();
-
-      if (data.available) {
-        usernameAvailable = true;
-        statusEl.textContent = "Username available ✓";
-        statusEl.className = "username-available";
-        submitBtn.disabled = false;
-      } else {
-        usernameAvailable = false;
-        statusEl.textContent = "Username already taken";
-        statusEl.className = "username-taken";
-        submitBtn.disabled = true;
-      }
+      if (usernameTimer) clearTimeout(usernameTimer);
+      usernameTimer = setTimeout(() => {
+        checkUsername(cleaned);
+      }, 350);
     });
 
-    // Submit handler
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    async function checkUsername(name) {
+      lastCheckName = name;
+      usernameStatus.textContent = "Checking availability…";
 
-      if (!usernameAvailable) {
-        alert("Please choose a different username.");
+      try {
+        const res = await fetch(
+          `${BACKEND_URL}/check-username/${encodeURIComponent(name + "@iascendai")}`
+        );
+        const data = await res.json();
+
+        if (name !== lastCheckName) return;
+
+        usernameStatus.textContent = data.available
+          ? "✅ Available"
+          : "❌ Already taken";
+
+      } catch (err) {
+        console.error(err);
+        usernameStatus.textContent = "Error checking username.";
+      }
+    }
+
+    // Register identity
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      registerStatus.textContent = "";
+
+      const unameRaw = usernameInput.value.trim().toLowerCase();
+      const uname = unameRaw.replace(/[^a-z0-9._-]/g, "");
+      if (!uname || uname.length < 3) {
+        registerStatus.textContent = "Please enter a valid username (3+ characters).";
         return;
       }
 
-      const payload = {
-        role: "donor",
-        name: document.getElementById("name").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        username: document.getElementById("username").value.trim().toLowerCase(),
-        soulMark: document.getElementById("soulmark").value,
-        location: document.getElementById("location").value.trim(),
-        status: "active",
-        assistance: null,
-      };
+      if (!baseEmail || !latestSoulmark) {
+        registerStatus.textContent = "Missing email or SoulMark. Try completing a donation first.";
+        return;
+      }
+
+      const fullUsername = `${uname}@iascendai`;
+      registerStatus.textContent = "Creating your identity…";
 
       try {
-        const res = await fetch("/register", {
+        const res = await fetch(`${BACKEND_URL}/register-username`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            email: baseEmail,
+            username: fullUsername,
+            soulmark: latestSoulmark
+          })
         });
 
         const data = await res.json();
 
-        if (data.error) {
-          alert(data.error);
+        if (!data.success) {
+          registerStatus.textContent = data.message || "Unable to create identity.";
           return;
         }
 
         // Save identity locally
-        localStorage.setItem("identity_username", payload.username);
-        localStorage.setItem("identity_email", payload.email);
+        try {
+          localStorage.setItem("ias_username", data.identity.ias_username || fullUsername);
+          localStorage.setItem("ias_email", data.identity.ias_email || baseEmail);
+          localStorage.setItem("ias_soulmark", data.identity.ias_soulmark || latestSoulmark);
+          localStorage.setItem("ias_identity_id", data.identity.ias_identity_id || "");
+        } catch (e) {}
 
-        // Go to dashboard
-        window.location.href = "iascendai-dashboard.html";
+        registerStatus.textContent = "Identity created. Redirecting to dashboard…";
+
+        setTimeout(() => {
+          window.location.href = "iascendai-dashboard.html";
+        }, 600);
 
       } catch (err) {
-        alert("Registration failed.");
+        console.error(err);
+        registerStatus.textContent = "Network error creating identity.";
       }
     });
   </script>
