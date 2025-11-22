@@ -6,36 +6,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 
+  <!-- FIXED RADIO/CHECKBOX ALIGNMENT -->
   <style>
-    /* --- FIX: Radio & Checkbox Label Wrapping --- */
+    .display-option-group {
+      width: 100%;
+      margin-top: 8px;
+      font-size: 0.88rem;
+    }
 
-    .display-options label,
-    .display-options label span {
+    .display-option-group label {
       display: flex;
       flex-direction: row;
       align-items: flex-start;
-      white-space: normal;
-      width: 100%;
-      line-height: 1.35;
-    }
-
-    .display-options label {
       gap: 10px;
-      margin-bottom: 6px;
+      width: 100%;
+      white-space: normal;
+      line-height: 1.35;
+      margin-bottom: 8px;
     }
 
-    .display-options input[type="radio"],
-    .display-options input[type="checkbox"] {
+    .display-option-group label span {
+      display: block;
+      flex-grow: 1;
+    }
+
+    .display-option-group input[type="radio"],
+    .display-option-group input[type="checkbox"] {
       flex-shrink: 0;
       margin-top: 3px;
-    }
-
-    .display-options {
-      width: 100%;
-      max-width: 100%;
-      overflow-wrap: break-word;
-      margin-top: 8px;
-      font-size: 0.88rem;
     }
   </style>
 </head>
@@ -87,7 +85,8 @@
         Your private dashboard always shows full details.
       </p>
 
-      <div class="display-options">
+      <!-- FIXED WRAPPER -->
+      <div class="display-option-group">
 
         <label>
           <input type="radio" name="identityMode" value="username" checked />
@@ -142,7 +141,7 @@
     let usernameTimer = null;
     let lastCheckName = "";
 
-    // -------- 1. PRELOAD (success → register) --------
+    // -------- 1. PRELOAD --------
     (function preload() {
       try {
         const nameStore    = localStorage.getItem("fta_name") || "";
@@ -175,7 +174,6 @@
 
       displayNoteEl.textContent = "";
 
-      // Only invalid combo:
       if (mode === "anonymous" && !showAmount) {
         showAmountCb.checked = true;
         displayNoteEl.textContent =
