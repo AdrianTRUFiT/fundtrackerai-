@@ -103,7 +103,7 @@ h1, h2 { margin: 0; }
 }
 
 /* ---------------------------------------
-   BUTTONS
+   BUTTONS (GLOBAL SAFE)
 ---------------------------------------- */
 
 .btn-primary,
@@ -155,7 +155,6 @@ h1, h2 { margin: 0; }
 
 .pill-button:hover { background: #e4a404; }
 
-/* Tag badge */
 .tag {
   background: #f8bc07;
   padding: 4px 10px;
@@ -166,8 +165,12 @@ h1, h2 { margin: 0; }
 }
 
 /* ---------------------------------------
+   ❌ IMPORTANT — NO GLOBAL .module-btn HERE
+   (This is what protects the donation page)
+---------------------------------------- */
+
+/* ---------------------------------------
    ✔ DASHBOARD MODULE BUTTONS ONLY
-   (NO GLOBAL .module-btn — SAFE)
 ---------------------------------------- */
 
 .dash-card .module-btn {
@@ -257,7 +260,7 @@ input::placeholder {
 }
 
 /* ---------------------------------------
-   DASHBOARD
+   DASHBOARD CARDS
 ---------------------------------------- */
 
 .header-card {
@@ -339,13 +342,6 @@ tr:hover {
   background: #15395a;
 }
 
-.truncate {
-  max-width: 180px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ---------------------------------------
    RESPONSIVE
 ---------------------------------------- */
@@ -359,7 +355,7 @@ tr:hover {
 }
 
 /* ---------------------------------------
-   FIXED RADIO CHECK ALIGNMENT
+   RADIO CHECK ALIGNMENT
 ---------------------------------------- */
 
 .display-option-group {
@@ -391,7 +387,7 @@ tr:hover {
 }
 
 /* ---------------------------------------
-   MOOD CHIP STYLE (unchanged)
+   MOOD CHIP STYLE
 ---------------------------------------- */
 
 .chip-button {
