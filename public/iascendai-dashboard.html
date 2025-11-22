@@ -7,14 +7,12 @@
   <link rel="stylesheet" href="styles.css" />
 
   <style>
-    /* Highlight selected mood */
     .chip-button.chip-active {
       box-shadow: 0 0 0 2px #47c28a;
       background: rgba(71, 194, 138, 0.18);
       transform: translateY(-1px);
     }
 
-    /* Log box */
     .log-box {
       padding: 14px;
       border-radius: 12px;
@@ -69,15 +67,11 @@
           <button class="chip-button" data-mood="💪 Strong">💪 Strong</button>
         </div>
 
-        <!-- Submit section -->
         <div id="checkinAction" style="margin-top:18px; display:none;">
-          <button id="submitCheckinBtn" class="btn-primary" style="width:100%;">
-            Submit Check-In
-          </button>
+          <button id="submitCheckinBtn" class="btn-primary" style="width:100%;">Submit Check-In</button>
           <p id="checkinError" class="small-label" style="margin-top:8px;"></p>
         </div>
 
-        <!-- Log box after submit -->
         <div id="checkinLog" style="display:none;">
           <div class="log-box">
             <p class="log-label">Current Check-in</p>
@@ -93,25 +87,42 @@
         </div>
       </div>
 
-      <!-- LOGOUT -->
       <div class="logout-btn" onclick="logout()">Log Out of This Device</div>
     </div>
   </div>
 
   <script>
-    // ========== Identity Pill ==========
-    const savedUsername = localStorage.getItem("ias_username");
-    const savedEmail =
-      localStorage.getItem("ias_email") ||
-      localStorage.getItem("fta_email") ||
-      "";
+    // ========= Identity Pill =========
+
+    const savedUsername      = localStorage.getItem("ias_username");
+    const accessEmail        = localStorage.getItem("ias_access_email");
+    const donationEmail      = localStorage.getItem("ias_donation_email");
+    const legacyEmail        = localStorage.getItem("ias_email"); // for users who registered before protocol update
 
     const identityTag = document.getElementById("identityTag");
-    identityTag.textContent =
-      savedUsername ||
-      (savedEmail ? savedEmail.split("@")[0] + "@iascendai" : "user@iascendai");
 
-    // ========== AI WELLNESS 360 ==========
+    // Hierarchy:
+    // 1. Username@iascendai
+    // 2. Access email → converted to handle
+    // 3. Donation email → converted to handle
+    // 4. Legacy or default
+
+    function emailToHandle(email) {
+      if (!email) return null;
+      return email.split("@")[0] + "@iascendai";
+    }
+
+    const handle =
+      savedUsername ||
+      emailToHandle(accessEmail) ||
+      emailToHandle(donationEmail) ||
+      emailToHandle(legacyEmail) ||
+      "user@iascendai";
+
+    identityTag.textContent = handle;
+
+    // ========= AI WELLNESS SECTION =========
+
     const TODAY = new Date().toISOString().split("T")[0];
 
     const moodButtons = document.querySelectorAll(".chip-button");
@@ -128,14 +139,12 @@
     let selectedMood = null;
     let checkedInToday = false;
 
-    // Highlight selected mood
     function highlightMood(mood) {
-      moodButtons.forEach(btn => {
-        btn.classList.toggle("chip-active", btn.dataset.mood === mood);
-      });
+      moodButtons.forEach(btn =>
+        btn.classList.toggle("chip-active", btn.dataset.mood === mood)
+      );
     }
 
-    // Enable mood selection
     moodButtons.forEach(btn => {
       btn.addEventListener("click", () => {
         if (checkedInToday) return;
@@ -144,7 +153,6 @@
       });
     });
 
-    // Save check-in
     submitBtn.addEventListener("click", () => {
       if (!selectedMood) {
         document.getElementById("checkinError").textContent =
@@ -167,7 +175,6 @@
       renderLog();
     });
 
-    // Render log + UI state
     function renderLog() {
       const lastDate = localStorage.getItem("ias_checkin_last_date");
       const lastMood = localStorage.getItem("ias_checkin_last_mood");
@@ -176,28 +183,14 @@
 
       checkedInToday = lastDate === TODAY;
 
-      if (checkedInToday) {
-        checkinAction.style.display = "none";
-        highlightMood(lastMood);
-      } else {
-        checkinAction.style.display = "block";
-      }
+      checkinAction.style.display = checkedInToday ? "none" : "block";
+      if (checkedInToday) highlightMood(lastMood);
 
-      if (lastDate) {
-        todayDate.textContent = lastDate;
-        todayMood.textContent = lastMood;
-      } else {
-        todayDate.textContent = "—";
-        todayMood.textContent = "—";
-      }
+      todayDate.textContent = lastDate || "—";
+      todayMood.textContent = lastMood || "—";
 
-      if (pDate) {
-        prevDate.textContent = pDate;
-        prevMood.textContent = pMood;
-      } else {
-        prevDate.textContent = "No previous check-in";
-        prevMood.textContent = "";
-      }
+      prevDate.textContent = pDate || "No previous check-in";
+      prevMood.textContent = pMood || "";
 
       checkinLog.style.display = "block";
       checkinMessage.textContent = "Good job checking in.";
@@ -205,17 +198,14 @@
 
     renderLog();
 
-    // ========== Navigation ==========
+    // ========= Navigation =========
     function openSoulmark() { window.location.href = "iascendai-soulregistry.html"; }
     function openCampaigns() { window.location.href = "iascendai-campaigns.html"; }
     function openReceipts() { window.location.href = "iascendai-user-receipts.html"; }
 
-    // ========== Logout ==========
+    // ========= Logout =========
     function logout() {
-      localStorage.removeItem("ias_username");
-      localStorage.removeItem("ias_email");
-      localStorage.removeItem("ias_soulmark");
-      localStorage.removeItem("ias_identity_id");
+      localStorage.clear();
       window.location.href = "iascendai-login.html";
     }
   </script>
