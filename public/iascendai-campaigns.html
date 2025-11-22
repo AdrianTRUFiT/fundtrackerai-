@@ -93,13 +93,18 @@
             const when = d.timestamp
   ? dt.toLocaleDateString() + "<br>" + dt.toLocaleTimeString()
   : "N/A";
-            return `
-              <tr>
-                <td>${name}</td>
-                <td>${amt}</td>
-                <td>${when}</td>
-              </tr>
-            `;
+return `
+  <tr class="donation-row">
+    <td colspan="3">
+      <div class="donation-stack">
+        <div class="donor-name">${name}</div>
+        <div class="donor-amount">${amt}</div>
+        <div class="donor-date">${dt.toLocaleDateString()}</div>
+        <div class="donor-time">${dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>
+      </div>
+    </td>
+  </tr>
+`;
           })
           .join("");
 
