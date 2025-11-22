@@ -155,20 +155,19 @@ h1, h2 { margin: 0; }
 
 .pill-button:hover { background: #e4a404; }
 
-
+/* Tag badge */
 .tag {
   background: #f8bc07;
   padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
   color: #041423;
   font-weight: 600;
 }
 
-
 /* ---------------------------------------
-   ✔ MODULE BUTTONS — DASHBOARD ONLY
-   (Safe: does NOT affect donation page)
+   ✔ DASHBOARD MODULE BUTTONS ONLY
+   (NO GLOBAL .module-btn — SAFE)
 ---------------------------------------- */
 
 .dash-card .module-btn {
@@ -186,28 +185,13 @@ h1, h2 { margin: 0; }
 
   display: flex;
   align-items: center;
-  justify-content: space-between; /* text left, tag right */
+  justify-content: space-between;
   gap: 10px;
 }
 
 .dash-card .module-btn:hover {
   background: #163554;
 }
-
-/* Tag badge (safe globally) */
-.tag {
-  background: #f8bc07;
-  color: #041423;
-  font-size: 0.78rem;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 600;
-}
-
-/* ---------------------------------------
-   REMOVE ANY GLOBAL .module-btn RULES
-   (This prevents breaking donation page)
----------------------------------------- */
 
 /* ---------------------------------------
    CHIPS
@@ -406,7 +390,10 @@ tr:hover {
   accent-color: #47c28a;
 }
 
-/* FINAL FIX — RESTORE ORIGINAL MOOD CHIP STYLE */
+/* ---------------------------------------
+   MOOD CHIP STYLE (unchanged)
+---------------------------------------- */
+
 .chip-button {
   background: #122b44;
   color: #ffffff;
@@ -419,7 +406,6 @@ tr:hover {
   transition: 0.2s;
 }
 
-/* Active (selected) state */
 .chip-button.chip-active {
   background: rgba(71, 194, 138, 0.20);
   border-color: #47c28a;
