@@ -477,26 +477,35 @@ app.get("/check-username/:username", (req, res) => {
 });
 
 // --------------------------------------------------
-// 7. REGISTER USERNAME + IDENTITY
+// REQUIRED ENDPOINT FOR FRONTEND: /register
+// (Wrapper around existing /register-username logic)
 // --------------------------------------------------
-app.post("/register-username", (req, res) => {
-  const { email, username, soulmark } = req.body;
+app.post("/register", (req, res) => {
+  const {
+    name,
+    email,
+    username,
+    donationEmail,
+    soulmark,
+    displayIdentity,
+    showDonationAmount
+  } = req.body;
 
   if (!email || !username || !soulmark) {
     return res.status(400).json({
-      success: false,
-      message: "Missing required fields: email, username, soulmark."
+      error: "Missing required fields."
     });
   }
 
-  const canonicalUsername = username.toLowerCase();
-  const canonicalEmail = email.toLowerCase();
-
+  // Load registry
   const registry = readRegistry();
   const identities = registry.identities || [];
   const donations = registry.donations || [];
 
-  // Check if username is taken by a different email
+  const canonicalUsername = username.toLowerCase();
+  const canonicalEmail = email.toLowerCase();
+
+  // Username conflict check
   const conflict = identities.find(
     i =>
       (i.username || "").toLowerCase() === canonicalUsername &&
@@ -505,17 +514,16 @@ app.post("/register-username", (req, res) => {
 
   if (conflict) {
     return res.status(409).json({
-      success: false,
-      message: "Username is already taken by another identity."
+      error: "Username already taken."
     });
   }
 
-  // Find or create identity by email
+  const now = new Date().toISOString();
+
+  // Find or create identity
   let identity = identities.find(
     i => (i.email || "").toLowerCase() === canonicalEmail
   );
-
-  const now = new Date().toISOString();
 
   if (!identity) {
     identity = {
@@ -523,26 +531,26 @@ app.post("/register-username", (req, res) => {
       username: canonicalUsername,
       email,
       soulmarks: [soulmark],
-      registered_since: now
+      registered_since: now,
+      displayIdentity,
+      showDonationAmount
     };
     identities.push(identity);
   } else {
     identity.username = canonicalUsername;
-    if (!Array.isArray(identity.soulmarks)) {
-      identity.soulmarks = [];
-    }
+    if (!Array.isArray(identity.soulmarks)) identity.soulmarks = [];
     if (!identity.soulmarks.includes(soulmark)) {
       identity.soulmarks.push(soulmark);
     }
+    identity.displayIdentity = displayIdentity;
+    identity.showDonationAmount = showDonationAmount;
   }
 
-  // Update all donations for this email
-  let updatedCount = 0;
+  // Update donations for the email
   donations.forEach(d => {
     if (d.email && d.email.toLowerCase() === canonicalEmail) {
       d.username_created = true;
       d.identity_username = canonicalUsername;
-      updatedCount++;
     }
   });
 
@@ -550,19 +558,13 @@ app.post("/register-username", (req, res) => {
   registry.donations = donations;
   writeRegistry(registry);
 
-  console.log(
-    `Identity registered for ${email} (${canonicalUsername}), ` +
-      `${updatedCount} donation(s) updated.`
-  );
-
-  res.json({
+  return res.json({
     success: true,
-    message: "Identity registered successfully.",
     identity: {
-      ias_username: identity.username,
-      ias_email: identity.email,
-      ias_soulmark: soulmark,
-      ias_identity_id: identity.identity_id
+      username: canonicalUsername,
+      email,
+      soulmark,
+      identity_id: identity.identity_id
     }
   });
 });
