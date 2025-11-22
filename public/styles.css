@@ -321,6 +321,12 @@ input::placeholder {
 ---------------------------------------- */
 
 .table-wrap { overflow-x: auto; }
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: normal;     /* ← THIS fixes it */
+}
+
 
 table {
   width: 100%;
@@ -336,6 +342,10 @@ th, td {
   padding: 10px 12px;
   border-bottom: 1px solid #2d4358;
   font-size: 0.9rem;
+}
+
+td {
+  word-break: break-word;  /* ← Prevents long names/dates from overflowing */
 }
 
 tr:hover {
