@@ -5,32 +5,6 @@
   <title>iAscendAi Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    .chip-button.chip-active {
-      box-shadow: 0 0 0 2px #47c28a;
-      background: rgba(71, 194, 138, 0.18);
-      transform: translateY(-1px);
-    }
-
-    .log-box {
-      padding: 14px;
-      border-radius: 12px;
-      background: #0e253d;
-      margin-top: 14px;
-    }
-
-    .log-label {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 2px;
-    }
-
-    .log-value {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-  </style>
 </head>
 
 <body>
@@ -45,29 +19,29 @@
       </div>
 
       <!-- QUICK MODULES -->
- <div class="dash-card">
-  <div class="dash-title">Your Tools</div>
+      <div class="dash-card">
+        <div class="dash-title">Your Tools</div>
 
-  <button class="module-btn" onclick="openSoulmark()">
-    <span>🔐 View SoulMark Records</span>
-  </button>
+        <button class="module-btn" onclick="openSoulmark()">
+          <span>🔐 View SoulMark Records</span>
+        </button>
 
-  <button class="module-btn" onclick="openCampaigns()">
-    <span>💛 Jamaica We Rise</span>
-    <span class="tag">Live</span>
-  </button>
+        <button class="module-btn" onclick="openCampaigns()">
+          <span>💛 Jamaica We Rise</span>
+          <span class="tag">Live</span>
+        </button>
 
-  <button class="module-btn" onclick="openReceipts()">
-    <span>📊 My Verified Receipts</span>
-  </button>
-</div>
+        <button class="module-btn" onclick="openReceipts()">
+          <span>📊 My Verified Receipts</span>
+        </button>
+      </div>
 
       <!-- AI WELLNESS 360 -->
       <div class="dash-card">
         <div class="dash-title">AI Wellness 360</div>
         <p class="small-label">Daily Check-In — How are you feeling today?</p>
 
-        <!-- Mood selection -->
+        <!-- Mood selection — ORIGINAL LAYOUT RESTORED -->
         <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:8px;">
           <button class="chip-button" data-mood="👍 OK">👍 OK</button>
           <button class="chip-button" data-mood="🆘 Need Help">🆘 Need Help</button>
@@ -76,11 +50,13 @@
           <button class="chip-button" data-mood="💪 Strong">💪 Strong</button>
         </div>
 
+        <!-- Submit area -->
         <div id="checkinAction" style="margin-top:18px; display:none;">
           <button id="submitCheckinBtn" class="btn-primary" style="width:100%;">Submit Check-In</button>
           <p id="checkinError" class="small-label" style="margin-top:8px;"></p>
         </div>
 
+        <!-- Log box -->
         <div id="checkinLog" style="display:none;">
           <div class="log-box">
             <p class="log-label">Current Check-in</p>
@@ -101,20 +77,13 @@
   </div>
 
   <script>
-    // ========= Identity Pill =========
-
-    const savedUsername      = localStorage.getItem("ias_username");
-    const accessEmail        = localStorage.getItem("ias_access_email");
-    const donationEmail      = localStorage.getItem("ias_donation_email");
-    const legacyEmail        = localStorage.getItem("ias_email"); // for users who registered before protocol update
+    // ========= Identity Pill (Email Logic Updated) =========
+    const savedUsername = localStorage.getItem("ias_username");
+    const accessEmail   = localStorage.getItem("ias_access_email");
+    const donationEmail = localStorage.getItem("ias_donation_email");
+    const legacyEmail   = localStorage.getItem("ias_email");
 
     const identityTag = document.getElementById("identityTag");
-
-    // Hierarchy:
-    // 1. Username@iascendai
-    // 2. Access email → converted to handle
-    // 3. Donation email → converted to handle
-    // 4. Legacy or default
 
     function emailToHandle(email) {
       if (!email) return null;
@@ -130,7 +99,7 @@
 
     identityTag.textContent = handle;
 
-    // ========= AI WELLNESS SECTION =========
+    // ========= AI WELLNESS LOGIC (unchanged visual behavior) =========
 
     const TODAY = new Date().toISOString().split("T")[0];
 
