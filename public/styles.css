@@ -32,17 +32,12 @@ body {
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
 }
 
-/* For index donate layout (narrower) */
 .card--narrow {
   max-width: 450px;
 }
 
 /* Headings & subtext */
-h1 {
-  margin: 0;
-}
-
-h2 {
+h1, h2 {
   margin: 0;
 }
 
@@ -65,7 +60,7 @@ h2 {
   font-weight: 500;
 }
 
-/* Info paragraph */
+/* Info */
 .info {
   margin-top: 14px;
   font-size: 0.86rem;
@@ -97,14 +92,12 @@ h2 {
 }
 
 .brand-row h1 {
-  margin: 0;
   font-size: 1.45rem;
   font-weight: 700;
   color: #47c28a;
 }
 
 .brand-row h2 {
-  margin: 0;
   margin-top: 2px;
   font-size: 0.95rem;
   color: #9ca3af;
@@ -125,9 +118,7 @@ h2 {
 }
 
 .btn-primary {
-  display: inline-block;
   width: 100%;
-  text-align: center;
   padding: 14px 16px;
   margin-top: 18px;
   border-radius: 12px;
@@ -139,13 +130,11 @@ h2 {
 }
 
 .btn-primary:hover {
- background: #3eb17c;
+  background: #3eb17c;
 }
 
 .btn-secondary {
-  display: inline-block;
   width: 100%;
-  text-align: center;
   padding: 12px 16px;
   margin-top: 14px;
   border-radius: 10px;
@@ -160,7 +149,6 @@ h2 {
   background: #e4a404;
 }
 
-/* Inline pill button beside SoulMark preview */
 .pill-button {
   padding: 6px 10px;
   border-radius: 999px;
@@ -169,21 +157,18 @@ h2 {
   background: #f8bc07;
   color: #041423;
   margin-left: 8px;
-  white-space: nowrap;
 }
 
 .pill-button:hover {
   background: #e4a404;
 }
 
-/* Chip-style quick buttons (dashboard moods) */
 .chip-button {
   background: #122b44;
   color: #ffffff;
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 0.8rem;
-  margin-bottom: 6px;
 }
 
 /* ---------------------------------------
@@ -219,11 +204,10 @@ h2 {
   font-weight: 500;
   font-size: 0.85rem;
   color: #47c28a;
-  margin-bottom: 4px;
 }
 
 /* ---------------------------------------
-   REF ROW (SoulMark preview)
+   REF ROW
 ---------------------------------------- */
 
 .ref-row {
@@ -234,14 +218,14 @@ h2 {
 }
 
 .ref-value {
-  font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
   font-size: 0.78rem;
   background: #122b44;
   padding: 6px 10px;
   border-radius: 6px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ---------------------------------------
@@ -262,15 +246,13 @@ select {
 }
 
 input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255,255,255,0.45);
 }
 
-/* Error text */
 .input-hint {
   font-size: 0.8rem;
   color: #f97373;
   margin-top: -6px;
-  margin-bottom: 6px;
 }
 
 /* ---------------------------------------
@@ -313,11 +295,10 @@ input::placeholder {
   border-radius: 16px;
   text-align: center;
   margin-bottom: 26px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 30px rgba(0,0,0,0.4);
 }
 
 .header-card h1 {
-  margin: 0;
   font-size: 1.7rem;
   font-weight: 800;
   color: #47c28a;
@@ -325,13 +306,11 @@ input::placeholder {
 
 .header-card p {
   margin-top: 6px;
-  margin-bottom: 0;
-  color: #c0ccd9;
   font-size: 0.92rem;
+  color: #c0ccd9;
 }
 
 .identity-pill {
-  display: inline-block;
   background: #47c28a22;
   padding: 8px 14px;
   border-radius: 50px;
@@ -346,58 +325,17 @@ input::placeholder {
   padding: 22px;
   border-radius: 14px;
   margin-bottom: 20px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 25px rgba(0,0,0,0.35);
 }
 
 .dash-title {
   font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 8px;
 }
 
 .small-label {
   font-size: 0.8rem;
   opacity: 0.7;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.module-btn {
-  width: 100%;
-  padding: 14px;
-  background: #122b44;
-  color: #ffffff;
-  border-radius: 12px;
-  text-align: left;
-  font-size: 0.98rem;
-  border: 1px solid #1d3a56;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-bottom: 10px;
-}
-
-.module-btn:hover {
-  background: #163554;
-}
-
-.tag {
-  display: inline-block;
-  background: #f8bc07;
-  color: #041423;
-  font-size: 0.78rem;
-  padding: 4px 10px;
-  border-radius: 50px;
-  margin-left: 8px;
-}
-
-/* Logout link */
-.logout-btn {
-  margin-top: 16px;
-  font-size: 0.9rem;
-  opacity: 0.7;
-  cursor: pointer;
-  text-decoration: underline;
-  text-align: center;
 }
 
 /* ---------------------------------------
@@ -411,7 +349,6 @@ input::placeholder {
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 12px;
   background: #0c2238;
 }
 
@@ -419,8 +356,7 @@ thead {
   background: #0f2c47;
 }
 
-th,
-td {
+th, td {
   padding: 10px 12px;
   border-bottom: 1px solid #2d4358;
   font-size: 0.9rem;
@@ -430,12 +366,11 @@ tr:hover {
   background: #15395a;
 }
 
-/* Truncate long SoulMarks */
 .truncate {
   max-width: 180px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* ---------------------------------------
@@ -446,39 +381,30 @@ tr:hover {
   .card {
     padding: 22px;
   }
-
   .amount-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
   .ref-row {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .ref-value {
     width: 100%;
   }
-
   .pill-button {
     align-self: flex-end;
   }
 }
 
 /* ---------------------------------------
-   FIXED RADIO / CHECKBOX ALIGNMENT
+   ✔ FIXED RADIO / CHECKBOX ALIGNMENT
+   (Corrected exact issue Gemini flagged)
 ---------------------------------------- */
-
-.display-options {
-  width: 100%;
-  margin-top: 8px; /* Added margin for spacing, inherited from your old inline style */
-  font-size: 0.88rem; /* Added font size, inherited from your old inline style */
-}
 
 .display-options label {
   display: flex;
   flex-direction: row;
-  align-items: flex-start; /* Aligns input to the top of the text block */
+  align-items: flex-start;
   gap: 10px;
   width: 100%;
   white-space: normal;
@@ -487,12 +413,13 @@ tr:hover {
 }
 
 .display-options label span {
-  display: block; /* Allows text to wrap */
-  flex-grow: 1; /* Allows the text block to take up the remaining width */
+  display: block;
+  flex-grow: 1;
+  white-space: normal;
 }
 
 .display-options input[type="radio"],
 .display-options input[type="checkbox"] {
-  flex-shrink: 0; /* Prevents the input from shrinking */
-  margin-top: 3px; /* Fine-tunes vertical alignment with the first line of text */
+  flex-shrink: 0;
+  margin-top: 3px;
 }
