@@ -148,21 +148,20 @@
             const full = d.soulmark || "";
 
             return `
-              <tr>
-                <td>${amt}</td>
-                <td>${when}</td>
-                <td>
-                  <div class="truncate" title="${full}">
-                    ${masked}
-                  </div>
-                  <button
-                    class="pill-button"
-                    style="margin-top:6px;"
-                    onclick="copySoulmark('${full}')">
-                    Copy
-                  </button>
-                </td>
-              </tr>`;
+  <tr class="donation-row">
+    <td colspan="3">
+      <div class="donation-stack">
+        <div class="donor-amount">${amt}</div>
+        <div class="donor-date">${dt.toLocaleDateString()}</div>
+        <div class="donor-time">${dt.toLocaleTimeString()}</div>
+        <div class="donor-soulmark">
+          ${masked}
+          <button class="copy-btn" onclick="copySoulmark('${full}')">Copy</button>
+        </div>
+      </div>
+    </td>
+  </tr>
+`;
           })
           .join("");
 
