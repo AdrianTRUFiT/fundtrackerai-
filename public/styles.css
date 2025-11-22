@@ -419,3 +419,24 @@ tr:hover {
   flex-shrink: 0;
   accent-color: #47c28a;
 }
+
+/* FINAL FIX — RESTORE ORIGINAL MOOD CHIP STYLE */
+.chip-button {
+  background: #122b44;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* Active (selected) state */
+.chip-button.chip-active {
+  background: rgba(71, 194, 138, 0.20);
+  border-color: #47c28a;
+  box-shadow: 0 0 0 2px #47c28a44;
+  transform: translateY(-1px);
+}
