@@ -6,43 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- FIXED RADIO/CHECKBOX ALIGNMENT -->
-  <style>
-    .display-option-group {
-      width: 100%;
-      margin-top: 8px;
-      font-size: 0.88rem;
-    }
-
-    .display-option-group label {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 10px;
-      width: 100%;
-      white-space: normal;
-      line-height: 1.35;
-      margin-bottom: 8px;
-    }
-
-    .display-option-group label span {
-      display: block;
-      flex-grow: 1;
-    }
-
-    .display-option-group input[type="radio"],
-    .display-option-group input[type="checkbox"] {
-      flex-shrink: 0;
-      margin-top: 3px;
-    }
-  </style>
-</head>
+  </head>
 
 <body>
   <div class="app-shell">
     <div class="card card--narrow">
 
-      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">@</div>
         <div>
@@ -57,19 +26,15 @@
         iAscendAi identity. One username per email — forever.
       </p>
 
-      <!-- LOCKED EMAIL -->
       <p class="label">Email (locked from your donation)</p>
       <div id="lockedEmail" class="chip"></div>
 
-      <!-- FULL NAME -->
       <p class="label" style="margin-top:14px;">Full Name *</p>
       <input id="fullName" type="text" placeholder="Adrian McKenzie" autocomplete="name" />
 
-      <!-- LATEST SOULMARK -->
       <p class="label" style="margin-top:10px;">Latest SoulMark</p>
       <div id="lockedSoulmark" class="value truncate"></div>
 
-      <!-- USERNAME -->
       <p class="label" style="margin-top:14px;">Choose Username *</p>
       <div style="display:flex; align-items:center; gap:6px;">
         <input id="username" type="text" placeholder="yourname"
@@ -78,15 +43,13 @@
       </div>
       <p id="usernameStatus" class="small-label"></p>
 
-      <!-- DISPLAY PREFERENCES -->
       <p class="label" style="margin-top:16px;">Public display settings</p>
       <p class="small-label">
         Control how your contribution appears on the public impact board.
         Your private dashboard always shows full details.
       </p>
 
-      <!-- FIXED WRAPPER -->
-      <div class="display-option-group">
+      <div class="display-options">
 
         <label>
           <input type="radio" name="identityMode" value="username" checked />
@@ -111,7 +74,6 @@
         <p id="displayNote" class="small-label" style="margin-top:4px;"></p>
       </div>
 
-      <!-- SUBMIT -->
       <button id="registerBtn" class="btn-primary" style="margin-top:18px;">
         Create My iAscendAi Identity
       </button>
