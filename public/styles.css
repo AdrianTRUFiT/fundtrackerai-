@@ -1,496 +1,254 @@
-/* ---------------------------------------
-   GLOBAL BASE
----------------------------------------- */
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  background: #041423;
-  color: #ffffff;
-}
-
-.app-shell {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-/* Core card shell used across pages */
-.card {
-  background: #0c2238;
-  padding: 28px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 480px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
-}
-
-/* For index donate layout (narrower) */
-.card--narrow {
-  max-width: 450px;
-}
-
-/* Headings & subtext */
-h1 {
-  margin: 0;
-}
-
-h2 {
-  margin: 0;
-}
-
-.subtext {
-  margin-top: 6px;
-  font-size: 0.9rem;
-  color: #b9c5d1;
-}
-
-/* Labels & values */
-.label {
-  margin-top: 14px;
-  margin-bottom: 4px;
-  font-size: 0.85rem;
-  color: #b9c5d1;
-}
-
-.value {
-  font-size: 0.98rem;
-  font-weight: 500;
-}
-
-/* Info paragraph */
-.info {
-  margin-top: 14px;
-  font-size: 0.86rem;
-  color: #c0ccd9;
-}
-
-/* ---------------------------------------
-   BRAND HEADER
----------------------------------------- */
-
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 22px;
-}
-
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: #47c28a22;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: #47c28a;
-  font-size: 1.2rem;
-}
-
-.brand-row h1 {
-  margin: 0;
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: #47c28a;
-}
-
-.brand-row h2 {
-  margin: 0;
-  margin-top: 2px;
-  font-size: 0.95rem;
-  color: #9ca3af;
-}
-
-/* ---------------------------------------
-   BUTTONS
----------------------------------------- */
-
-.btn-primary,
-.btn-secondary,
-.module-btn,
-.pill-button,
-.chip-button {
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.btn-primary {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  padding: 14px 16px;
-  margin-top: 18px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  background: #47c28a;
-  color: #041423;
-  transition: 0.2s;
-}
-
-.btn-primary:hover {
- background: #3eb17c;
-}
-
-.btn-secondary {
-  display: inline-block;
-  width: 100%;
-  text-align: center;
-  padding: 12px 16px;
-  margin-top: 14px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.96rem;
-  background: #f8bc07;
-  color: #041423;
-  transition: 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #e4a404;
-}
-
-/* Inline pill button beside SoulMark preview */
-.pill-button {
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: #f8bc07;
-  color: #041423;
-  margin-left: 8px;
-  white-space: nowrap;
-}
-
-.pill-button:hover {
-  background: #e4a404;
-}
-
-/* Chip-style quick buttons (dashboard moods) */
-.chip-button {
-  background: #122b44;
-  color: #ffffff;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.8rem;
-  margin-bottom: 6px;
-}
-
-/* ---------------------------------------
-   STATUS
----------------------------------------- */
-
-.status {
-  margin-top: 16px;
-  padding: 12px;
-  font-size: 1rem;
-  border-radius: 10px;
-  text-align: center;
-  background: #122b44;
-}
-
-.success {
-  color: #47c28a;
-}
-
-.fail {
-  color: #ff6b6b;
-}
-
-/* ---------------------------------------
-   CHIPS
----------------------------------------- */
-
-.chip {
-  display: inline-block;
-  background: #47c28a22;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: #47c28a;
-  margin-bottom: 4px;
-}
-
-/* ---------------------------------------
-   REF ROW (SoulMark preview)
----------------------------------------- */
-
-.ref-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.ref-value {
-  font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.78rem;
-  background: #122b44;
-  padding: 6px 10px;
-  border-radius: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---------------------------------------
-   INPUTS
----------------------------------------- */
-
-input,
-select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 0.96rem;
-  margin-top: 4px;
-  margin-bottom: 10px;
-  background: #0a2a44;
-  color: #ffffff;
-}
-
-input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-/* Error text */
-.input-hint {
-  font-size: 0.8rem;
-  color: #f97373;
-  margin-top: -6px;
-  margin-bottom: 6px;
-}
-
-/* ---------------------------------------
-   DONATION GRID
----------------------------------------- */
-
-.amount-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 8px;
-  margin-bottom: 18px;
-}
-
-.amount-btn {
-  padding: 12px 8px;
-  border-radius: 10px;
-  background: #0a2a44;
-  text-align: center;
-  font-size: 0.96rem;
-  cursor: pointer;
-  transition: 0.2s;
-  border: 2px solid transparent;
-}
-
-.amount-btn.active {
-  background: #f8bc07;
-  color: #041423;
-  border-color: #f8bc07;
-  font-weight: 600;
-}
-
-/* ---------------------------------------
-   DASHBOARD
----------------------------------------- */
-
-.header-card {
-  background: linear-gradient(to bottom right, #13314d, #0b2236);
-  padding: 24px;
-  border-radius: 16px;
-  text-align: center;
-  margin-bottom: 26px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
-}
-
-.header-card h1 {
-  margin: 0;
-  font-size: 1.7rem;
-  font-weight: 800;
-  color: #47c28a;
-}
-
-.header-card p {
-  margin-top: 6px;
-  margin-bottom: 0;
-  color: #c0ccd9;
-  font-size: 0.92rem;
-}
-
-.identity-pill {
-  display: inline-block;
-  background: #47c28a22;
-  padding: 8px 14px;
-  border-radius: 50px;
-  font-size: 0.9rem;
-  color: #47c28a;
-  margin-top: 12px;
-  font-weight: 600;
-}
-
-.dash-card {
-  background: #0c2238;
-  padding: 22px;
-  border-radius: 14px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.35);
-}
-
-.dash-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.small-label {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.module-btn {
-  width: 100%;
-  padding: 14px;
-  background: #122b44;
-  color: #ffffff;
-  border-radius: 12px;
-  text-align: left;
-  font-size: 0.98rem;
-  border: 1px solid #1d3a56;
-  cursor: pointer;
-  transition: 0.2s;
-  margin-bottom: 10px;
-}
-
-.module-btn:hover {
-  background: #163554;
-}
-
-.tag {
-  display: inline-block;
-  background: #f8bc07;
-  color: #041423;
-  font-size: 0.78rem;
-  padding: 4px 10px;
-  border-radius: 50px;
-  margin-left: 8px;
-}
-
-/* Logout link */
-.logout-btn {
-  margin-top: 16px;
-  font-size: 0.9rem;
-  opacity: 0.7;
-  cursor: pointer;
-  text-decoration: underline;
-  text-align: center;
-}
-
-/* ---------------------------------------
-   TABLES
----------------------------------------- */
-
-.table-wrap {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 12px;
-  background: #0c2238;
-}
-
-thead {
-  background: #0f2c47;
-}
-
-th,
-td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #2d4358;
-  font-size: 0.9rem;
-}
-
-tr:hover {
-  background: #15395a;
-}
-
-/* Truncate long SoulMarks */
-.truncate {
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---------------------------------------
-   RESPONSIVE
----------------------------------------- */
-
-@media (max-width: 480px) {
-  .card {
-    padding: 22px;
-  }
-
-  .amount-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .ref-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .ref-value {
-    width: 100%;
-  }
-
-  .pill-button {
-    align-self: flex-end;
-  }
-}
-
-/* ---------------------------------------
-   FIXED RADIO / CHECKBOX ALIGNMENT
----------------------------------------- */
-
-.display-option-group {
-  width: 100%;
-}
-
-.display-option-group label {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 10px;
-  width: 100%;
-  white-space: normal;
-  line-height: 1.35;
-  margin-bottom: 8px;
-}
-
-.display-option-group label span {
-  display: block;
-  flex-grow: 1;
-}
-
-.display-option-group input[type="radio"],
-.display-option-group input[type="checkbox"] {
-  flex-shrink: 0;
-  margin-top: 3px;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Your iAscendAi Identity</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  </head>
+
+<body>
+  <div class="app-shell">
+    <div class="card card--narrow">
+
+      <div class="brand-row">
+        <div class="brand-mark">@</div>
+        <div>
+          <h1>iAscendAi</h1>
+          <h2>Claim Your Verified Identity</h2>
+        </div>
+      </div>
+
+      <h2>Create Your Identity</h2>
+      <p class="subtext">
+        Link your recent SoulMark-verified transaction to a permanent
+        iAscendAi identity. One username per email — forever.
+      </p>
+
+      <p class="label">Email (locked from your donation)</p>
+      <div id="lockedEmail" class="chip"></div>
+
+      <p class="label" style="margin-top:14px;">Full Name *</p>
+      <input id="fullName" type="text" placeholder="Adrian McKenzie" autocomplete="name" />
+
+      <p class="label" style="margin-top:10px;">Latest SoulMark</p>
+      <div id="lockedSoulmark" class="value truncate"></div>
+
+      <p class="label" style="margin-top:14px;">Choose Username *</p>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input id="username" type="text" placeholder="yourname"
+               style="flex:1;" autocomplete="off" />
+        <div style="font-size:0.9rem; opacity:0.8;">@iascendai</div>
+      </div>
+      <p id="usernameStatus" class="small-label"></p>
+
+      <p class="label" style="margin-top:16px;">Public display settings</p>
+      <p class="small-label">
+        Control how your contribution appears on the public impact board.
+        Your private dashboard always shows full details.
+      </p>
+
+      <div class="display-options"> 
+
+        <label>
+          <input type="radio" name="identityMode" value="username" checked />
+          <span>Show my <strong>username@iascendai</strong></span>
+        </label>
+
+        <label>
+          <input type="radio" name="identityMode" value="real" />
+          <span>Show my <strong>full name</strong></span>
+        </label>
+
+        <label>
+          <input type="radio" name="identityMode" value="anonymous" />
+          <span>Show as <strong>Anonymous</strong></span>
+        </label>
+
+        <label style="margin-top:8px;">
+          <input type="checkbox" id="showAmount" checked />
+          <span>Show my <strong>donation amount</strong></span>
+        </label>
+
+        <p id="displayNote" class="small-label" style="margin-top:4px;"></p>
+      </div>
+
+      <button id="registerBtn" class="btn-primary" style="margin-top:18px;">
+        Create My iAscendAi Identity
+      </button>
+
+      <p id="registerStatus" class="small-label" style="margin-top:10px;"></p>
+
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+
+    const emailEl        = document.getElementById("lockedEmail");
+    const smEl           = document.getElementById("lockedSoulmark");
+    const fullNameInput  = document.getElementById("fullName");
+    const usernameInput  = document.getElementById("username");
+    const usernameStatus = document.getElementById("usernameStatus");
+    const registerStatus = document.getElementById("registerStatus");
+    const registerBtn    = document.getElementById("registerBtn");
+
+    const identityRadios = document.querySelectorAll('input[name="identityMode"]');
+    const showAmountCb   = document.getElementById("showAmount");
+    const displayNoteEl  = document.getElementById("displayNote");
+
+    let baseEmail = "";
+    let latestSoulmark = "";
+    let usernameTimer = null;
+    let lastCheckName = "";
+
+    // -------- 1. PRELOAD (success → register) --------
+    (function preload() {
+      try {
+        const nameStore    = localStorage.getItem("fta_name") || "";
+        const emailStore   = localStorage.getItem("fta_email") || "";
+        const soulStore    = localStorage.getItem("fta_soulmark") || "";
+
+        baseEmail      = emailStore;
+        latestSoulmark = soulStore;
+
+        emailEl.textContent = baseEmail || "missing-email@example.com";
+        smEl.textContent = latestSoulmark
+          ? latestSoulmark.substring(0, 18) + "..."
+          : "No SoulMark found. Complete a donation first.";
+
+        if (nameStore) fullNameInput.value = nameStore;
+
+      } catch (e) {
+        emailEl.textContent = "Unavailable";
+      }
+    })();
+
+    // -------- 2. DISPLAY RULES --------
+    function getIdentityMode() {
+      return Array.from(identityRadios).find(r => r.checked)?.value || "username";
+    }
+
+    function enforceVisibilityRules() {
+      const mode = getIdentityMode();
+      const showAmount = showAmountCb.checked;
+
+      displayNoteEl.textContent = "";
+
+      // Only invalid combo:
+      if (mode === "anonymous" && !showAmount) {
+        showAmountCb.checked = true;
+        displayNoteEl.textContent =
+          "Anonymous donors must show their donation amount or choose a visible name.";
+      }
+    }
+
+    identityRadios.forEach(r => r.addEventListener("change", enforceVisibilityRules));
+    showAmountCb.addEventListener("change", enforceVisibilityRules);
+
+    // -------- 3. USERNAME CHECK --------
+    usernameInput.addEventListener("input", () => {
+      const raw = usernameInput.value.trim().toLowerCase();
+      const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+
+      usernameInput.value = cleaned;
+      usernameStatus.textContent = "";
+
+      if (cleaned.length < 3) return;
+
+      if (usernameTimer) clearTimeout(usernameTimer);
+      usernameTimer = setTimeout(() => checkUsername(cleaned), 350);
+    });
+
+    async function checkUsername(name) {
+      lastCheckName = name;
+      usernameStatus.textContent = "Checking availability…";
+
+      const full = `${name}@iascendai`;
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
+        const data = await res.json();
+
+        if (name !== lastCheckName) return;
+
+        usernameStatus.textContent = data.available
+          ? "✅ Username available"
+          : "❌ Username already taken";
+
+      } catch {
+        usernameStatus.textContent = "Error checking username.";
+      }
+    }
+
+    // -------- 4. REGISTER --------
+    registerBtn.addEventListener("click", async () => {
+      registerStatus.textContent = "";
+
+      const fullName = fullNameInput.value.trim();
+      const unameRaw = usernameInput.value.trim().toLowerCase();
+      const uname = unameRaw.replace(/[^a-z0-9._-]/g, "");
+      const mode = getIdentityMode();
+      const showAmt = showAmountCb.checked;
+
+      if (!fullName) {
+        registerStatus.textContent = "Please enter your full name.";
+        return;
+      }
+      if (!uname || uname.length < 3) {
+        registerStatus.textContent = "Please choose a valid username (3+ characters).";
+        return;
+      }
+
+      const fullUsername = `${uname}@iascendai`;
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Creating identity…";
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: fullName,
+            email: baseEmail,
+            username: fullUsername,
+            soulmark: latestSoulmark || null,
+            displayIdentity: mode,
+            showDonationAmount: !!showAmt
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error);
+
+        // Save for dashboard
+        localStorage.setItem("ias_username", fullUsername);
+        localStorage.setItem("ias_name", fullName);
+        localStorage.setItem("ias_email", baseEmail);
+        if (latestSoulmark) localStorage.setItem("ias_soulmark", latestSoulmark);
+        localStorage.setItem("displayIdentity", mode);
+        localStorage.setItem("showDonationAmount", showAmt ? "1" : "0");
+
+        registerStatus.textContent = "Identity created. Redirecting…";
+
+        const qs = new URLSearchParams({
+          username: fullUsername,
+          mode,
+          showDonation: showAmt ? "1" : "0"
+        });
+
+        setTimeout(() =>
+          window.location.href = `iascendai-dashboard.html?${qs.toString()}`, 600
+        );
+
+      } catch (err) {
+        registerStatus.textContent = err.message || "Registration error.";
+        registerBtn.disabled = false;
+        registerBtn.textContent = "Create My iAscendAi Identity";
+      }
+    });
+  </script>
+
+</body>
+</html>
