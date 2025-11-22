@@ -2,180 +2,579 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
+  <title>Create Your Identity | iAscendAi</title>
+
+  <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --iascend-orange: #f4a349;
+    --iascend-orange-soft: #ffb76b;
+    --iascend-blue: #b8edee;
+    --bg-dark: #020617;
+    --bg-mid: #0b1220;
+    --glass-bg: rgba(15,23,42,0.96);
+    --glass-border: rgba(148,163,184,0.45);
+    --text-main: #e5e7eb;
+    --text-soft: #9ca3af;
+    --error: #f97373;
+    --success: #4ade80;
+    --info: #38bdf8;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #1f2937 0%, #020617 45%, #000000 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    color: var(--text-main);
+  }
+
+  .container {
+    width: 100%;
+    max-width: 640px;
+    background: var(--glass-bg);
+    border-radius: 24px;
+    padding: 30px 26px 26px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.75);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .logo {
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    background: linear-gradient(120deg, var(--iascend-orange), var(--iascend-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+
+  .tagline {
+    font-size: 0.96rem;
+    color: var(--text-soft);
+  }
+
+  h1.card-title {
+    font-size: 1.5rem;
+    font-weight: 750;
+    margin-bottom: 8px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    background: rgba(22,163,74,0.12);
+    border: 1px solid rgba(34,197,94,0.6);
+    color: #bbf7d0;
+    margin-bottom: 10px;
+  }
+
+  .card-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .highlight-box {
+    background: rgba(15,23,42,0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.5);
+    padding: 14px 12px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+
+  .highlight-box strong {
+    color: var(--iascend-orange-soft);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid rgba(148,163,184,0.7);
+    background: rgba(15,23,42,0.96);
+    color: var(--text-main);
+    font-size: 0.95rem;
+  }
+
+  input::placeholder {
+    color: rgba(148,163,184,0.75);
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--iascend-orange-soft);
+    box-shadow: 0 0 0 1px rgba(244,163,73,0.6);
+  }
+
+  .username-group {
+    position: relative;
+  }
+
+  .username-suffix {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  .availability {
+    font-size: 0.8rem;
+    margin-top: 4px;
+    min-height: 18px;
+  }
+
+  .availability.checking {
+    color: var(--text-soft);
+  }
+
+  .availability.ok {
+    color: var(--success);
+  }
+
+  .availability.bad {
+    color: var(--error);
+  }
+
+  .small-note {
+    font-size: 0.8rem;
+    color: var(--text-soft);
+    margin-top: 6px;
+  }
+
+  .display-section {
+    margin-top: 12px;
+    margin-bottom: 10px;
+    padding: 12px 12px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.5);
+    background: rgba(15,23,42,0.9);
+  }
+
+  .display-section-title {
+    font-size: 0.86rem;
+    font-weight: 650;
+    margin-bottom: 6px;
+  }
+
+  .display-option-group {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.86rem;
+  }
+
+  .display-option-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+
+  .display-option-group input[type="radio"],
+  .display-option-group input[type="checkbox"] {
+    width: auto;
+    transform: scale(0.95);
+    accent-color: var(--iascend-orange);
+  }
+
+  .display-hint {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--text-soft);
+  }
+
+  .display-note {
+    margin-top: 5px;
+    font-size: 0.78rem;
+    color: var(--info);
+    min-height: 14px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 999px;
+    border: none;
+    margin-top: 10px;
+    font-weight: 750;
+    font-size: 1rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--iascend-orange), var(--iascend-orange-soft));
+    color: #04101f;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.8);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 55px rgba(0,0,0,1);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .footer-links {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  .footer-links a {
+    color: var(--iascend-orange-soft);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      padding: 22px 18px 20px;
+    }
+  }
+  </style>
 </head>
 
 <body>
-  <div class="app-shell">
-    <div class="card card--narrow">
+  <div class="container">
+    <div class="header">
+      <div class="logo">iAscendAi</div>
+      <div class="tagline">Claim your verified identity to unlock the dashboard.</div>
+    </div>
 
-      <div class="brand-row">
-        <div class="brand-mark">@</div>
-        <div>
-          <h1>iAscendAi</h1>
-          <h2>Claim Your Verified Identity</h2>
+    <h1 class="card-title">Create Your Identity</h1>
+    <div class="pill">🎁 SupporterⓈ • Jamaica We Rise</div>
+
+    <p class="card-subtitle">
+      You’ve made a verified contribution. Now claim your unique
+      <strong>username@iascendai</strong> so you can view your SoulMarkⓈ,
+      track your SoulAidⓈ, and access the live SoulTrackerⓈ dashboard.
+    </p>
+
+    <div class="highlight-box">
+      <strong>One entry. One identity.</strong><br/>
+      Every future update, dashboard view, or contribution will be anchored to this username.
+      Choose carefully – just like social handles, each username can only be claimed once.
+    </div>
+
+    <form id="registrationForm">
+      <div class="form-group">
+        <label for="name">Full Name *</label>
+        <input id="name" name="name" type="text" required placeholder="Adrian McKenzie" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address *</label>
+        <input id="email" name="email" type="email" required placeholder="you@example.com" />
+        <div class="small-note">
+          This email is linked to your SoulMarkⓈ and dashboard access. It is not shown publicly by default.
         </div>
       </div>
 
-      <h2>Create Username</h2>
-      <p class="subtext">
-        Link your recent SoulMarkⓈ-verified transaction to a permanent
-        iAscendAi identity. One username per email — forever.
-      </p>
-
-      <p class="label">Email (locked from your donation)</p>
-      <div id="lockedEmail" class="chip"></div>
-
-      <p class="label">Latest SoulMarkⓈ</p>
-      <div id="lockedSoulmark" class="value truncate"></div>
-
-      <label class="label" style="margin-top:14px;">Choose Username *</label>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <input id="username" type="text" placeholder="yourname"
-               style="flex:1;" autocomplete="off" />
-        <div style="font-size:0.9rem; opacity:0.8;">@iascendai</div>
+      <div class="form-group">
+        <label for="username">Choose Your Username *</label>
+        <div class="username-group">
+          <input id="username" name="username" type="text" required placeholder="adrian" autocomplete="off" />
+          <span class="username-suffix">@iascendai</span>
+        </div>
+        <div class="availability" id="usernameStatus"></div>
+        <div class="small-note">
+          Usernames are first-come, first-served. If your name is taken, try
+          <code>firstname_lastname</code>, <code>firstname123</code>, or similar.
+        </div>
       </div>
-      <p id="usernameStatus" class="small-label"></p>
 
-      <button id="registerBtn" class="btn-primary">
-        Create My iAscendAi Identity
+      <!-- Display preferences block -->
+      <div class="display-section">
+        <div class="display-section-title">Choose how your donation appears on the public tracker</div>
+
+        <div class="display-option-group">
+          <label>
+            <input type="radio" name="identityMode" value="username" checked />
+            Username@iascendai (default)
+          </label>
+          <label>
+            <input type="radio" name="identityMode" value="real" />
+            Real Name
+          </label>
+          <label>
+            <input type="radio" name="identityMode" value="anonymous" />
+            Anonymous
+          </label>
+        </div>
+
+        <div class="display-option-group" style="margin-top:8px;">
+          <label>
+            <input type="checkbox" id="showDonation" checked />
+            Show Donation Amount
+          </label>
+        </div>
+
+        <div class="display-hint">
+          At least one element must be visible: your name/handle or your donation amount.
+          Anonymous donors can still show their amount.
+        </div>
+        <div class="display-note" id="displayNote"></div>
+      </div>
+
+      <button id="submitBtn" type="submit" class="submit-btn">
+        Create My Identity & Open Dashboard
       </button>
+    </form>
 
-      <p id="registerStatus" class="small-label" style="margin-top:10px;"></p>
-
+    <div class="footer-links">
+      Already have a username?
+      <a href="iascendai-verify.html">Verify or look up your identity</a> •
+      <a href="index.html">Back to Donate</a>
     </div>
   </div>
 
   <script>
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-    const emailEl = document.getElementById("lockedEmail");
-    const smEl = document.getElementById("lockedSoulmark");
-    const usernameInput = document.getElementById("username");
+    const nameInput      = document.getElementById("name");
+    const emailInput     = document.getElementById("email");
+    const usernameInput  = document.getElementById("username");
     const usernameStatus = document.getElementById("usernameStatus");
-    const registerStatus = document.getElementById("registerStatus");
+    const submitBtn      = document.getElementById("submitBtn");
 
-    let baseEmail = "";
-    let latestSoulmark = "";
-    let usernameTimer = null;
-    let lastCheckName = "";
+    const identityRadios = document.querySelectorAll('input[name="identityMode"]');
+    const showDonationCb = document.getElementById("showDonation");
+    const displayNoteEl  = document.getElementById("displayNote");
 
-    // Load from localStorage
-    (function preload() {
-      try {
-        baseEmail = localStorage.getItem("fta_email") || "";
-        latestSoulmark = localStorage.getItem("fta_soulmark") || "";
+    let currentSoulmark = "";
+    let currentAmount   = "";
+    let usernameCheckTimeout = null;
+    let usernameAvailable = false;
 
-        emailEl.textContent = baseEmail || "missing-email@example.com";
+    // 1️⃣ Load from query + localStorage (email/soulmark/amount handoff)
+    (function hydrateFromContext() {
+      const params = new URLSearchParams(window.location.search);
 
-        smEl.textContent = latestSoulmark
-          ? latestSoulmark.substring(0, 18) + "..."
-          : "No SoulMark found. You may need to donate again.";
-      } catch (e) {
-        emailEl.textContent = "Unavailable";
+      const qName     = params.get("name")     || "";
+      const qEmail    = params.get("email")    || "";
+      const qSoulmark = params.get("soulmark") || "";
+      const qAmount   = params.get("amount")   || "";
+
+      const lsName     = localStorage.getItem("name")     || "";
+      const lsEmail    = localStorage.getItem("email")    || "";
+      const lsSoulmark = localStorage.getItem("soulmark") || "";
+      const lsAmount   = localStorage.getItem("amount")   || "";
+
+      // Also pull from donor_ keys written by success.html
+      const donorEmail    = localStorage.getItem("donor_email")    || "";
+      const donorSoulmark = localStorage.getItem("donor_soulmark") || "";
+      const donorAmount   = localStorage.getItem("donor_amount")   || "";
+
+      const name   = qName   || lsName;
+      const email  = qEmail  || donorEmail || lsEmail;
+      const soul   = qSoulmark || donorSoulmark || lsSoulmark;
+      const amount = qAmount || donorAmount || lsAmount;
+
+      if (name)  nameInput.value  = name;
+      if (email) emailInput.value = email;
+
+      currentSoulmark = soul || "";
+      currentAmount   = amount || "";
+
+      if (currentSoulmark) {
+        localStorage.setItem("soulmark", currentSoulmark);
       }
+      if (currentAmount) {
+        localStorage.setItem("amount", currentAmount);
+      }
+      if (name)  localStorage.setItem("name", name);
+      if (email) localStorage.setItem("email", email);
     })();
 
-    // Username availability check (debounced)
-    usernameInput.addEventListener("input", () => {
-      const raw = usernameInput.value.trim();
-      usernameStatus.textContent = "";
-      registerStatus.textContent = "";
+    function getIdentityMode() {
+      const selected = Array.from(identityRadios).find(r => r.checked);
+      return selected ? selected.value : "username";
+    }
 
-      if (!raw) return;
+    // 2️⃣ Enforce visibility rules (auto-correct)
+    function enforceVisibilityRules(source) {
+      const mode = getIdentityMode();
+      const showDonation = showDonationCb.checked;
 
-      const cleaned = raw.toLowerCase().replace(/[^a-z0-9._-]/g, "");
-      if (cleaned !== raw.toLowerCase()) {
-        usernameStatus.textContent = "Use letters, numbers, dots, dashes, or underscores.";
-      }
-      if (cleaned.length < 3) {
-        usernameStatus.textContent = "Username must be at least 3 characters.";
-        return;
-      }
+      displayNoteEl.textContent = "";
 
-      if (usernameTimer) clearTimeout(usernameTimer);
-      usernameTimer = setTimeout(() => {
-        checkUsername(cleaned);
-      }, 350);
-    });
-
-    async function checkUsername(name) {
-      lastCheckName = name;
-      usernameStatus.textContent = "Checking availability…";
-
-      try {
-        const res = await fetch(
-          `${BACKEND_URL}/check-username/${encodeURIComponent(name)}`
-        );
-        const data = await res.json();
-
-        if (name !== lastCheckName) return;
-
-        usernameStatus.textContent = data.available
-          ? "✅ Available"
-          : "❌ Already taken";
-
-      } catch (err) {
-        console.error(err);
-        usernameStatus.textContent = "Error checking username.";
+      // Anonymous must always show amount
+      if (mode === "anonymous" && !showDonation) {
+        showDonationCb.checked = true;
+        displayNoteEl.textContent =
+          "Anonymous donors must show their donation amount or choose a visible name. Amount has been kept visible automatically.";
       }
     }
 
-    // Register identity
-    document.getElementById("registerBtn").addEventListener("click", async () => {
-      registerStatus.textContent = "";
+    identityRadios.forEach(radio => {
+      radio.addEventListener("change", () => enforceVisibilityRules("identity"));
+    });
 
-      const unameRaw = usernameInput.value.trim().toLowerCase();
-      const uname = unameRaw.replace(/[^a-z0-9._-]/g, "");
-      if (!uname || uname.length < 3) {
-        registerStatus.textContent = "Please enter a valid username (3+ characters).";
+    showDonationCb.addEventListener("change", () => enforceVisibilityRules("donation"));
+
+    // 3️⃣ Username availability check
+    usernameInput.addEventListener("input", () => {
+      const raw = usernameInput.value.trim().toLowerCase();
+      const username = raw.replace(/[^a-z0-9._-]/g, "");
+
+      usernameInput.value = username;
+      usernameAvailable = false;
+      usernameStatus.textContent = "";
+      usernameStatus.className = "availability";
+
+      if (username.length < 3) return;
+
+      usernameStatus.textContent = "Checking availability…";
+      usernameStatus.classList.add("checking");
+
+      clearTimeout(usernameCheckTimeout);
+      usernameCheckTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch(
+            `${BACKEND_URL}/check-username/${encodeURIComponent(username)}`
+          );
+          const data = await res.json();
+
+          if (data.available) {
+            usernameAvailable = true;
+            usernameStatus.textContent =
+              "✓ Available. This username is yours if you claim it now.";
+            usernameStatus.className = "availability ok";
+          } else {
+            usernameAvailable = false;
+            usernameStatus.textContent =
+              "✗ This username is already taken. Please try another.";
+            usernameStatus.className = "availability bad";
+          }
+        } catch (err) {
+          console.error("Username check failed:", err);
+          usernameStatus.textContent =
+            "Could not check availability. Please try again.";
+          usernameStatus.className = "availability bad";
+        }
+      }, 450);
+    });
+
+    // 4️⃣ Submit registration
+    document.getElementById("registrationForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name   = nameInput.value.trim();
+      const email  = emailInput.value.trim();
+      const raw    = usernameInput.value.trim().toLowerCase();
+      const username = raw.replace(/[^a-z0-9._-]/g, "");
+
+      const identityMode = getIdentityMode();
+      const showDonation = showDonationCb.checked;
+
+      // Final safety enforcement
+      if (identityMode === "anonymous" && !showDonation) {
+        showDonationCb.checked = true;
+      }
+
+      if (!name || !email || !username) {
+        alert("Please fill in name, email, and username.");
         return;
       }
 
-      if (!baseEmail || !latestSoulmark) {
-        registerStatus.textContent = "Missing email or SoulMark. Try completing a donation first.";
-        return;
-      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating Identity…";
 
-      registerStatus.textContent = "Creating your identity…";
+      const payload = {
+        role: "supporter",
+        name,
+        email,
+        username,
+        soulmark: currentSoulmark || null,
+        donationAmount: currentAmount ? Number(currentAmount) : null,
+        displayIdentity: identityMode,      // "username" | "real" | "anonymous"
+        showDonationAmount: !!showDonation  // true | false
+      };
 
       try {
-        const res = await fetch(`${BACKEND_URL}/register-username`, {
+        const res = await fetch(`${BACKEND_URL}/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: baseEmail,
-            username: uname,
-            soulmark: latestSoulmark
-          })
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
-
-        if (!data.success) {
-          registerStatus.textContent = data.message || "Unable to create identity.";
-          return;
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Registration failed.");
         }
 
-        // Save identity locally
-        try {
-          localStorage.setItem("ias_username", data.identity.username || uname);
-          localStorage.setItem("ias_email", data.identity.email || baseEmail);
-          localStorage.setItem("ias_soulmark", data.identity.soulmark || latestSoulmark);
-          localStorage.setItem("ias_identity_id", data.identity.identity_id || "");
-        } catch (e) {}
+        // Save identity for dashboard
+        localStorage.setItem("username", username);
+        localStorage.setItem("name", name);
+        localStorage.setItem("email", email);
+        if (payload.soulmark) {
+          localStorage.setItem("soulmark", payload.soulmark);
+        }
+        localStorage.setItem("displayIdentity", identityMode);
+        localStorage.setItem("showDonationAmount", showDonation ? "1" : "0");
 
-        registerStatus.textContent = "Identity created. Redirecting to dashboard…";
+        const qs = new URLSearchParams({
+          username,
+          name,
+          soulmark: payload.soulmark || "",
+          mode: identityMode,
+          showDonation: showDonation ? "1" : "0"
+        });
 
-        setTimeout(() => {
-          window.location.href = "iascendai-dashboard.html";
-        }, 600);
+        window.location.href = `iascendai-dashboard.html?${qs.toString()}`;
 
       } catch (err) {
-        console.error(err);
-        registerStatus.textContent = "Network error creating identity.";
+        console.error("Registration error:", err);
+        alert(err.message || "Registration failed. Please try again.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Create My Identity & Open Dashboard";
       }
     });
   </script>
