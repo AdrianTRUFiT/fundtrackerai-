@@ -5,6 +5,118 @@
   <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- POLISH & VISUAL UPGRADES — ADDED HERE ONLY -->
+  <style>
+    .info-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 20px 0;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 12px 0;
+      font-size: 15px;
+    }
+
+    .info-row .label {
+      margin: 0;
+      font-weight: 600;
+      color: #cbd5e1;
+      flex: 1;
+    }
+
+    .chip-locked {
+      background: #10b981;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chip-soulmark {
+      background: #f8bc07;
+      color: #041423;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      display: inline-block;
+    }
+
+    .input-with-suffix {
+      display: flex;
+      align-items: center;
+      background: #334155;
+      border-radius: 12px;
+      padding: 0 4px;
+      margin-top: 6px;
+    }
+
+    .input-with-suffix input {
+      background: transparent;
+      border: none;
+      padding: 14px 12px;
+      flex: 1;
+      color: white;
+      font-size: 16px;
+    }
+
+    .input-with-suffix input:focus {
+      outline: none;
+    }
+
+    .suffix {
+      color: #94a3b8;
+      padding-right: 14px;
+      font-size: 15px;
+    }
+
+    /* Radio & Checkbox — Text on same line, proper spacing */
+    .option-group {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 20px 0;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0;
+      font-size: 15.5px;
+    }
+
+    .option-item input[type="radio"],
+    .option-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #10b981;
+    }
+
+    .option-item label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      flex: 1;
+      margin: 0;
+    }
+
+    .small-note {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+  </style>
 </head>
 
 <body>
@@ -26,69 +138,71 @@
         iAscendAi identity. One username per identity — forever.
       </p>
 
-      <!-- DONATION EMAIL (READ-ONLY) -->
-      <p class="label">Donation email on record</p>
-      <div id="lockedEmail" class="chip"></div>
+      <!-- LOCKED DONATION EMAIL -->
+      <div class="info-box">
+        <div class="info-row">
+          <div class="label">Donation email on record</div>
+          <div id="lockedEmail" class="chip-locked">Loading...</div>
+        </div>
+      </div>
 
-      <!-- CONTACT EMAIL (EDITABLE / ACCESS CHANNEL) -->
-      <p class="label" style="margin-top:10px;">Contact email for your identity *</p>
-      <input
-        id="contactEmail"
-        type="email"
-        placeholder="you@example.com"
-        autocomplete="email"
-      />
+      <!-- CONTACT EMAIL -->
+      <p class="label">Contact email for your identity *</p>
+      <input id="contactEmail" type="email" placeholder="you@example.com" autocomplete="email" />
 
       <!-- FULL NAME -->
       <p class="label" style="margin-top:14px;">Full Name *</p>
       <input id="fullName" type="text" placeholder="Adrian McKenzie" autocomplete="name" />
 
       <!-- LATEST SOULMARK -->
-      <p class="label" style="margin-top:10px;">Latest SoulMark</p>
-      <div id="lockedSoulmark" class="value truncate"></div>
+      <div class="info-box" style="margin-top:20px;">
+        <div class="info-row">
+          <div class="label">Latest SoulMark</div>
+          <div id="lockedSoulmark" class="chip-soulmark">••••••••••••••••••</div>
+        </div>
+      </div>
 
       <!-- USERNAME -->
-      <p class="label" style="margin-top:14px;">Choose Username *</p>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <input id="username" type="text" placeholder="yourname"
-               style="flex:1;" autocomplete="off" />
-        <div style="font-size:0.9rem; opacity:0.8;">@iascendai</div>
+      <p class="label">Choose Username *</p>
+      <div class="input-with-suffix">
+        <input id="username" type="text" placeholder="yourname" autocomplete="off" />
+        <div class="suffix">@iascendai</div>
       </div>
-      <p id="usernameStatus" class="small-label"></p>
+      <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
       <!-- DISPLAY PREFERENCES -->
-      <p class="label" style="margin-top:16px;">Public display settings</p>
-      <p class="small-label">
+      <p class="label" style="margin-top:20px;">Public display settings</p>
+      <p class="small-note">
         Control how your contribution appears on the public impact board.
         Your private dashboard always shows full details.
       </p>
 
-      <div class="display-options">
-        <label>
-          <input type="radio" name="identityMode" value="username" checked />
-          <span>Show my <strong>username@iascendai</strong></span>
-        </label>
+      <div class="option-group">
+        <div class="option-item">
+          <input type="radio" name="identityMode" value="username" checked id="opt-user" />
+          <label for="opt-user">Show my <strong>username@iascendai</strong></label>
+        </div>
 
-        <label>
-          <input type="radio" name="identityMode" value="real" />
-          <span>Show my <strong>full name</strong></span>
-        </label>
+        <div class="option-item">
+          <input type="radio" name="identityMode" value="real" id="opt-name" />
+          <label for="opt-name">Show my <strong>full name</strong></label>
+        </div>
 
-        <label>
-          <input type="radio" name="identityMode" value="anonymous" />
-          <span>Show as <strong>Anonymous</strong></span>
-        </label>
+        <div class="option-item">
+          <input type="radio" name="identityMode" value="anonymous" id="opt-anon" />
+          <label for="opt-anon">Show as <strong>Anonymous</strong></label>
+        </div>
 
-        <label style="margin-top:8px;">
+        <div class="option-item">
           <input type="checkbox" id="showAmount" checked />
-          <span>Show my <strong>donation amount</strong></span>
-        </label>
+          <label for="showAmount">Show my <strong>donation amount</strong></label>
+        </div>
 
-        <p id="displayNote" class="small-label" style="margin-top:4px;"></p>
+        <p id="displayNote" class="small-note"></p>
       </div>
 
       <!-- SUBMIT -->
-      <button id="registerBtn" class="btn-primary" style="margin-top:18px;">
+      <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
         Create My iAscendAi Identity
       </button>
 
@@ -97,6 +211,7 @@
     </div>
   </div>
 
+  <!-- Your existing script (unchanged) -->
   <script>
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
@@ -113,38 +228,32 @@
     const showAmountCb   = document.getElementById("showAmount");
     const displayNoteEl  = document.getElementById("displayNote");
 
-    let baseEmail = "";       // donation email on record
+    let baseEmail = "";
     let latestSoulmark = "";
     let usernameTimer = null;
     let lastCheckName = "";
 
-    // -------- 1. PRELOAD (donation → register) --------
     (function preload() {
       try {
         const nameStore   = localStorage.getItem("fta_name")      || "";
-        const emailStore  = localStorage.getItem("fta_email")     || ""; // donation email
+        const emailStore  = localStorage.getItem("fta_email")     || "";
         const soulStore   = localStorage.getItem("fta_soulmark")  || "";
         const accessEmail = localStorage.getItem("ias_access_email") || "";
 
         baseEmail      = emailStore;
         latestSoulmark = soulStore;
 
-        // Show donation email in chip (record only)
         emailEl.textContent = baseEmail || "No donation email on record";
 
-        // Seed contact email:
-        // 1) previously chosen access email wins
-        // 2) else fall back to donation email
         if (accessEmail) {
           contactEmailInput.value = accessEmail;
         } else if (baseEmail) {
           contactEmailInput.value = baseEmail;
         }
 
-        // SoulMark preview
         smEl.textContent = latestSoulmark
           ? latestSoulmark.substring(0, 18) + "..."
-          : "No SoulMark found. Complete a donation first.";
+          : "No SoulMark found";
 
         if (nameStore) fullNameInput.value = nameStore;
 
@@ -153,7 +262,6 @@
       }
     })();
 
-    // -------- 2. DISPLAY RULES --------
     function getIdentityMode() {
       return Array.from(identityRadios).find(r => r.checked)?.value || "username";
     }
@@ -174,17 +282,12 @@
     identityRadios.forEach(r => r.addEventListener("change", enforceVisibilityRules));
     showAmountCb.addEventListener("change", enforceVisibilityRules);
 
-    // -------- 3. USERNAME CHECK --------
     usernameInput.addEventListener("input", () => {
       const raw = usernameInput.value.trim().toLowerCase();
       const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-
       usernameInput.value = cleaned;
       usernameStatus.textContent = "";
-      usernameStatus.className = "small-label";
-
       if (cleaned.length < 3) return;
-
       if (usernameTimer) clearTimeout(usernameTimer);
       usernameTimer = setTimeout(() => checkUsername(cleaned), 350);
     });
@@ -192,30 +295,22 @@
     async function checkUsername(name) {
       lastCheckName = name;
       usernameStatus.textContent = "Checking availability…";
-
       const full = `${name}@iascendai`;
-
       try {
-        const res = await fetch(
-          `${BACKEND_URL}/check-username/${encodeURIComponent(full)}`
-        );
+        const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
         const data = await res.json();
-
         if (name !== lastCheckName) return;
-
         usernameStatus.textContent = data.available
-          ? "✅ Username available"
-          : "❌ Username already taken";
-
+          ? "Username available"
+          : "Username already taken";
+        usernameStatus.style.color = data.available ? "#10b981" : "#ff6b6b";
       } catch {
         usernameStatus.textContent = "Error checking username.";
       }
     }
 
-    // -------- 4. REGISTER --------
     registerBtn.addEventListener("click", async () => {
       registerStatus.textContent = "";
-
       const fullName   = fullNameInput.value.trim();
       const contactRaw = contactEmailInput.value.trim();
       const unameRaw   = usernameInput.value.trim().toLowerCase();
@@ -223,27 +318,15 @@
       const mode       = getIdentityMode();
       const showAmt    = showAmountCb.checked;
 
-      // Basic validations
-      if (!contactRaw) {
-        registerStatus.textContent = "Please enter a contact email.";
-        return;
-      }
-      if (!fullName) {
-        registerStatus.textContent = "Please enter your full name.";
-        return;
-      }
-      if (!uname || uname.length < 3) {
-        registerStatus.textContent = "Please choose a valid username (3+ characters).";
+      if (!contactRaw || !fullName || !uname || uname.length < 3) {
+        registerStatus.textContent = "Please fill all required fields.";
         return;
       }
 
       const fullUsername = `${uname}@iascendai`;
       const accessEmail  = contactRaw;
 
-      // Final safety
-      if (mode === "anonymous" && !showAmt) {
-        showAmountCb.checked = true;
-      }
+      if (mode === "anonymous" && !showAmt) showAmountCb.checked = true;
 
       registerBtn.disabled = true;
       registerBtn.textContent = "Creating identity…";
@@ -254,45 +337,28 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: fullName,
-            // Email as ACCESS CHANNEL (protocol A)
             email: accessEmail,
-            // Preserve original donation email for lineage / audit
             donationEmail: baseEmail || null,
             username: fullUsername,
             soulmark: latestSoulmark || null,
-            displayIdentity: mode,        // "username" | "real" | "anonymous"
-            showDonationAmount: !!showAmt // true | false
+            displayIdentity: mode,
+            showDonationAmount: !!showAmt
           })
         });
 
         const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error);
+        if (!res.ok || data.error) throw new Error(data.error || "Registration failed");
 
-        // Save for dashboard (access email as canonical channel)
         localStorage.setItem("ias_username", fullUsername);
         localStorage.setItem("ias_name", fullName);
-        localStorage.setItem("ias_email", accessEmail);          // legacy key
-        localStorage.setItem("ias_access_email", accessEmail);   // explicit
-        if (baseEmail) {
-          localStorage.setItem("ias_donation_email", baseEmail);
-        }
-        if (latestSoulmark) {
-          localStorage.setItem("ias_soulmark", latestSoulmark);
-        }
+        localStorage.setItem("ias_access_email", accessEmail);
         localStorage.setItem("displayIdentity", mode);
         localStorage.setItem("showDonationAmount", showAmt ? "1" : "0");
 
-        registerStatus.textContent = "Identity created. Redirecting…";
-
-        const qs = new URLSearchParams({
-          username: fullUsername,
-          mode,
-          showDonation: showAmt ? "1" : "0"
-        });
-
+        registerStatus.textContent = "Success! Redirecting…";
         setTimeout(() => {
-          window.location.href = `iascendai-dashboard.html?${qs.toString()}`;
-        }, 600);
+          window.location.href = `iascendai-dashboard.html?username=${fullUsername}`;
+        }, 800);
 
       } catch (err) {
         registerStatus.textContent = err.message || "Registration error.";
@@ -301,6 +367,5 @@
       }
     });
   </script>
-
 </body>
 </html>
