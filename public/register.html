@@ -5,6 +5,39 @@
   <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* --- FIX: Radio & Checkbox Label Wrapping --- */
+
+    .display-options label,
+    .display-options label span {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      white-space: normal;
+      width: 100%;
+      line-height: 1.35;
+    }
+
+    .display-options label {
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .display-options input[type="radio"],
+    .display-options input[type="checkbox"] {
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .display-options {
+      width: 100%;
+      max-width: 100%;
+      overflow-wrap: break-word;
+      margin-top: 8px;
+      font-size: 0.88rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -54,21 +87,24 @@
         Your private dashboard always shows full details.
       </p>
 
-      <div style="margin-top:8px; font-size:0.88rem;">
-        <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+      <div class="display-options">
+
+        <label>
           <input type="radio" name="identityMode" value="username" checked />
           <span>Show my <strong>username@iascendai</strong></span>
         </label>
-        <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+
+        <label>
           <input type="radio" name="identityMode" value="real" />
           <span>Show my <strong>full name</strong></span>
         </label>
-        <label style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+
+        <label>
           <input type="radio" name="identityMode" value="anonymous" />
           <span>Show as <strong>Anonymous</strong></span>
         </label>
 
-        <label style="display:flex; align-items:center; gap:6px; margin-top:8px;">
+        <label style="margin-top:8px;">
           <input type="checkbox" id="showAmount" checked />
           <span>Show my <strong>donation amount</strong></span>
         </label>
@@ -106,35 +142,31 @@
     let usernameTimer = null;
     let lastCheckName = "";
 
-    // -------- 1. PRELOAD FROM LOCALSTORAGE (SUCCESS → REGISTER) --------
+    // -------- 1. PRELOAD (success → register) --------
     (function preload() {
       try {
-        const storedName    = localStorage.getItem("fta_name")   || "";
-        const storedEmail   = localStorage.getItem("fta_email")  || "";
-        const storedAmount  = localStorage.getItem("fta_amount") || "";
-        const storedSoul    = localStorage.getItem("fta_soulmark") || "";
+        const nameStore    = localStorage.getItem("fta_name") || "";
+        const emailStore   = localStorage.getItem("fta_email") || "";
+        const soulStore    = localStorage.getItem("fta_soulmark") || "";
 
-        baseEmail      = storedEmail;
-        latestSoulmark = storedSoul;
+        baseEmail      = emailStore;
+        latestSoulmark = soulStore;
 
         emailEl.textContent = baseEmail || "missing-email@example.com";
         smEl.textContent = latestSoulmark
           ? latestSoulmark.substring(0, 18) + "..."
-          : "No SoulMark found. You may need to donate again.";
+          : "No SoulMark found. Complete a donation first.";
 
-        if (storedName) {
-          fullNameInput.value = storedName;
-        }
+        if (nameStore) fullNameInput.value = nameStore;
 
       } catch (e) {
         emailEl.textContent = "Unavailable";
       }
     })();
 
-    // -------- 2. IDENTITY MODE HELPERS --------
+    // -------- 2. DISPLAY RULES --------
     function getIdentityMode() {
-      const selected = Array.from(identityRadios).find(r => r.checked);
-      return selected ? selected.value : "username";
+      return Array.from(identityRadios).find(r => r.checked)?.value || "username";
     }
 
     function enforceVisibilityRules() {
@@ -143,31 +175,26 @@
 
       displayNoteEl.textContent = "";
 
-      // Only invalid combo: anonymous + amount OFF
+      // Only invalid combo:
       if (mode === "anonymous" && !showAmount) {
         showAmountCb.checked = true;
         displayNoteEl.textContent =
-          "Anonymous donors must show their donation amount or choose a visible name. Amount has been kept visible automatically.";
+          "Anonymous donors must show their donation amount or choose a visible name.";
       }
     }
 
-    identityRadios.forEach(radio => {
-      radio.addEventListener("change", enforceVisibilityRules);
-    });
-
+    identityRadios.forEach(r => r.addEventListener("change", enforceVisibilityRules));
     showAmountCb.addEventListener("change", enforceVisibilityRules);
 
-    // -------- 3. USERNAME AVAILABILITY CHECK --------
+    // -------- 3. USERNAME CHECK --------
     usernameInput.addEventListener("input", () => {
       const raw = usernameInput.value.trim().toLowerCase();
       const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
 
       usernameInput.value = cleaned;
       usernameStatus.textContent = "";
-      usernameStatus.className = "small-label";
-      registerStatus.textContent = "";
 
-      if (!cleaned || cleaned.length < 3) return;
+      if (cleaned.length < 3) return;
 
       if (usernameTimer) clearTimeout(usernameTimer);
       usernameTimer = setTimeout(() => checkUsername(cleaned), 350);
@@ -177,55 +204,40 @@
       lastCheckName = name;
       usernameStatus.textContent = "Checking availability…";
 
-      const fullUsername = `${name}@iascendai`;
+      const full = `${name}@iascendai`;
 
       try {
-        const res = await fetch(
-          `${BACKEND_URL}/check-username/${encodeURIComponent(fullUsername)}`
-        );
+        const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
         const data = await res.json();
 
         if (name !== lastCheckName) return;
 
-        if (data.available) {
-          usernameStatus.textContent = "✅ Username available";
-        } else {
-          usernameStatus.textContent = "❌ Username already taken";
-        }
-      } catch (err) {
-        console.error(err);
+        usernameStatus.textContent = data.available
+          ? "✅ Username available"
+          : "❌ Username already taken";
+
+      } catch {
         usernameStatus.textContent = "Error checking username.";
       }
     }
 
-    // -------- 4. REGISTER IDENTITY --------
+    // -------- 4. REGISTER --------
     registerBtn.addEventListener("click", async () => {
       registerStatus.textContent = "";
 
-      const fullNameRaw = fullNameInput.value.trim();
-      const unameRaw    = usernameInput.value.trim().toLowerCase();
-      const uname       = unameRaw.replace(/[^a-z0-9._-]/g, "");
-      const identityMode = getIdentityMode();
-      const showAmount   = showAmountCb.checked;
+      const fullName = fullNameInput.value.trim();
+      const unameRaw = usernameInput.value.trim().toLowerCase();
+      const uname = unameRaw.replace(/[^a-z0-9._-]/g, "");
+      const mode = getIdentityMode();
+      const showAmt = showAmountCb.checked;
 
-      if (!baseEmail) {
-        registerStatus.textContent = "Missing email from donation. Please complete a donation first.";
-        return;
-      }
-
-      if (!fullNameRaw) {
+      if (!fullName) {
         registerStatus.textContent = "Please enter your full name.";
         return;
       }
-
       if (!uname || uname.length < 3) {
         registerStatus.textContent = "Please choose a valid username (3+ characters).";
         return;
-      }
-
-      // Final safety enforcement
-      if (identityMode === "anonymous" && !showAmount) {
-        showAmountCb.checked = true;
       }
 
       const fullUsername = `${uname}@iascendai`;
@@ -238,54 +250,45 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: fullNameRaw,
+            name: fullName,
             email: baseEmail,
             username: fullUsername,
             soulmark: latestSoulmark || null,
-            displayIdentity: identityMode,      // "username" | "real" | "anonymous"
-            showDonationAmount: !!showAmount    // true | false
+            displayIdentity: mode,
+            showDonationAmount: !!showAmt
           })
         });
 
         const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error);
 
-        if (!res.ok || data.error) {
-          throw new Error(data.error || "Unable to create identity.");
-        }
+        // Save for dashboard
+        localStorage.setItem("ias_username", fullUsername);
+        localStorage.setItem("ias_name", fullName);
+        localStorage.setItem("ias_email", baseEmail);
+        if (latestSoulmark) localStorage.setItem("ias_soulmark", latestSoulmark);
+        localStorage.setItem("displayIdentity", mode);
+        localStorage.setItem("showDonationAmount", showAmt ? "1" : "0");
 
-        // Save identity locally for dashboard
-        try {
-          localStorage.setItem("ias_username", fullUsername);
-          localStorage.setItem("ias_name", fullNameRaw);
-          localStorage.setItem("ias_email", baseEmail);
-          if (latestSoulmark) {
-            localStorage.setItem("ias_soulmark", latestSoulmark);
-          }
-          localStorage.setItem("displayIdentity", identityMode);
-          localStorage.setItem("showDonationAmount", showAmount ? "1" : "0");
-        } catch (e) {
-          console.warn("localStorage unavailable:", e);
-        }
-
-        registerStatus.textContent = "Identity created. Redirecting to dashboard…";
+        registerStatus.textContent = "Identity created. Redirecting…";
 
         const qs = new URLSearchParams({
           username: fullUsername,
-          mode: identityMode,
-          showDonation: showAmount ? "1" : "0"
+          mode,
+          showDonation: showAmt ? "1" : "0"
         });
 
-        setTimeout(() => {
-          window.location.href = `iascendai-dashboard.html?${qs.toString()}`;
-        }, 600);
+        setTimeout(() =>
+          window.location.href = `iascendai-dashboard.html?${qs.toString()}`, 600
+        );
 
       } catch (err) {
-        console.error(err);
-        registerStatus.textContent = err.message || "Network error creating identity.";
+        registerStatus.textContent = err.message || "Registration error.";
         registerBtn.disabled = false;
         registerBtn.textContent = "Create My iAscendAi Identity";
       }
     });
   </script>
+
 </body>
 </html>
