@@ -477,97 +477,92 @@ app.get("/check-username/:username", (req, res) => {
 });
 
 // --------------------------------------------------
-// REQUIRED ENDPOINT FOR FRONTEND: /register
-// (Wrapper around existing /register-username logic)
+// UPDATED ENDPOINT: /register
+// Supports BOTH donor and non-donor signups
 // --------------------------------------------------
 app.post("/register", (req, res) => {
   const {
     name,
     email,
     username,
-    donationEmail,
     soulmark,
     displayIdentity,
     showDonationAmount
   } = req.body;
 
-  if (!email || !username || !soulmark) {
+  if (!email || !username) {
     return res.status(400).json({
-      error: "Missing required fields."
+      success: false,
+      message: "Email and username are required."
     });
   }
 
-  // Load registry
+  const isDonorSignup = soulmark && soulmark !== "null" && soulmark !== null;
+
   const registry = readRegistry();
   const identities = registry.identities || [];
-  const donations = registry.donations || [];
 
   const canonicalUsername = username.toLowerCase();
   const canonicalEmail = email.toLowerCase();
 
   // Username conflict check
   const conflict = identities.find(
-    i =>
-      (i.username || "").toLowerCase() === canonicalUsername &&
-      (i.email || "").toLowerCase() !== canonicalEmail
+    i => (i.username || "").toLowerCase() === canonicalUsername
   );
 
   if (conflict) {
     return res.status(409).json({
-      error: "Username already taken."
+      success: false,
+      message: "Username already taken."
     });
   }
 
   const now = new Date().toISOString();
 
-  // Find or create identity
-  let identity = identities.find(
-    i => (i.email || "").toLowerCase() === canonicalEmail
-  );
+  // Create new identity
+  const newIdentity = {
+    identity_id: "ias-" + crypto.randomUUID(),
+    username: canonicalUsername,
+    email: canonicalEmail,
+    soulmarks: [],
+    registered_since: now,
+    displayIdentity: displayIdentity || "username",
+    showDonationAmount: !!showDonationAmount
+  };
 
-  if (!identity) {
-    identity = {
-      identity_id: "ias-" + crypto.randomUUID(),
-      username: canonicalUsername,
-      email,
-      soulmarks: [soulmark],
-      registered_since: now,
-      displayIdentity,
-      showDonationAmount
-    };
-    identities.push(identity);
-  } else {
-    identity.username = canonicalUsername;
-    if (!Array.isArray(identity.soulmarks)) identity.soulmarks = [];
-    if (!identity.soulmarks.includes(soulmark)) {
-      identity.soulmarks.push(soulmark);
-    }
-    identity.displayIdentity = displayIdentity;
-    identity.showDonationAmount = showDonationAmount;
+  // If donor signup, attach SoulMark
+  if (isDonorSignup) {
+    newIdentity.soulmarks.push(soulmark);
   }
 
-  // Update donations for the email
-  donations.forEach(d => {
-    if (d.email && d.email.toLowerCase() === canonicalEmail) {
-      d.username_created = true;
-      d.identity_username = canonicalUsername;
-    }
-  });
-
+  identities.push(newIdentity);
   registry.identities = identities;
-  registry.donations = donations;
+
+  // If donor signup, update donations table too
+  if (isDonorSignup) {
+    const donations = registry.donations || [];
+    donations.forEach(d => {
+      if (d.email && d.email.toLowerCase() === canonicalEmail) {
+        d.username_created = true;
+        d.identity_username = canonicalUsername;
+      }
+    });
+    registry.donations = donations;
+  }
+
   writeRegistry(registry);
 
   return res.json({
     success: true,
     identity: {
       username: canonicalUsername,
-      email,
-      soulmark,
-      identity_id: identity.identity_id
+      email: canonicalEmail,
+      soulmarks: newIdentity.soulmarks,
+      identity_id: newIdentity.identity_id,
+      donor: isDonorSignup
     }
   });
-});
+  });
 
 // --------------------------------------------------
 // 8. START SERVER
