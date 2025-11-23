@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Your iAscendAi Identity</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="card" style="max-width:480px; width:100%;">
+
+      <!-- HEADER -->
+      <div class="header-card">
+        <h1>iAscendAi</h1>
+        <p>Your Authored Identity</p>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-title">Create Your Identity</div>
+        <p class="subtext">
+          Begin your iAscendAi journey by creating your identity.
+          You can always donate later to generate your SoulMarkⓈ and unlock
+          verification features.
+        </p>
+
+        <!-- FORM -->
+        <label>Contact Email</label>
+        <input id="emailInput" type="email" placeholder="you@example.com" />
+
+        <label>Full Name</label>
+        <input id="fullnameInput" type="text" placeholder="Your full name" />
+
+        <label>Choose Username</label>
+        <div class="username-box">
+          <input id="usernameInput" placeholder="yourname" oninput="checkUsername()" />
+          <span>@iascendai</span>
+        </div>
+
+        <div id="usernameStatus"></div>
+
+        <button id="createBtn" class="primary-btn" onclick="createIdentity()">
+          Create My iAscendAi Identity
+        </button>
+
+        <div class="subtext" style="margin-top:12px;">
+          Already have an identity?  
+          <a href="iascendai-login.html">Log in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const BACKEND = "YOUR_BACKEND_URL";  // Replace for production
+
+async function checkUsername() {
+  const u = document.getElementById("usernameInput").value.trim();
+  const status = document.getElementById("usernameStatus");
+
+  if (!u) {
+    status.innerHTML = "";
+    return;
+  }
+
+  const res = await fetch(`${BACKEND}/check-username/${u}`);
+  const data = await res.json();
+
+  if (data.available) {
+    status.style.color = "green";
+    status.innerHTML = "✔️ Username available";
+  } else {
+    status.style.color = "red";
+    status.innerHTML = "❌ Username taken";
+  }
+}
+
+async function createIdentity() {
+  const email = document.getElementById("emailInput").value.trim();
+  const fullname = document.getElementById("fullnameInput").value.trim();
+  const username = document.getElementById("usernameInput").value.trim();
+
+  if (!email || !fullname || !username) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  const res = await fetch(`${BACKEND}/register`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      email,
+      fullname,
+      username,
+      soulmark: null  // No SoulMark yet
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    localStorage.setItem("iascendai-username", username);
+    window.location.href = "iascendai-dashboard.html";
+  } else {
+    alert("Error creating identity.");
+  }
+}
+</script>
+
+</body>
+</html>
