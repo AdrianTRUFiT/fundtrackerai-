@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- NEW STYLES — ONLY ADDED HERE, NO CHANGES TO styles.css -->
   <style>
     .success-status {
       background: #f8bc07;
@@ -18,6 +17,14 @@
       border-radius: 14px;
       margin: 24px 0;
       line-height: 1.4;
+    }
+
+    .chip {
+      background: #334155;
+      padding: 10px 16px;
+      border-radius: 12px;
+      display: inline-block;
+      margin: 8px 0;
     }
 
     .reveal-pill {
@@ -33,31 +40,46 @@
       display: inline-block;
     }
 
-    .reveal-pill:hover {
-      background: #e0a800;
-    }
-
-    .chip {
-      background: #334155;
-      padding: 10px 16px;
-      border-radius: 12px;
-      display: inline-block;
-      margin: 8px 0;
-    }
-
     .ref-row {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      align-items: flex-start;
     }
 
     @media (min-width: 480px) {
       .ref-row {
         flex-direction: row;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
       }
+    }
+
+    /* Visibility Section */
+    .visibility-box {
+      margin-top: 28px;
+      padding: 16px 18px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 14px;
+    }
+
+    .visibility-box h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      color: #f1f5f9;
+    }
+
+    .vis-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .vis-row label {
+      color: #cbd5e1;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -66,7 +88,6 @@
   <div class="app-shell">
     <div class="card">
 
-      <!-- BRAND HEADER -->
       <div class="brand-row">
         <div class="brand-mark">$</div>
         <div>
@@ -78,13 +99,12 @@
       <h2>Payment Status</h2>
       <p class="subtext">Your transaction has been securely processed.</p>
 
-      <!-- YELLOW VERIFIED BADGE (PERFECTLY PADDED) -->
       <div id="statusText" class="success-status">
         Checking...
       </div>
 
-      <!-- RECEIPT DETAILS -->
       <div id="details" style="margin-top:16px; display:none;">
+
         <p class="label">Name</p>
         <div id="nameText" class="value"></div>
 
@@ -97,18 +117,41 @@
         <p class="label">Reference ID</p>
         <div id="refRow" class="ref-row">
           <span id="refText" class="value ref-value"></span>
-          <button id="inlineRevealBtn" class="reveal-pill">
-            Reveal SoulMarkⓈ →
-          </button>
+          <button id="inlineRevealBtn" class="reveal-pill">Reveal SoulMarkⓈ →</button>
         </div>
 
         <p class="info" style="margin-top:24px;">
           To access your full verified SoulMarkⓈ and your real-time impact dashboard,
           create your iAscendAi username below.
         </p>
+
+        <!-- ⭐ NEW VISIBILITY SECTION ⭐ -->
+        <div class="visibility-box">
+          <h3>How should your donation appear on the Impact Board?</h3>
+
+          <div class="vis-row">
+            <input type="checkbox" id="showName" checked />
+            <label for="showName">Show my real name</label>
+          </div>
+
+          <div class="vis-row">
+            <input type="checkbox" id="showUsername" checked />
+            <label for="showUsername">Show my username</label>
+          </div>
+
+          <div class="vis-row">
+            <input type="checkbox" id="showAmount" checked />
+            <label for="showAmount">Show donation amount</label>
+          </div>
+
+          <p id="anonWarning" style="color:#f8bc07; margin-top:10px; display:none;">
+            Anonymous mode requires donation amount to be visible.
+          </p>
+        </div>
+        <!-- END VISIBILITY SECTION -->
+
       </div>
 
-      <!-- MAIN CTA BUTTON -->
       <button id="signupBtn" class="btn-primary" style="display:none; margin-top:32px;">
         Reveal My Verified SoulMarkⓈ →
       </button>
@@ -122,6 +165,36 @@
       if (!email) return "unknown";
       const [u, d] = email.split("@");
       return u[0] + "•••@" + d;
+    }
+
+    // ⭐ Apply Visibility Rules
+    function applyVisibilityLogic() {
+      const showName = document.getElementById("showName");
+      const showUser = document.getElementById("showUsername");
+      const showAmount = document.getElementById("showAmount");
+      const anonWarning = document.getElementById("anonWarning");
+
+      function update() {
+        const nameOn = showName.checked;
+        const userOn = showUser.checked;
+
+        // If Name + Username are OFF → Anonymous Mode
+        if (!nameOn && !userOn) {
+          showAmount.checked = true;
+          anonWarning.style.display = "block";
+        } else {
+          anonWarning.style.display = "none";
+        }
+
+        // Save choices
+        localStorage.setItem("fta_show_name", showName.checked ? "1" : "0");
+        localStorage.setItem("fta_show_username", showUser.checked ? "1" : "0");
+        localStorage.setItem("fta_show_amount", showAmount.checked ? "1" : "0");
+      }
+
+      showName.addEventListener("change", update);
+      showUser.addEventListener("change", update);
+      showAmount.addEventListener("change", update);
     }
 
     async function verify() {
@@ -147,7 +220,7 @@
         if (data.verified && data.entry) {
           const e = data.entry;
 
-          // 🔥 SEND TO EMAILASSISTAI AUTORESPONDER
+          // Autoresponder (already working)
           try {
             await fetch("https://emailassistai.onrender.com/api/donation-email", {
               method: "POST",
@@ -158,8 +231,8 @@
                 soulmark: e.soulmark,
                 amount: e.amount / 100,
                 currency: "USD",
-                sessionId: e.id
-              })
+                sessionId: e.id,
+              }),
             });
           } catch (err) {
             console.error("Autoresponder failed:", err);
@@ -167,30 +240,35 @@
 
           statusEl.textContent = "Payment Verified";
 
-          document.getElementById("nameText").textContent =
-            e.name?.trim() || "Donor";
+          document.getElementById("nameText").textContent = e.name?.trim() || "Donor";
           document.getElementById("emailChip").textContent = maskEmail(e.email);
           document.getElementById("amountText").textContent =
             "$" + (e.amount / 100).toFixed(2);
 
-          const shortRef =
-            e.soulmark.substring(0, 10) + "••••••••";
+          const shortRef = e.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
-          // Save to localStorage for register page
+          // Save Base Data
           localStorage.setItem("fta_name", e.name || "");
           localStorage.setItem("fta_email", e.email || "");
           localStorage.setItem("fta_amount", String(e.amount || ""));
           localStorage.setItem("fta_soulmark", e.soulmark || "");
           localStorage.setItem("fta_last_session", e.id || "");
 
-          // Show everything
+          // Defaults for visibility
+          localStorage.setItem("fta_show_name", "1");
+          localStorage.setItem("fta_show_username", "1");
+          localStorage.setItem("fta_show_amount", "1");
+
+          // Show UI
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
           const go = () => (window.location.href = "register.html");
           signupBtn.onclick = go;
           inlineRevealBtn.onclick = go;
+
+          applyVisibilityLogic();
 
         } else {
           statusEl.textContent = "Verification Failed";
