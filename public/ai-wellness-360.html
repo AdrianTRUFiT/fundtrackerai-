@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Wellness 360 – iAscendAi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Helvetica Neue", Arial, sans-serif;
+      background: #f3f4f6;
+    }
+
+    .aw360-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f9fafb;
+    }
+
+    .aw360-status {
+      background: #000;
+      color: #fff;
+      text-align: center;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+
+    .aw360-main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .aw360-card-gradient {
+      background: linear-gradient(to right, #7c3aed, #ec4899);
+      border-radius: 18px;
+      padding: 18px;
+      color: #fff;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .aw360-chip {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .aw360-progress-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.25);
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .aw360-progress-fill {
+      height: 8px;
+      border-radius: 999px;
+      background: #fff;
+      width: 25%;
+      transition: width 0.3s ease;
+    }
+
+    .aw360-section-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+      border: 1px solid #e5e7eb;
+    }
+
+    .aw360-section-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .aw360-pill-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .aw360-pill-btn {
+      border-radius: 14px;
+      padding: 10px;
+      border: 2px solid #e5e7eb;
+      background: #f9fafb;
+      text-align: left;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .aw360-pill-btn.active {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+    }
+
+    .aw360-pill-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .aw360-cta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .aw360-cta {
+      border-radius: 18px;
+      padding: 14px;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .aw360-cta-blue {
+      background: linear-gradient(to right, #2563eb, #1d4ed8);
+    }
+
+    .aw360-cta-green {
+      background: linear-gradient(to right, #22c55e, #16a34a);
+    }
+
+    .aw360-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 26px rgba(15, 23, 42, 0.5);
+    }
+
+    .aw360-badge {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    /* Modules */
+    .aw360-module-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+
+    .aw360-module-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .aw360-module-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .aw360-module-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .aw360-module-sub {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .aw360-module-footer {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .aw360-module-start {
+      background: none;
+      border: none;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    /* Chat */
+    .aw360-chat-shell {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 78px); /* status + bottom nav approx */
+      max-height: 640px;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      border: 1px solid #e5e7eb;
+    }
+
+    .aw360-chat-header {
+      padding: 12px 14px;
+      background: linear-gradient(to right, #2563eb, #7c3aed);
+      color: #fff;
+    }
+
+    .aw360-chat-messages {
+      flex: 1;
+      padding: 12px;
+      background: #f3f4f6;
+      overflow-y: auto;
+    }
+
+    .aw360-msg-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .aw360-msg-row.me {
+      justify-content: flex-end;
+    }
+
+    .aw360-msg-bubble {
+      max-width: 80%;
+      padding: 8px 11px;
+      font-size: 13px;
+      border-radius: 14px;
+    }
+
+    .aw360-msg-me {
+      background: #2563eb;
+      color: #fff;
+      border-bottom-right-radius: 2px;
+    }
+
+    .aw360-msg-bot {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-bottom-left-radius: 2px;
+    }
+
+    .aw360-chat-inputbar {
+      padding: 10px;
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .aw360-chat-inputwrap {
+      display: flex;
+      gap: 8px;
+    }
+
+    .aw360-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .aw360-chat-send {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Bottom nav */
+    .aw360-bottom-nav {
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      padding: 6px 8px;
+    }
+
+    .aw360-bottom-row {
+      display: flex;
+      justify-content: space-around;
+      gap: 4px;
+    }
+
+    .aw360-nav-btn {
+      border: none;
+      background: none;
+      padding: 4px 6px;
+      border-radius: 12px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      color: #6b7280;
+      cursor: pointer;
+    }
+
+    .aw360-nav-btn span {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .aw360-nav-btn.active {
+      color: #1d4ed8;
+      background: #e0edff;
+    }
+
+    .aw360-nav-icon {
+      font-size: 18px;
+    }
+
+    .aw360-muted {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="aw360-shell">
+    <!-- Status bar -->
+    <div class="aw360-status">AI Wellness 360 • TechAngel</div>
+
+    <!-- Main content -->
+    <div id="aw360-main" class="aw360-main"></div>
+
+    <!-- Bottom navigation -->
+    <div class="aw360-bottom-nav">
+      <div class="aw360-bottom-row">
+        <button class="aw360-nav-btn active" data-screen="home">
+          <div class="aw360-nav-icon">❤️</div>
+          <span>Home</span>
+        </button>
+        <button class="aw360-nav-btn" data-screen="modules">
+          <div class="aw360-nav-icon">📚</div>
+          <span>Learn</span>
+        </button>
+        <button class="aw360-nav-btn" data-screen="chat">
+          <div class="aw360-nav-icon">🤖</div>
+          <span>TechAngel</span>
+        </button>
+        <button class="aw360-nav-btn" data-screen="progress">
+          <div class="aw360-nav-icon">🎯</div>
+          <span>Progress</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- STATE ----------
+    let currentScreen = "home";
+
+    const modules = [
+      { id: 1, title: "Introduction to Lifestyle Medicine", emoji: "📗", color: "#3b82f6" },
+      { id: 2, title: "Social Connectedness", emoji: "🧑‍🤝‍🧑", color: "#8b5cf6" },
+      { id: 3, title: "Food is Medicine", emoji: "🍎", color: "#22c55e" },
+      { id: 4, title: "Physical Activity & Cancer", emoji: "🏃‍♂️", color: "#f97316" },
+      { id: 5, title: "Stress Management", emoji: "🧠", color: "#ec4899" },
+      { id: 6, title: "The Importance of Sleep", emoji: "🌙", color: "#6366f1" },
+      { id: 7, title: "Managing Symptoms", emoji: "💗", color: "#ef4444" },
+      { id: 8, title: "Optimal Lifestyle", emoji: "🏅", color: "#facc15" }
+    ];
+
+    const techAngelOpeners = [
+      "Hi there! I’m Tech Angel AI, your personal wellness companion. How are you feeling today?",
+      "Remember, small changes make a big difference! What would you like to focus on today?",
+      "You’re doing amazing on your wellness journey. Let’s check your goals – what feels most important right now?"
+    ];
+
+    const techAngelFollowups = [
+      "That's wonderful to hear! Every small step counts toward your wellness goals.",
+      "I understand how you're feeling. Let's break this down into manageable pieces.",
+      "Based on what you've shared, I'd recommend starting with the nutrition module. How does that feel?",
+      "Your progress is inspiring! Have you tried any mindfulness practices this week?",
+      "Let's set a simple goal together. What's one thing you can do for yourself today?"
+    ];
+
+    // persisted state (localStorage-backed)
+    let chatMessages = [];
+    let todayProgress = {
+      nutrition: false,
+      exercise: false,
+      meditation: false,
+      sleep: false
+    };
+    let completedModules = new Set([1]); // intro done by default
+
+    function loadState() {
+      try {
+        const storedProgress = localStorage.getItem("aw360_todayProgress");
+        if (storedProgress) {
+          todayProgress = JSON.parse(storedProgress);
+        }
+        const storedModules = localStorage.getItem("aw360_completedModules");
+        if (storedModules) {
+          const arr = JSON.parse(storedModules);
+          completedModules = new Set(arr);
+        }
+        const storedChat = localStorage.getItem("aw360_chatMessages");
+        if (storedChat) {
+          chatMessages = JSON.parse(storedChat);
+        }
+      } catch (e) {
+        console.warn("AW360: could not load state", e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem("aw360_todayProgress", JSON.stringify(todayProgress));
+        localStorage.setItem("aw360_completedModules", JSON.stringify(Array.from(completedModules)));
+        localStorage.setItem("aw360_chatMessages", JSON.stringify(chatMessages));
+      } catch (e) {
+        console.warn("AW360: could not save state", e);
+      }
+    }
+
+    // ---------- RENDERERS ----------
+    function render() {
+      const main = document.getElementById("aw360-main");
+      if (!main) return;
+
+      if (currentScreen === "home") {
+        main.innerHTML = renderHome();
+        attachHomeHandlers();
+      } else if (currentScreen === "modules") {
+        main.innerHTML = renderModules();
+        attachModuleHandlers();
+      } else if (currentScreen === "chat") {
+        main.innerHTML = renderChat();
+        attachChatHandlers();
+        ensureInitialTechAngel();
+      } else if (currentScreen === "progress") {
+        main.innerHTML = renderProgress();
+      }
+
+      // update bottom nav active
+      document.querySelectorAll(".aw360-nav-btn").forEach((btn) => {
+        if (btn.dataset.screen === currentScreen) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+    }
+
+    function renderHome() {
+      const goals = [
+        { key: "nutrition", label: "Healthy Meal", emoji: "🥗" },
+        { key: "exercise", label: "20 min Activity", emoji: "🏃‍♀️" },
+        { key: "meditation", label: "Mindfulness", emoji: "🧘‍♂️" },
+        { key: "sleep", label: "Sleep Prep", emoji: "😴" }
+      ];
+
+      const completedCount = Object.values(todayProgress).filter(Boolean).length;
+      const percent = Math.round((completedCount / goals.length) * 100) || 0;
+      const width = `${Math.max(percent, 5)}%`;
+
+      return `
+        <div class="aw360-home space-y-6">
+          <div class="aw360-card-gradient">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div>
+                <div class="aw360-chip">
+                  <span>✨ AI Wellness 360</span>
+                </div>
+                <h1 style="margin:10px 0 2px 0;font-size:22px;font-weight:800;">Welcome back</h1>
+                <p style="margin:0;font-size:13px;opacity:0.9;">Let’s keep your mind and body in motion today.</p>
+              </div>
+              <div style="font-size:28px;">🌱</div>
+            </div>
+            <div style="margin-top:14px;background:rgba(255,255,255,0.2);border-radius:16px;padding:10px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;">
+                <span>Today’s wellness goals</span>
+                <span style="font-weight:700;">${percent}%</span>
+              </div>
+              <div class="aw360-progress-bar">
+                <div class="aw360-progress-fill" style="width:${width};"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="aw360-section-card">
+            <h2 class="aw360-section-title">Today’s Focus</h2>
+            <p class="aw360-muted" style="margin-bottom:10px;">Tap a tile when you complete it today.</p>
+            <div class="aw360-pill-grid">
+              ${goals
+                .map((g) => {
+                  const active = todayProgress[g.key];
+                  return `
+                    <button
+                      class="aw360-pill-btn ${active ? "active" : ""}"
+                      data-goal="${g.key}"
+                    >
+                      <div class="aw360-pill-icon" style="background:${active ? "#bbf7d0" : "#e5e7eb"};">
+                        ${active ? "✅" : g.emoji}
+                      </div>
+                      <span>${g.label}</span>
+                    </button>
+                  `;
+                })
+                .join("")}
+            </div>
+          </div>
+
+          <div class="aw360-cta-grid">
+            <button class="aw360-cta aw360-cta-blue" id="aw360-chat-cta">
+              <div style="font-size:20px;">🤖</div>
+              <div>Chat with TechAngel</div>
+              <div class="aw360-badge">Ask anything – I’m listening.</div>
+            </button>
+            <button class="aw360-cta aw360-cta-green" id="aw360-learn-cta">
+              <div style="font-size:20px;">📚</div>
+              <div>Continue Learning</div>
+              <div class="aw360-badge">${completedModules.size} / ${
+        modules.length
+      } modules touched</div>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderModules() {
+      const maxCompleted = Math.max(...Array.from(completedModules));
+      return `
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div>
+              <h1 style="margin:0;font-size:20px;font-weight:800;">Wellness Course</h1>
+              <p class="aw360-muted" style="margin-top:3px;">Tap a module to start.</p>
+            </div>
+            <div style="font-size:12px;color:#6b7280;">
+              ${completedModules.size} / ${modules.length} completed
+            </div>
+          </div>
+
+          ${modules
+            .map((m) => {
+              const isCompleted = completedModules.has(m.id);
+              const isLocked = m.id > maxCompleted + 1;
+              const status = isCompleted
+                ? "Completed"
+                : isLocked
+                ? "Locked"
+                : "Available";
+
+              return `
+                <div class="aw360-module-card" data-module="${m.id}">
+                  <div class="aw360-module-header">
+                    <div class="aw360-module-icon" style="background:${m.color};">
+                      ${m.emoji}
+                    </div>
+                    <div style="flex:1;">
+                      <p class="aw360-module-title">${m.title}</p>
+                      <p class="aw360-module-sub">Module ${m.id} • ${status}</p>
+                    </div>
+                    <div>
+                      ${
+                        isCompleted
+                          ? "✅"
+                          : isLocked
+                          ? "🔒"
+                          : '<span style="font-size:16px;color:#9ca3af;">›</span>'
+                      }
+                    </div>
+                  </div>
+                  ${
+                    !isLocked && !isCompleted
+                      ? `
+                        <div class="aw360-module-footer">
+                          <button class="aw360-module-start" data-start="${m.id}">
+                            ▶ Start Module
+                          </button>
+                        </div>
+                      `
+                      : ""
+                  }
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    }
+
+    function renderChat() {
+      const msgsHtml = chatMessages
+        .map((msg) => {
+          const me = msg.sender === "You";
+          return `
+            <div class="aw360-msg-row ${me ? "me" : ""}">
+              <div class="aw360-msg-bubble ${
+                me ? "aw360-msg-me" : "aw360-msg-bot"
+              }">
+                ${msg.message}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      return `
+        <div class="aw360-chat-shell">
+          <div class="aw360-chat-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:34px;height:34px;border-radius:999px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;">
+                ✨
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:14px;">TechAngel AI</div>
+                <div style="font-size:12px;opacity:0.9;">Your wellness companion</div>
+              </div>
+            </div>
+          </div>
+          <div class="aw360-chat-messages" id="aw360-chat-messages">
+            ${msgsHtml}
+          </div>
+          <div class="aw360-chat-inputbar">
+            <div class="aw360-chat-inputwrap">
+              <input
+                id="aw360-chat-input"
+                class="aw360-input"
+                type="text"
+                placeholder="Ask TechAngel anything..."
+              />
+              <button id="aw360-chat-send" class="aw360-chat-send">Send</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProgress() {
+      const goalsDone = Object.values(todayProgress).filter(Boolean).length;
+      const percent = Math.round((goalsDone / 4) * 100) || 0;
+
+      return `
+        <div style="text-align:center;padding-top:40px;">
+          <div style="font-size:42px;margin-bottom:10px;">📈</div>
+          <h2 style="font-size:20px;font-weight:800;margin-bottom:6px;">Your Progress</h2>
+          <p class="aw360-muted" style="margin:0 0 18px 0;">
+            This is an early snapshot of your AI Wellness 360 journey.
+          </p>
+          <div class="aw360-section-card" style="text-align:left;">
+            <p style="margin:0 0 6px 0;font-size:14px;">Daily goals completed today</p>
+            <h3 style="margin:0;font-size:22px;font-weight:800;">${goalsDone} / 4</h3>
+            <div class="aw360-progress-bar" style="margin-top:10px;">
+              <div class="aw360-progress-fill" style="background:#22c55e;width:${Math.max(
+                percent,
+                5
+              )}%;"></div>
+            </div>
+            <p class="aw360-muted" style="margin-top:10px;">
+              More detailed analytics will appear here as your journey continues.
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------- HANDLERS ----------
+    function attachHomeHandlers() {
+      document.querySelectorAll("[data-goal]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const goal = btn.getAttribute("data-goal");
+          todayProgress[goal] = !todayProgress[goal];
+          saveState();
+          render();
+        });
+      });
+
+      const chatCta = document.getElementById("aw360-chat-cta");
+      const learnCta = document.getElementById("aw360-learn-cta");
+      if (chatCta) {
+        chatCta.addEventListener("click", () => {
+          currentScreen = "chat";
+          render();
+        });
+      }
+      if (learnCta) {
+        learnCta.addEventListener("click", () => {
+          currentScreen = "modules";
+          render();
+        });
+      }
+    }
+
+    function attachModuleHandlers() {
+      document.querySelectorAll("[data-start]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.getAttribute("data-start"));
+          completedModules.add(id);
+          saveState();
+          alert("Module started! (Detailed lessons will plug in here later.)");
+          render();
+        });
+      });
+    }
+
+    function ensureInitialTechAngel() {
+      if (chatMessages.length === 0) {
+        const opener =
+          techAngelOpeners[
+            Math.floor(Math.random() * techAngelOpeners.length)
+          ];
+        chatMessages.push({ sender: "TechAngel AI", message: opener });
+        saveState();
+        render(); // re-render chat with message
+        return;
+      }
+      // scroll to bottom
+      const box = document.getElementById("aw360-chat-messages");
+      if (box) {
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
+    function attachChatHandlers() {
+      const input = document.getElementById("aw360-chat-input");
+      const sendBtn = document.getElementById("aw360-chat-send");
+      if (!input || !sendBtn) return;
+
+      function send() {
+        const text = input.value.trim();
+        if (!text) return;
+        chatMessages.push({ sender: "You", message: text });
+        input.value = "";
+        saveState();
+        render(); // re-render to show your message
+
+        // simulate TechAngel
+        setTimeout(() => {
+          const resp =
+            techAngelFollowups[
+              Math.floor(Math.random() * techAngelFollowups.length)
+            ];
+          chatMessages.push({ sender: "TechAngel AI", message: resp });
+          saveState();
+          render();
+        }, 900);
+      }
+
+      sendBtn.addEventListener("click", send);
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          send();
+        }
+      });
+
+      const box = document.getElementById("aw360-chat-messages");
+      if (box) {
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
+    // bottom nav
+    document.querySelectorAll(".aw360-nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const screen = btn.dataset.screen;
+        currentScreen = screen;
+        render();
+      });
+    });
+
+    // ---------- INIT ----------
+    loadState();
+    render();
+  </script>
+</body>
+</html>
