@@ -15,7 +15,7 @@
       text-align: center;
       padding: 16px 32px;
       border-radius: 14px;
-      margin: 24px 0;
+      margin: 24px 0 16px 0;
       line-height: 1.4;
     }
 
@@ -54,32 +54,43 @@
       }
     }
 
-    /* Visibility Section */
-    .visibility-box {
-      margin-top: 28px;
-      padding: 16px 18px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 14px;
-    }
-
-    .visibility-box h3 {
-      font-size: 16px;
-      font-weight: 700;
-      margin: 0 0 10px 0;
-      color: #f1f5f9;
-    }
-
-    .vis-row {
+    /* Small visibility controls just under Payment Verified */
+    .visibility-inline {
       display: flex;
+      gap: 12px;
+      justify-content: flex-start;
       align-items: center;
-      gap: 10px;
-      margin: 8px 0;
+      margin: 8px 0 4px 0;
+      font-size: 14px;
     }
 
-    .vis-row label {
-      color: #cbd5e1;
-      font-size: 15px;
+    .vis-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      color: #e5e7eb;
+      white-space: nowrap;
+    }
+
+    .vis-toggle input {
+      width: 16px;
+      height: 16px;
+      accent-color: #0f766e;
+      margin: 0;
+    }
+
+    .vis-note {
+      font-size: 12px;
+      color: #9ca3af;
+      margin: 0 0 10px 2px;
+    }
+
+    .vis-note.warning {
+      color: #facc15;
     }
   </style>
 </head>
@@ -99,8 +110,30 @@
       <h2>Payment Status</h2>
       <p class="subtext">Your transaction has been securely processed.</p>
 
+      <!-- Yellow status pill -->
       <div id="statusText" class="success-status">
         Checking...
+      </div>
+
+      <!-- tiny inline controls directly under Payment Verified -->
+      <div id="visibilityControls" style="display:none;">
+        <div class="visibility-inline">
+          <label class="vis-toggle">
+            <input type="checkbox" id="showName" checked />
+            <span>Show my name</span>
+          </label>
+
+          <label class="vis-toggle">
+            <input type="checkbox" id="showAmount" checked />
+            <span>Show amount</span>
+          </label>
+        </div>
+        <p id="anonNote" class="vis-note">
+          You can hide your name or amount at any time in your dashboard.
+        </p>
+        <p id="anonWarning" class="vis-note warning" style="display:none;">
+          If you hide your name, your donation will appear as Anonymous, but the amount must stay visible.
+        </p>
       </div>
 
       <div id="details" style="margin-top:16px; display:none;">
@@ -124,32 +157,6 @@
           To access your full verified SoulMarkⓈ and your real-time impact dashboard,
           create your iAscendAi username below.
         </p>
-
-        <!-- ⭐ NEW VISIBILITY SECTION ⭐ -->
-        <div class="visibility-box">
-          <h3>How should your donation appear on the Impact Board?</h3>
-
-          <div class="vis-row">
-            <input type="checkbox" id="showName" checked />
-            <label for="showName">Show my real name</label>
-          </div>
-
-          <div class="vis-row">
-            <input type="checkbox" id="showUsername" checked />
-            <label for="showUsername">Show my username</label>
-          </div>
-
-          <div class="vis-row">
-            <input type="checkbox" id="showAmount" checked />
-            <label for="showAmount">Show donation amount</label>
-          </div>
-
-          <p id="anonWarning" style="color:#f8bc07; margin-top:10px; display:none;">
-            Anonymous mode requires donation amount to be visible.
-          </p>
-        </div>
-        <!-- END VISIBILITY SECTION -->
-
       </div>
 
       <button id="signupBtn" class="btn-primary" style="display:none; margin-top:32px;">
@@ -167,34 +174,44 @@
       return u[0] + "•••@" + d;
     }
 
-    // ⭐ Apply Visibility Rules
-    function applyVisibilityLogic() {
-      const showName = document.getElementById("showName");
-      const showUser = document.getElementById("showUsername");
+    function initVisibilityControls() {
+      const wrapper    = document.getElementById("visibilityControls");
+      const showName   = document.getElementById("showName");
       const showAmount = document.getElementById("showAmount");
       const anonWarning = document.getElementById("anonWarning");
 
-      function update() {
-        const nameOn = showName.checked;
-        const userOn = showUser.checked;
+      wrapper.style.display = "block";
 
-        // If Name + Username are OFF → Anonymous Mode
-        if (!nameOn && !userOn) {
+      function syncToStorage() {
+        localStorage.setItem("fta_show_name", showName.checked ? "1" : "0");
+        localStorage.setItem("fta_show_amount", showAmount.checked ? "1" : "0");
+      }
+
+      function handleChange(changed) {
+        const nameOn   = showName.checked;
+        const amountOn = showAmount.checked;
+
+        // RULE:
+        // - If name is OFF, donation becomes Anonymous.
+        // - Anonymous donations MUST still show amount.
+        if (!nameOn && !amountOn) {
+          // user tried to turn both off → force amount back on
           showAmount.checked = true;
+          anonWarning.style.display = "block";
+        } else if (!nameOn && amountOn) {
           anonWarning.style.display = "block";
         } else {
           anonWarning.style.display = "none";
         }
 
-        // Save choices
-        localStorage.setItem("fta_show_name", showName.checked ? "1" : "0");
-        localStorage.setItem("fta_show_username", showUser.checked ? "1" : "0");
-        localStorage.setItem("fta_show_amount", showAmount.checked ? "1" : "0");
+        syncToStorage();
       }
 
-      showName.addEventListener("change", update);
-      showUser.addEventListener("change", update);
-      showAmount.addEventListener("change", update);
+      showName.addEventListener("change", () => handleChange("name"));
+      showAmount.addEventListener("change", () => handleChange("amount"));
+
+      // initial sync
+      handleChange(null);
     }
 
     async function verify() {
@@ -220,7 +237,7 @@
         if (data.verified && data.entry) {
           const e = data.entry;
 
-          // Autoresponder (already working)
+          // autoresponder call (already working)
           try {
             await fetch("https://emailassistai.onrender.com/api/donation-email", {
               method: "POST",
@@ -231,8 +248,8 @@
                 soulmark: e.soulmark,
                 amount: e.amount / 100,
                 currency: "USD",
-                sessionId: e.id,
-              }),
+                sessionId: e.id
+              })
             });
           } catch (err) {
             console.error("Autoresponder failed:", err);
@@ -240,7 +257,8 @@
 
           statusEl.textContent = "Payment Verified";
 
-          document.getElementById("nameText").textContent = e.name?.trim() || "Donor";
+          document.getElementById("nameText").textContent =
+            e.name?.trim() || "Donor";
           document.getElementById("emailChip").textContent = maskEmail(e.email);
           document.getElementById("amountText").textContent =
             "$" + (e.amount / 100).toFixed(2);
@@ -248,19 +266,17 @@
           const shortRef = e.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
-          // Save Base Data
+          // Base data for register + board
           localStorage.setItem("fta_name", e.name || "");
           localStorage.setItem("fta_email", e.email || "");
           localStorage.setItem("fta_amount", String(e.amount || ""));
           localStorage.setItem("fta_soulmark", e.soulmark || "");
           localStorage.setItem("fta_last_session", e.id || "");
 
-          // Defaults for visibility
+          // Default visibility (Name + Amount ON)
           localStorage.setItem("fta_show_name", "1");
-          localStorage.setItem("fta_show_username", "1");
           localStorage.setItem("fta_show_amount", "1");
 
-          // Show UI
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
@@ -268,7 +284,8 @@
           signupBtn.onclick = go;
           inlineRevealBtn.onclick = go;
 
-          applyVisibilityLogic();
+          // now show and wire the little toggles
+          initVisibilityControls();
 
         } else {
           statusEl.textContent = "Verification Failed";
