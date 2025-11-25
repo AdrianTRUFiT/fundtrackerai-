@@ -85,7 +85,7 @@ const username = localStorage.getItem("ias_username");
 
 // Always show ONLY username — never real emails or inferred handles
 if (username && username.trim() !== "") {
-  identityTag.textContent = username + "@iascendai";
+  identityTag.textContent = username;
 } else {
   identityTag.textContent = "Guest User";
 }
