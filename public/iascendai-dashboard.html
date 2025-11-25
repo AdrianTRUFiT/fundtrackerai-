@@ -101,7 +101,13 @@
 
     // ========= AI WELLNESS LOGIC (unchanged visual behavior) =========
 
-    const TODAY = new Date().toISOString().split("T")[0];
+  function getLocalISODate() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return local.toISOString().split("T")[0];
+}
+
+  const TODAY = getLocalISODate();
 
     const moodButtons = document.querySelectorAll(".chip-button");
     const submitBtn = document.getElementById("submitCheckinBtn");
