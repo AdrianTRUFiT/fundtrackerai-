@@ -78,33 +78,17 @@
 
   <script>
     // ========= Identity Pill (Email Logic Updated) =========
-    const savedUsername = localStorage.getItem("ias_username");
-    const accessEmail   = localStorage.getItem("ias_access_email");
-    const donationEmail = localStorage.getItem("ias_donation_email");
-    const legacyEmail   = localStorage.getItem("ias_email");
+const identityTag = document.getElementById("identityTag");
 
-    const identityTag = document.getElementById("identityTag");
+// Username saved from signup
+const username = localStorage.getItem("ias_username");
 
-    function emailToHandle(email) {
-      if (!email) return null;
-      return email.split("@")[0] + "@iascendai";
-    }
-
-let handle = "user@iascendai";
-
-if (savedUsername) {
-  handle = savedUsername + "@iascendai";
-} else if (accessEmail) {
-  handle = emailToHandle(accessEmail);
-} else if (donationEmail) {
-  handle = emailToHandle(donationEmail);
-} else if (legacyEmail) {
-  handle = emailToHandle(legacyEmail);
+// Always show ONLY username — never real emails or inferred handles
+if (username && username.trim() !== "") {
+  identityTag.textContent = username + "@iascendai";
+} else {
+  identityTag.textContent = "Guest User";
 }
-
-identityTag.textContent = handle;
-
-
     // ========= AI WELLNESS LOGIC (unchanged visual behavior) =========
 
   function getLocalISODate() {
