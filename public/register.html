@@ -7,19 +7,19 @@
   <link rel="stylesheet" href="styles.css" />
 
   <style>
-    .info-box {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 14px;
-      padding: 16px 18px;
-      margin: 20px 0;
-    }
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 12px 0;
-      font-size: 15px;
-    }
+  .info-box {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 14px 16px;          /* Was 16px 18px → slightly less */
+  margin: 20px 0;
+}
+
+.info-row {
+  margin: 8px 0;               /* Reduced vertical spacing inside the box */
+  font-size: 15px;
+  align-items: center;         /* Ensures vertical centering */
+}
     .label {
       font-weight: 600;
       color: #cbd5e1;
