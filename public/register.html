@@ -24,23 +24,31 @@
       font-weight: 600;
       color: #cbd5e1;
     }
-    .chip-locked {
-      background: #10b981;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .chip-soulmark {
-      background: #f8bc07;
-      color: #041423;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 15px;
-      display: inline-block;
-    }
+   .chip-locked {
+  background: #10b981;
+  color: white;
+  padding: 6px 12px;           /* Reduced from 8px 14px */
+  border-radius: 8px;          /* Smaller radius */
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  display: inline-block;
+}
+
+.chip-soulmark {
+  background: #f8bc07;
+  color: #041423;
+  padding: 6px 12px;           /* Reduced from 10px 16px → much tighter */
+  border-radius: 8px;          /* Was 12px → now 8px */
+  font-weight: 700;
+  font-size: 14.5px;           /* Slightly smaller than before */
+  line-height: 1.2;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
     /* Username input */
     .input-with-suffix {
