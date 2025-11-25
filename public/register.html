@@ -17,17 +17,14 @@
 
     .info-row {
       display: flex;
-      align-items: center;
       justify-content: space-between;
       margin: 12px 0;
       font-size: 15px;
     }
 
-    .info-row .label {
-      margin: 0;
+    .label {
       font-weight: 600;
       color: #cbd5e1;
-      flex: 1;
     }
 
     .chip-locked {
@@ -67,9 +64,7 @@
       font-size: 16px;
     }
 
-    .input-with-suffix input:focus {
-      outline: none;
-    }
+    .input-with-suffix input:focus { outline: none; }
 
     .suffix {
       color: #94a3b8;
@@ -77,41 +72,31 @@
       font-size: 15px;
     }
 
-    .option-group {
+    /* Unified Visibility Box */
+    .visibility-box {
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 14px;
       padding: 16px 18px;
-      margin: 20px 0;
+      margin-top: 20px;
     }
 
-    .option-item {
+    .vis-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin: 14px 0;
-      font-size: 15.5px;
+      gap: 10px;
+      margin: 10px 0;
     }
 
-    .option-item input[type="radio"],
-    .option-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: #10b981;
-    }
-
-    .option-item label {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      flex: 1;
-      margin: 0;
+    .vis-row label {
+      color: #cbd5e1;
+      font-size: 15px;
     }
 
     .small-note {
       font-size: 13px;
       color: #94a3b8;
-      margin-top: 6px;
+      margin-top: 10px;
       line-height: 1.4;
     }
   </style>
@@ -131,23 +116,24 @@
 
       <h2>Create Your Identity</h2>
       <p class="subtext">
-        Link your recent SoulMark-verified transaction to a permanent
-        iAscendAi identity. One username per identity — forever.
+        Link your SoulMark-verified donation to your permanent iAscendAi identity.
       </p>
 
+      <!-- Donation Email -->
       <div class="info-box">
         <div class="info-row">
-          <div class="label">Donation email on record</div>
+          <div class="label">Donation email on file</div>
           <div id="lockedEmail" class="chip-locked">Loading...</div>
         </div>
       </div>
 
-      <p class="label">Contact email for your identity *</p>
-      <input id="contactEmail" type="email" placeholder="you@example.com" autocomplete="email" />
+      <p class="label">Contact Email *</p>
+      <input id="contactEmail" type="email" placeholder="you@example.com" />
 
       <p class="label" style="margin-top:14px;">Full Name *</p>
-      <input id="fullName" type="text" placeholder="Adrian McKenzie" autocomplete="name" />
+      <input id="fullName" type="text" placeholder="Adrian McKenzie" />
 
+      <!-- SoulMark -->
       <div class="info-box" style="margin-top:20px;">
         <div class="info-row">
           <div class="label">Latest SoulMark</div>
@@ -155,41 +141,36 @@
         </div>
       </div>
 
+      <!-- Username -->
       <p class="label">Choose Username *</p>
       <div class="input-with-suffix">
-        <input id="username" type="text" placeholder="yourname" autocomplete="off" />
+        <input id="username" type="text" placeholder="yourname" />
         <div class="suffix">@iascendai</div>
       </div>
       <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
-      <p class="label" style="margin-top:20px;">Public display settings</p>
-      <p class="small-note">
-        Control how your contribution appears on the public impact board.
-        Your private dashboard always shows full details.
-      </p>
+      <!-- 🔥 Unified Visibility Section -->
+      <div class="visibility-box">
+        <h3 style="color:white; margin:0 0 10px 0;">Impact Board Visibility</h3>
 
-      <div class="option-group">
-        <div class="option-item">
-          <input type="radio" name="identityMode" value="username" checked id="opt-user" />
-            <label for="opt-user">Show: <strong>username@iascendai</strong></label>
+        <div class="vis-row">
+          <input type="checkbox" id="showName" checked />
+          <label for="showName">Show my real name</label>
         </div>
 
-        <div class="option-item">
-          <input type="radio" name="identityMode" value="real" id="opt-name" />
-          <label for="opt-name">Show: <strong>full name</strong></label>
+        <div class="vis-row">
+          <input type="checkbox" id="showUsername" checked />
+          <label for="showUsername">Show my username</label>
         </div>
 
-        <div class="option-item">
-          <input type="radio" name="identityMode" value="anonymous" id="opt-anon" />
-          <label for="opt-anon">Show as: <strong>Anonymous</strong></label>
-        </div>
-
-        <div class="option-item">
+        <div class="vis-row">
           <input type="checkbox" id="showAmount" checked />
-          <label for="showAmount">Show my: <strong>donation amount</strong></label>
+          <label for="showAmount">Show donation amount</label>
         </div>
 
-        <p id="displayNote" class="small-note"></p>
+        <p id="anonNote" class="small-note" style="display:none;">
+          Anonymous mode requires showing the donation amount.
+        </p>
       </div>
 
       <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
@@ -202,121 +183,117 @@
   </div>
 
   <script>
-    // (SCRIPT IS CLEAN — NO HTML COMMENT BLOCK)
     const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-    const emailEl           = document.getElementById("lockedEmail");
+    const emailEl = document.getElementById("lockedEmail");
     const contactEmailInput = document.getElementById("contactEmail");
-    const smEl              = document.getElementById("lockedSoulmark");
-    const fullNameInput     = document.getElementById("fullName");
-    const usernameInput     = document.getElementById("username");
-    const usernameStatus    = document.getElementById("usernameStatus");
-    const registerStatus    = document.getElementById("registerStatus");
-    const registerBtn       = document.getElementById("registerBtn");
+    const fullNameInput = document.getElementById("fullName");
+    const usernameInput = document.getElementById("username");
+    const smEl = document.getElementById("lockedSoulmark");
+    const registerStatus = document.getElementById("registerStatus");
 
-    const identityRadios = document.querySelectorAll('input[name="identityMode"]');
-    const showAmountCb   = document.getElementById("showAmount");
-    const displayNoteEl  = document.getElementById("displayNote");
+    const showNameCb = document.getElementById("showName");
+    const showUsernameCb = document.getElementById("showUsername");
+    const showAmountCb = document.getElementById("showAmount");
+    const anonNote = document.getElementById("anonNote");
 
     let baseEmail = "";
     let latestSoulmark = "";
-    let usernameTimer = null;
-    let lastCheckName = "";
 
+    // --------------------------
+    // Load Donation Data
+    // --------------------------
     (function preload() {
-      try {
-        const nameStore   = localStorage.getItem("fta_name")      || "";
-        const emailStore  = localStorage.getItem("fta_email")     || "";
-        const soulStore   = localStorage.getItem("fta_soulmark")  || "";
-        const accessEmail = localStorage.getItem("ias_access_email") || "";
+      baseEmail = localStorage.getItem("fta_email") || "";
+      latestSoulmark = localStorage.getItem("fta_soulmark") || "";
 
-        baseEmail      = emailStore;
-        latestSoulmark = soulStore;
+      emailEl.textContent = baseEmail || "Unavailable";
 
-        emailEl.textContent = baseEmail || "No donation email on record";
+      const accessEmail = localStorage.getItem("ias_access_email");
+      if (accessEmail) contactEmailInput.value = accessEmail;
+      else if (baseEmail) contactEmailInput.value = baseEmail;
 
-        if (accessEmail) {
-          contactEmailInput.value = accessEmail;
-        } else if (baseEmail) {
-          contactEmailInput.value = baseEmail;
-        }
-
-        smEl.textContent = latestSoulmark
-          ? latestSoulmark.substring(0, 18) + "..."
-          : "No SoulMark found";
-
-        if (nameStore) fullNameInput.value = nameStore;
-
-      } catch (e) {
-        emailEl.textContent = "Unavailable";
-      }
+      smEl.textContent = latestSoulmark
+        ? latestSoulmark.substring(0, 18) + "..."
+        : "No SoulMark found";
     })();
 
-    function getIdentityMode() {
-      return Array.from(identityRadios).find(r => r.checked)?.value || "username";
-    }
-
-    function enforceVisibilityRules() {
-      const mode = getIdentityMode();
-      const showAmount = showAmountCb.checked;
-
-      displayNoteEl.textContent =("");
-
-      if (mode === "anonymous" && !showAmount) {
-        showAmountCb.checked = true;
-        displayNoteEl.textContent =
-          "Anonymous donors must show their donation amount or choose a visible name.";
-      }
-    }
-
-    identityRadios.forEach(r => r.addEventListener("change", enforceVisibilityRules));
-    showAmountCb.addEventListener("change", enforceVisibilityRules);
-
+    // --------------------------
+    // Username check
+    // --------------------------
+    let usernameTimer = null;
     usernameInput.addEventListener("input", () => {
-      const raw = usernameInput.value.trim().toLowerCase();
-      const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+      const cleaned = usernameInput.value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, "");
       usernameInput.value = cleaned;
-      usernameStatus.textContent = "";
       if (cleaned.length < 3) return;
+
       if (usernameTimer) clearTimeout(usernameTimer);
-      usernameTimer = setTimeout(() => checkUsername(cleaned), 350);
+      usernameTimer = setTimeout(() => checkUsername(cleaned), 300);
     });
 
     async function checkUsername(name) {
-      lastCheckName = name;
-      usernameStatus.textContent = "Checking availability…";
       const full = `${name}@iascendai`;
       try {
         const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
         const data = await res.json();
-        if (name !== lastCheckName) return;
         usernameStatus.textContent = data.available
-          ? "Username available"
-          : "Username already taken";
+          ? "Available"
+          : "Already taken";
         usernameStatus.style.color = data.available ? "#10b981" : "#ff6b6b";
       } catch {
         usernameStatus.textContent = "Error checking username.";
       }
     }
 
-    registerBtn.addEventListener("click", async () => {
-      registerStatus.textContent = "";
-      const fullName   = fullNameInput.value.trim();
-      const contactRaw = contactEmailInput.value.trim();
-      const unameRaw   = usernameInput.value.trim().toLowerCase();
-      const uname      = unameRaw.replace(/[^a-z0-9._-]/g, "");
-      const mode       = getIdentityMode();
-      const showAmt    = showAmountCb.checked;
+    // --------------------------
+    // Unified Visibility Rules
+    // --------------------------
+    function applyVisibilityLogic() {
+      const nameON = showNameCb.checked;
+      const userON = showUsernameCb.checked;
 
-      if (!contactRaw || !fullName || !uname || uname.length < 3) {
-        registerStatus.textContent = "Please fill all required fields.";
+      if (!nameON && !userON) {
+        showAmountCb.checked = true;
+        anonNote.style.display = "block";
+      } else {
+        anonNote.style.display = "none";
+      }
+
+      localStorage.setItem("fta_show_name", showNameCb.checked ? "1" : "0");
+      localStorage.setItem("fta_show_username", showUsernameCb.checked ? "1" : "0");
+      localStorage.setItem("fta_show_amount", showAmountCb.checked ? "1" : "0");
+    }
+
+    showNameCb.addEventListener("change", applyVisibilityLogic);
+    showUsernameCb.addEventListener("change", applyVisibilityLogic);
+    showAmountCb.addEventListener("change", applyVisibilityLogic);
+
+    // --------------------------
+    // Register Identity
+    // --------------------------
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      const fullName = fullNameInput.value.trim();
+      const contactEmail = contactEmailInput.value.trim();
+      const uname = usernameInput.value.trim().toLowerCase();
+
+      if (!fullName || !contactEmail || uname.length < 3) {
+        registerStatus.textContent = "Please complete all fields.";
         return;
       }
 
       const fullUsername = `${uname}@iascendai`;
-      const accessEmail  = contactRaw;
 
-      if (mode === "anonymous" && !showAmt) showAmountCb.checked = true;
+      // Apply visibility logic before submission
+      applyVisibilityLogic();
+
+      const displaySettings = {
+        showName: localStorage.getItem("fta_show_name") === "1",
+        showUsername: localStorage.getItem("fta_show_username") === "1",
+        showAmount: localStorage.getItem("fta_show_amount") === "1"
+      };
 
       registerBtn.disabled = true;
       registerBtn.textContent = "Creating identity…";
@@ -327,28 +304,26 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: fullName,
-            email: accessEmail,
-            donationEmail: baseEmail || null,
+            email: contactEmail,
+            donationEmail: baseEmail,
             username: fullUsername,
-            soulmark: latestSoulmark || null,
-            displayIdentity: mode,
-            showDonationAmount: !!showAmt
+            soulmark: latestSoulmark,
+            visibility: displaySettings
           })
         });
 
         const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error || "Registration failed");
+        if (!res.ok || data.error) throw new Error(data.error);
 
         localStorage.setItem("ias_username", fullUsername);
         localStorage.setItem("ias_name", fullName);
-        localStorage.setItem("ias_access_email", accessEmail);
-        localStorage.setItem("displayIdentity", mode);
-        localStorage.setItem("showDonationAmount", showAmt ? "1" : "0");
+        localStorage.setItem("ias_access_email", contactEmail);
 
         registerStatus.textContent = "Success! Redirecting…";
+
         setTimeout(() => {
-          window.location.href = `iascendai-dashboard.html?username=${fullUsername}`;
-        }, 800);
+          window.location.href = "iascendai-dashboard.html";
+        }, 700);
 
       } catch (err) {
         registerStatus.textContent = err.message || "Registration error.";
