@@ -64,37 +64,39 @@
       font-size: 16px;
     }
 
-    .input-with-suffix input:focus { outline: none; }
-
     .suffix {
       color: #94a3b8;
       padding-right: 14px;
       font-size: 15px;
     }
 
-    /* ---- Compact Visibility Buttons (Success Page Style) ---- */
-    .visibility-row {
-      margin-top: 18px;
+    /* MINI VISIBILITY TOGGLES (same style as success page) */
+    .mini-vis {
+      margin-top: 22px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
+      padding: 14px 0;
     }
 
-    .vis-toggle {
+    .mini-item {
       display: flex;
       align-items: center;
       gap: 10px;
+      font-size: 15px;
+      color: #cbd5e1;
     }
 
-    .vis-toggle label {
-      color: #cbd5e1;
-      font-size: 15px;
+    .mini-item input {
+      width: 20px;
+      height: 20px;
+      accent-color: #10b981;
     }
 
     #anonNote {
       color: #f8bc07;
       font-size: 13px;
-      margin-top: 4px;
+      margin-top: 6px;
       display: none;
     }
   </style>
@@ -145,24 +147,19 @@
       </div>
       <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
-      <!-- ⭐ Compact Visibility Toggles (match Success Page) ⭐ -->
-      <div class="visibility-row">
-        <div class="vis-toggle">
+      <!-- MINI VISIBILITY TOGGLES -->
+      <div class="mini-vis">
+        <label class="mini-item">
           <input type="checkbox" id="showName" checked />
-          <label for="showName">Show my real name</label>
-        </div>
+          Show Name
+        </label>
 
-        <div class="vis-toggle">
-          <input type="checkbox" id="showUsername" checked />
-          <label for="showUsername">Show my username</label>
-        </div>
-
-        <div class="vis-toggle">
+        <label class="mini-item">
           <input type="checkbox" id="showAmount" checked />
-          <label for="showAmount">Show donation amount</label>
-        </div>
+          Show Donation Amount
+        </label>
 
-        <p id="anonNote">Anonymous requires donation amount to be visible.</p>
+        <p id="anonNote">Anonymous mode requires showing the donation amount.</p>
       </div>
 
       <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
@@ -185,7 +182,6 @@
     const registerStatus = document.getElementById("registerStatus");
 
     const showNameCb = document.getElementById("showName");
-    const showUsernameCb = document.getElementById("showUsername");
     const showAmountCb = document.getElementById("showAmount");
     const anonNote = document.getElementById("anonNote");
 
@@ -233,9 +229,9 @@
     /* Visibility Logic */
     function applyVisibilityLogic() {
       const nameON = showNameCb.checked;
-      const userON = showUsernameCb.checked;
 
-      if (!nameON && !userON) {
+      // If user hides name → anonymous mode, but amount MUST remain
+      if (!nameON) {
         showAmountCb.checked = true;
         anonNote.style.display = "block";
       } else {
@@ -243,12 +239,10 @@
       }
 
       localStorage.setItem("fta_show_name", showNameCb.checked ? "1" : "0");
-      localStorage.setItem("fta_show_username", showUsernameCb.checked ? "1" : "0");
       localStorage.setItem("fta_show_amount", showAmountCb.checked ? "1" : "0");
     }
 
     showNameCb.addEventListener("change", applyVisibilityLogic);
-    showUsernameCb.addEventListener("change", applyVisibilityLogic);
     showAmountCb.addEventListener("change", applyVisibilityLogic);
 
     /* Register */
@@ -267,7 +261,6 @@
 
       const displaySettings = {
         showName: localStorage.getItem("fta_show_name") === "1",
-        showUsername: localStorage.getItem("fta_show_username") === "1",
         showAmount: localStorage.getItem("fta_show_amount") === "1"
       };
 
