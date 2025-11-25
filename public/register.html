@@ -14,19 +14,16 @@
       padding: 16px 18px;
       margin: 20px 0;
     }
-
     .info-row {
       display: flex;
       justify-content: space-between;
       margin: 12px 0;
       font-size: 15px;
     }
-
     .label {
       font-weight: 600;
       color: #cbd5e1;
     }
-
     .chip-locked {
       background: #10b981;
       color: white;
@@ -35,7 +32,6 @@
       font-size: 14px;
       font-weight: 600;
     }
-
     .chip-soulmark {
       background: #f8bc07;
       color: #041423;
@@ -46,6 +42,7 @@
       display: inline-block;
     }
 
+    /* Username input */
     .input-with-suffix {
       display: flex;
       align-items: center;
@@ -54,7 +51,6 @@
       padding: 0 4px;
       margin-top: 6px;
     }
-
     .input-with-suffix input {
       background: transparent;
       border: none;
@@ -63,41 +59,37 @@
       color: white;
       font-size: 16px;
     }
-
-    .input-with-suffix input:focus { outline: none; }
-
     .suffix {
       color: #94a3b8;
       padding-right: 14px;
       font-size: 15px;
     }
 
-    /* MINI VISIBILITY SECTION */
+    /* MINI VIS CHECKBOX STYLE (OPTION A) */
     .mini-vis {
-      margin-top: 22px;
+      margin-top: 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
-
     .mini-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 15px;
       color: #cbd5e1;
+      font-size: 15px;
+    }
+    .mini-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #10b981;
     }
 
     #anonNote {
-      margin-top: 6px;
-      color: #f8bc07;
-      font-size: 13px;
-      display: none;
-    }
-
-    #usernameStatus {
       font-size: 13px;
       margin-top: 4px;
+      color: #f8bc07;
+      display: none;
     }
   </style>
 </head>
@@ -145,9 +137,9 @@
         <input id="username" type="text" placeholder="yourname" />
         <div class="suffix">@iascendai</div>
       </div>
-      <p id="usernameStatus"></p>
+      <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
-      <!-- MINI VISIBILITY TOGGLES (SUCCESS STYLE) -->
+      <!-- MINI VISIBILITY CHECKBOXES (OPTION A) -->
       <div class="mini-vis">
         <label class="mini-item">
           <input type="checkbox" id="showName" checked />
@@ -155,12 +147,17 @@
         </label>
 
         <label class="mini-item">
+          <input type="checkbox" id="showUsername" checked />
+          Show Username
+        </label>
+
+        <label class="mini-item">
           <input type="checkbox" id="showAmount" checked />
           Show Donation Amount
         </label>
-
-        <p id="anonNote">Anonymous requires donation amount to stay visible.</p>
       </div>
+
+      <p id="anonNote">Anonymous mode requires donation amount shown.</p>
 
       <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
         Create My iAscendAi Identity
@@ -180,24 +177,24 @@
     const usernameInput = document.getElementById("username");
     const smEl = document.getElementById("lockedSoulmark");
     const registerStatus = document.getElementById("registerStatus");
-    const usernameStatus = document.getElementById("usernameStatus");
 
     const showNameCb = document.getElementById("showName");
+    const showUsernameCb = document.getElementById("showUsername");
     const showAmountCb = document.getElementById("showAmount");
     const anonNote = document.getElementById("anonNote");
 
     let baseEmail = "";
     let latestSoulmark = "";
 
-    /* Load donation data */
+    /* LOAD DONATION DATA */
     (function preload() {
       baseEmail = localStorage.getItem("fta_email") || "";
       latestSoulmark = localStorage.getItem("fta_soulmark") || "";
 
       emailEl.textContent = baseEmail || "Unavailable";
 
-      const accessEmail = localStorage.getItem("ias_access_email");
-      contactEmailInput.value = accessEmail || baseEmail || "";
+      const saved = localStorage.getItem("ias_access_email");
+      contactEmailInput.value = saved || baseEmail || "";
 
       smEl.textContent = latestSoulmark
         ? latestSoulmark.substring(0, 18) + "..."
@@ -209,10 +206,7 @@
     usernameInput.addEventListener("input", () => {
       const cleaned = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
       usernameInput.value = cleaned;
-      if (cleaned.length < 3) {
-        usernameStatus.textContent = "";
-        return;
-      }
+      if (cleaned.length < 3) return;
 
       if (usernameTimer) clearTimeout(usernameTimer);
       usernameTimer = setTimeout(() => checkUsername(cleaned), 300);
@@ -230,39 +224,46 @@
       }
     }
 
-    /* Visibility Logic */
+    /* VISIBILITY LOGIC — Full 7-state rule system */
     function applyVisibilityLogic() {
-      if (!showNameCb.checked) {
-        // Anonymous mode → must show amount
+      const nameON = showNameCb.checked;
+      const userON = showUsernameCb.checked;
+
+      // Anonymous rule
+      if (!nameON && !userON) {
         showAmountCb.checked = true;
         anonNote.style.display = "block";
       } else {
         anonNote.style.display = "none";
       }
 
-      localStorage.setItem("fta_show_name", showNameCb.checked ? "1" : "0");
+      localStorage.setItem("fta_show_name", nameON ? "1" : "0");
+      localStorage.setItem("fta_show_username", userON ? "1" : "0");
       localStorage.setItem("fta_show_amount", showAmountCb.checked ? "1" : "0");
     }
 
     showNameCb.addEventListener("change", applyVisibilityLogic);
+    showUsernameCb.addEventListener("change", applyVisibilityLogic);
     showAmountCb.addEventListener("change", applyVisibilityLogic);
 
-    /* Register Identity */
+    /* REGISTER */
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const fullName = fullNameInput.value.trim();
-      const contactEmail = contactEmailInput.value.trim();
+      const email = contactEmailInput.value.trim();
       const uname = usernameInput.value.trim().toLowerCase();
 
-      if (!fullName || !contactEmail || uname.length < 3) {
+      if (!fullName || !email || uname.length < 3) {
         registerStatus.textContent = "Please complete all fields.";
         return;
       }
 
       const fullUsername = `${uname}@iascendai`;
+
       applyVisibilityLogic();
 
-      const displaySettings = {
+      const visibility = {
         showName: localStorage.getItem("fta_show_name") === "1",
+        showUsername: localStorage.getItem("fta_show_username") === "1",
         showAmount: localStorage.getItem("fta_show_amount") === "1"
       };
 
@@ -275,20 +276,21 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: fullName,
-            email: contactEmail,
+            email,
             donationEmail: baseEmail,
             username: fullUsername,
             soulmark: latestSoulmark,
-            visibility: displaySettings
+            visibility
           })
         });
 
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error);
 
+        // Save
         localStorage.setItem("ias_username", fullUsername);
         localStorage.setItem("ias_name", fullName);
-        localStorage.setItem("ias_access_email", contactEmail);
+        localStorage.setItem("ias_access_email", email);
 
         registerStatus.textContent = "Success! Redirecting…";
 
