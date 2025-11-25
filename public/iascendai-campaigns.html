@@ -41,7 +41,6 @@
             <thead>
               <tr>
                 <th>Recent Donors</th>
-               
               </tr>
             </thead>
             <tbody id="donationRows">
@@ -86,24 +85,34 @@
           .slice()
           .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
           .map(d => {
-            const name = d.name && d.name.trim() ? d.name : "Donor";
-            const amt = "$" + ((d.amount || 0) / 100).toFixed(2);
+
+            // --- VISIBILITY LOGIC ---
+            let displayName = "Anonymous";
+
+            if (d.visibility?.showUsername && d.username) {
+              displayName = d.username;
+            } else if (d.visibility?.showName && d.name) {
+              displayName = d.name;
+            }
+
+            const amount = "$" + ((d.amount || 0) / 100).toFixed(2);
+
             const dt = new Date(d.timestamp);
-            const when = d.timestamp
-  ? dt.toLocaleDateString() + "<br>" + dt.toLocaleTimeString()
-  : "N/A";
-return `
-  <tr class="donation-row">
-    <td colspan="3">
-      <div class="donation-stack">
-        <div class="donor-name">${name}</div>
-        <div class="donor-amount">${amt}</div>
-        <div class="donor-date">${dt.toLocaleDateString()}</div>
-        <div class="donor-time">${dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>
-      </div>
-    </td>
-  </tr>
-`;
+            const dateStr = dt.toLocaleDateString();
+            const timeStr = dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+            return `
+              <tr class="donation-row">
+                <td colspan="3">
+                  <div class="donation-stack">
+                    <div class="donor-name">${displayName}</div>
+                    <div class="donor-amount">${amount}</div>
+                    <div class="donor-date">${dateStr}</div>
+                    <div class="donor-time">${timeStr}</div>
+                  </div>
+                </td>
+              </tr>
+            `;
           })
           .join("");
 
