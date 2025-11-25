@@ -276,7 +276,7 @@
       const data = await res.json();
 
       if (data.success) {
-        localStorage.setItem("iascendai-username", username);
+        localStorage.setItem("ias_username", username);
         window.location.href = "iascendai-dashboard.html";
       } else {
         alert(data.message || "Error creating identity");
