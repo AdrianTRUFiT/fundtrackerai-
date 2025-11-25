@@ -72,32 +72,30 @@
       font-size: 15px;
     }
 
-    /* Unified Visibility Box */
-    .visibility-box {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 14px;
-      padding: 16px 18px;
-      margin-top: 20px;
+    /* ---- Compact Visibility Buttons (Success Page Style) ---- */
+    .visibility-row {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .vis-row {
+    .vis-toggle {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 10px 0;
     }
 
-    .vis-row label {
+    .vis-toggle label {
       color: #cbd5e1;
       font-size: 15px;
     }
 
-    .small-note {
+    #anonNote {
+      color: #f8bc07;
       font-size: 13px;
-      color: #94a3b8;
-      margin-top: 10px;
-      line-height: 1.4;
+      margin-top: 4px;
+      display: none;
     }
   </style>
 </head>
@@ -115,9 +113,7 @@
       </div>
 
       <h2>Create Your Identity</h2>
-      <p class="subtext">
-        Link your SoulMark-verified donation to your permanent iAscendAi identity.
-      </p>
+      <p class="subtext">Link your SoulMark-verified donation to your permanent iAscendAi identity.</p>
 
       <!-- Donation Email -->
       <div class="info-box">
@@ -149,28 +145,24 @@
       </div>
       <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
-      <!-- 🔥 Unified Visibility Section -->
-      <div class="visibility-box">
-        <h3 style="color:white; margin:0 0 10px 0;">Impact Board Visibility</h3>
-
-        <div class="vis-row">
+      <!-- ⭐ Compact Visibility Toggles (match Success Page) ⭐ -->
+      <div class="visibility-row">
+        <div class="vis-toggle">
           <input type="checkbox" id="showName" checked />
           <label for="showName">Show my real name</label>
         </div>
 
-        <div class="vis-row">
+        <div class="vis-toggle">
           <input type="checkbox" id="showUsername" checked />
           <label for="showUsername">Show my username</label>
         </div>
 
-        <div class="vis-row">
+        <div class="vis-toggle">
           <input type="checkbox" id="showAmount" checked />
           <label for="showAmount">Show donation amount</label>
         </div>
 
-        <p id="anonNote" class="small-note" style="display:none;">
-          Anonymous mode requires showing the donation amount.
-        </p>
+        <p id="anonNote">Anonymous requires donation amount to be visible.</p>
       </div>
 
       <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
@@ -200,9 +192,7 @@
     let baseEmail = "";
     let latestSoulmark = "";
 
-    // --------------------------
-    // Load Donation Data
-    // --------------------------
+    /* Load donation data */
     (function preload() {
       baseEmail = localStorage.getItem("fta_email") || "";
       latestSoulmark = localStorage.getItem("fta_soulmark") || "";
@@ -210,23 +200,17 @@
       emailEl.textContent = baseEmail || "Unavailable";
 
       const accessEmail = localStorage.getItem("ias_access_email");
-      if (accessEmail) contactEmailInput.value = accessEmail;
-      else if (baseEmail) contactEmailInput.value = baseEmail;
+      contactEmailInput.value = accessEmail || baseEmail || "";
 
       smEl.textContent = latestSoulmark
         ? latestSoulmark.substring(0, 18) + "..."
         : "No SoulMark found";
     })();
 
-    // --------------------------
-    // Username check
-    // --------------------------
+    /* Username Check */
     let usernameTimer = null;
     usernameInput.addEventListener("input", () => {
-      const cleaned = usernameInput.value
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9._-]/g, "");
+      const cleaned = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
       usernameInput.value = cleaned;
       if (cleaned.length < 3) return;
 
@@ -239,18 +223,14 @@
       try {
         const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
         const data = await res.json();
-        usernameStatus.textContent = data.available
-          ? "Available"
-          : "Already taken";
+        usernameStatus.textContent = data.available ? "Available" : "Already taken";
         usernameStatus.style.color = data.available ? "#10b981" : "#ff6b6b";
       } catch {
         usernameStatus.textContent = "Error checking username.";
       }
     }
 
-    // --------------------------
-    // Unified Visibility Rules
-    // --------------------------
+    /* Visibility Logic */
     function applyVisibilityLogic() {
       const nameON = showNameCb.checked;
       const userON = showUsernameCb.checked;
@@ -271,9 +251,7 @@
     showUsernameCb.addEventListener("change", applyVisibilityLogic);
     showAmountCb.addEventListener("change", applyVisibilityLogic);
 
-    // --------------------------
-    // Register Identity
-    // --------------------------
+    /* Register */
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const fullName = fullNameInput.value.trim();
       const contactEmail = contactEmailInput.value.trim();
@@ -285,8 +263,6 @@
       }
 
       const fullUsername = `${uname}@iascendai`;
-
-      // Apply visibility logic before submission
       applyVisibilityLogic();
 
       const displaySettings = {
