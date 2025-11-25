@@ -147,6 +147,28 @@
         if (data.verified && data.entry) {
           const e = data.entry;
 
+if (data.verified && data.entry) {
+  const e = data.entry;
+
+  // 🔥 SEND TO EMAILASSISTAI AUTORESPONDER
+  try {
+    await fetch("https://emailassistai.onrender.com/api/donation-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: e.name,
+        email: e.email,
+        soulmark: e.soulmark,
+        amount: e.amount / 100,
+        currency: "USD",
+        sessionId: e.id
+      })
+    });
+  } catch (err) {
+    console.error("Autoresponder failed:", err);
+  }
+
+          
           statusEl.textContent = "Payment Verified";
 
           document.getElementById("nameText").textContent = e.name?.trim() || "Donor";
