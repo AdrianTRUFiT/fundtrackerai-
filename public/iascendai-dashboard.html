@@ -90,14 +90,20 @@
       return email.split("@")[0] + "@iascendai";
     }
 
-    const handle =
-      savedUsername ||
-      emailToHandle(accessEmail) ||
-      emailToHandle(donationEmail) ||
-      emailToHandle(legacyEmail) ||
-      "user@iascendai";
+let handle = "user@iascendai";
 
-    identityTag.textContent = handle;
+if (savedUsername) {
+  handle = savedUsername + "@iascendai";
+} else if (accessEmail) {
+  handle = emailToHandle(accessEmail);
+} else if (donationEmail) {
+  handle = emailToHandle(donationEmail);
+} else if (legacyEmail) {
+  handle = emailToHandle(legacyEmail);
+}
+
+identityTag.textContent = handle;
+
 
     // ========= AI WELLNESS LOGIC (unchanged visual behavior) =========
 
