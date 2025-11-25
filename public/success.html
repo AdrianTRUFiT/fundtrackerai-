@@ -147,35 +147,34 @@
         if (data.verified && data.entry) {
           const e = data.entry;
 
-if (data.verified && data.entry) {
-  const e = data.entry;
+          // 🔥 SEND TO EMAILASSISTAI AUTORESPONDER
+          try {
+            await fetch("https://emailassistai.onrender.com/api/donation-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: e.name,
+                email: e.email,
+                soulmark: e.soulmark,
+                amount: e.amount / 100,
+                currency: "USD",
+                sessionId: e.id
+              })
+            });
+          } catch (err) {
+            console.error("Autoresponder failed:", err);
+          }
 
-  // 🔥 SEND TO EMAILASSISTAI AUTORESPONDER
-  try {
-    await fetch("https://emailassistai.onrender.com/api/donation-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: e.name,
-        email: e.email,
-        soulmark: e.soulmark,
-        amount: e.amount / 100,
-        currency: "USD",
-        sessionId: e.id
-      })
-    });
-  } catch (err) {
-    console.error("Autoresponder failed:", err);
-  }
-
-          
           statusEl.textContent = "Payment Verified";
 
-          document.getElementById("nameText").textContent = e.name?.trim() || "Donor";
+          document.getElementById("nameText").textContent =
+            e.name?.trim() || "Donor";
           document.getElementById("emailChip").textContent = maskEmail(e.email);
-          document.getElementById("amountText").textContent = "$" + (e.amount / 100).toFixed(2);
+          document.getElementById("amountText").textContent =
+            "$" + (e.amount / 100).toFixed(2);
 
-          const shortRef = e.soulmark.substring(0, 10) + "••••••••";
+          const shortRef =
+            e.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
           // Save to localStorage for register page
@@ -189,7 +188,7 @@ if (data.verified && data.entry) {
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
 
-          const go = () => window.location.href = "register.html";
+          const go = () => (window.location.href = "register.html");
           signupBtn.onclick = go;
           inlineRevealBtn.onclick = go;
 
