@@ -81,40 +81,67 @@
         totalAmountEl.textContent = "$" + (totalAmount / 100).toFixed(2);
         totalDonorsEl.textContent = donations.length.toString();
 
-        const rows = donations
-          .slice()
-          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-          .map(d => {
+const rows = donations
+  .slice()
+  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+  .map(d => {
+    // --- VISIBILITY LOGIC WITH LEGACY FALLBACK ---
+    let displayName;
 
-            // --- VISIBILITY LOGIC ---
-            let displayName = "Anonymous";
+    // 1) Legacy entries (no visibility stored) → show best available
+    if (!d.visibility) {
+      if (d.username) {
+        displayName = d.username;
+      } else if (d.name) {
+        displayName = d.name;
+      } else {
+        displayName = "Donor";
+      }
+    } else {
+      const isAnonymous =
+        !d.visibility.showName && !d.visibility.showUsername;
 
-            if (d.visibility?.showUsername && d.username) {
-              displayName = d.username;
-            } else if (d.visibility?.showName && d.name) {
-              displayName = d.name;
-            }
+      if (isAnonymous) {
+        // user actually chose anonymous
+        displayName = "Anonymous";
+      } else if (d.visibility.showUsername && d.username) {
+        displayName = d.username;
+      } else if (d.visibility.showName && d.name) {
+        displayName = d.name;
+      } else if (d.username) {
+        // extra fallback if flags are weird
+        displayName = d.username;
+      } else if (d.name) {
+        displayName = d.name;
+      } else {
+        displayName = "Donor";
+      }
+    }
 
-            const amount = "$" + ((d.amount || 0) / 100).toFixed(2);
+    const amount = "$" + ((d.amount || 0) / 100).toFixed(2);
+    const dt = new Date(d.timestamp);
+    const dateStr = dt.toLocaleDateString();
+    const timeStr = dt.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
-            const dt = new Date(d.timestamp);
-            const dateStr = dt.toLocaleDateString();
-            const timeStr = dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    return `
+      <tr class="donation-row">
+        <td colspan="3">
+          <div class="donation-stack">
+            <div class="donor-name">${displayName}</div>
+            <div class="donor-amount">${amount}</div>
+            <div class="donor-date">${dateStr}</div>
+            <div class="donor-time">${timeStr}</div>
+          </div>
+        </td>
+      </tr>
+    `;
+  })
+  .join("");
 
-            return `
-              <tr class="donation-row">
-                <td colspan="3">
-                  <div class="donation-stack">
-                    <div class="donor-name">${displayName}</div>
-                    <div class="donor-amount">${amount}</div>
-                    <div class="donor-date">${dateStr}</div>
-                    <div class="donor-time">${timeStr}</div>
-                  </div>
-                </td>
-              </tr>
-            `;
-          })
-          .join("");
+tbody.innerHTML = rows;
 
         tbody.innerHTML = rows;
 
