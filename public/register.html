@@ -64,19 +64,20 @@
       font-size: 16px;
     }
 
+    .input-with-suffix input:focus { outline: none; }
+
     .suffix {
       color: #94a3b8;
       padding-right: 14px;
       font-size: 15px;
     }
 
-    /* MINI VISIBILITY TOGGLES (same style as success page) */
+    /* MINI VISIBILITY SECTION */
     .mini-vis {
       margin-top: 22px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      padding: 14px 0;
+      gap: 12px;
     }
 
     .mini-item {
@@ -87,17 +88,16 @@
       color: #cbd5e1;
     }
 
-    .mini-item input {
-      width: 20px;
-      height: 20px;
-      accent-color: #10b981;
-    }
-
     #anonNote {
+      margin-top: 6px;
       color: #f8bc07;
       font-size: 13px;
-      margin-top: 6px;
       display: none;
+    }
+
+    #usernameStatus {
+      font-size: 13px;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -145,9 +145,9 @@
         <input id="username" type="text" placeholder="yourname" />
         <div class="suffix">@iascendai</div>
       </div>
-      <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
+      <p id="usernameStatus"></p>
 
-      <!-- MINI VISIBILITY TOGGLES -->
+      <!-- MINI VISIBILITY TOGGLES (SUCCESS STYLE) -->
       <div class="mini-vis">
         <label class="mini-item">
           <input type="checkbox" id="showName" checked />
@@ -159,7 +159,7 @@
           Show Donation Amount
         </label>
 
-        <p id="anonNote">Anonymous mode requires showing the donation amount.</p>
+        <p id="anonNote">Anonymous requires donation amount to stay visible.</p>
       </div>
 
       <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
@@ -180,6 +180,7 @@
     const usernameInput = document.getElementById("username");
     const smEl = document.getElementById("lockedSoulmark");
     const registerStatus = document.getElementById("registerStatus");
+    const usernameStatus = document.getElementById("usernameStatus");
 
     const showNameCb = document.getElementById("showName");
     const showAmountCb = document.getElementById("showAmount");
@@ -203,12 +204,15 @@
         : "No SoulMark found";
     })();
 
-    /* Username Check */
+    /* Username check */
     let usernameTimer = null;
     usernameInput.addEventListener("input", () => {
       const cleaned = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
       usernameInput.value = cleaned;
-      if (cleaned.length < 3) return;
+      if (cleaned.length < 3) {
+        usernameStatus.textContent = "";
+        return;
+      }
 
       if (usernameTimer) clearTimeout(usernameTimer);
       usernameTimer = setTimeout(() => checkUsername(cleaned), 300);
@@ -228,10 +232,8 @@
 
     /* Visibility Logic */
     function applyVisibilityLogic() {
-      const nameON = showNameCb.checked;
-
-      // If user hides name → anonymous mode, but amount MUST remain
-      if (!nameON) {
+      if (!showNameCb.checked) {
+        // Anonymous mode → must show amount
         showAmountCb.checked = true;
         anonNote.style.display = "block";
       } else {
@@ -245,7 +247,7 @@
     showNameCb.addEventListener("change", applyVisibilityLogic);
     showAmountCb.addEventListener("change", applyVisibilityLogic);
 
-    /* Register */
+    /* Register Identity */
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const fullName = fullNameInput.value.trim();
       const contactEmail = contactEmailInput.value.trim();
