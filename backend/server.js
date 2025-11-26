@@ -571,3 +571,51 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
+
+// --------------------------------------------------
+// LOGIN — lookup identity by username
+// --------------------------------------------------
+app.post("/login", (req, res) => {
+  const { username } = req.body || {};
+
+  if (!username || !username.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Username is required."
+    });
+  }
+
+  // Canonicalize to how we store it in registry.identities
+  // (we stored the full handle, e.g. "adriantrufit@iascendai")
+  let canonical = username.trim().toLowerCase();
+  if (!canonical.endsWith("@iascendai")) {
+    canonical = `${canonical}@iascendai`;
+  }
+
+  const registry = readRegistry();
+  const identities = registry.identities || [];
+
+  const identity = identities.find(
+    i => (i.username || "").toLowerCase() === canonical
+  );
+
+  if (!identity) {
+    return res.status(404).json({
+      success: false,
+      message: "Identity not found."
+    });
+  }
+
+  return res.json({
+    success: true,
+    identity: {
+      username: identity.username,
+      email: identity.email,
+      soulmarks: identity.soulmarks || [],
+      identity_id: identity.identity_id,
+      registered_since: identity.registered_since,
+      displayIdentity: identity.displayIdentity,
+      showDonationAmount: !!identity.showDonationAmount
+    }
+  });
+});
