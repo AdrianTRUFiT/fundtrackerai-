@@ -134,7 +134,9 @@ document.getElementById("submitBtn").onclick = async () => {
   const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
   const username = cleaned + "@iascendai";
   const soulmark = localStorage.getItem("fta_soulmark") || "";
-  const sessionId = localStorage.getItem("fta_last_session") || "";
+let sessionId = localStorage.getItem("fta_last_session");
+if (!sessionId) sessionId = "no-donation";
+
 
   if (!cleaned) {
     alert("Choose a username.");
