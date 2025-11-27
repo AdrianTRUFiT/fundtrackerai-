@@ -1,316 +1,171 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Your iAscendAi Identity</title>
+  <title>iAscendAi — Create Your Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
+
   <style>
-    /* ——————— iAscendAi SIGNUP – PREMIUM iOS LOOK (add to bottom of styles.css or here) ——————— */
-    .signup-container {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-    }
+.soulmark-chip {
+  background: #f8bc07;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #0f766e;
+  word-break: break-word;
+}
 
-    .signup-container::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23ffffff08"/><circle cx="80" cy="80" r="3" fill="%2347c28a22"/></svg>') repeat;
-      pointer-events: none;
-    }
-
-    .signup-card {
-      width: 100%;
-      max-width: 420px;
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 28px;
-      border: 1px solid rgba(71, 194, 138, 0.15);
-      padding: 40px 32px 32px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-      position: relative;
-      z-index: 1;
-    }
-
-    .logo-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-
-    .logo-header h1 {
-      font-size: 36px;
-      font-weight: 800;
-      background: linear-gradient(90deg, #47c28a, #a8e6cf);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin: 0;
-      letter-spacing: -1px;
-    }
-
-    .logo-header p {
-      color: #94a3b8;
-      margin: 8px 0 0;
-      font-size: 16px;
-      font-weight: 500;
-    }
-
-    .form-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: white;
-      margin: 0 0 12px 0;
-    }
-
-    .form-desc {
-      color: #cbd5e1;
-      line-height: 1.6;
-      margin-bottom: 32px;
-      font-size: 15.5px;
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-    }
-
-    .input-label {
-      display: block;
-      color: #e2e8f0;
-      font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-
-    .styled-input {
-      width: 100%;
-      padding: 16px 18px;
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 16px;
-      color: white;
-      font-size: 17px;
-      transition: all 0.3s;
-    }
-
-    .styled-input:focus {
-      outline: none;
-      border-color: #47c28a;
-      box-shadow: 0 0 0 3px rgba(71, 194, 138, 0.25);
-      background: rgba(30, 41, 59, 0.9);
-    }
-
-    .styled-input::placeholder {
-      color: #64748b;
-    }
-
-    .username-wrapper {
-      position: relative;
-    }
-
-    .username-wrapper input {
-      padding-right: 100px;
-    }
-
-    .username-suffix {
-      position: absolute;
-      right: 18px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #47c28a;
-      font-weight: 600;
-      pointer-events: none;
-      font-size: 17px;
-    }
-
-    #usernameStatus {
-      margin-top: 8px;
-      font-size: 14px;
-      min-height: 20px;
-    }
-
-    .create-btn {
-      width: 100%;
-      padding: 18px;
-      background: linear-gradient(90deg, #47c28a, #3eb17c);
-      color: #0f172a;
-      font-size: 18px;
-      font-weight: 700;
-      border: none;
-      border-radius: 16px;
+.soulmark-chip span {
+  color: #0f766e;
+}
+    .copy-btn {
+      background: #0f766e;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      margin: 32px 0 20px;
-      box-shadow: 0 8px 20px rgba(71, 194, 138, 0.3);
-      transition: all 0.2s;
-    }
-
-    .create-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba(71, 194, 138, 0.4);
-    }
-
-    .create-btn:active {
-      transform: translateY(0);
-    }
-
-    .login-link {
-      text-align: center;
-      color: #94a3b9;
-      font-size: 15px;
-    }
-
-    .login-link a {
-      color: #47c28a;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .login-link a:hover {
-      text-decoration: underline;
+      border: none;
+      font-size: 13px;
     }
   </style>
 </head>
 
 <body>
+  <div class="app-shell">
+    <div class="card" style="max-width:480px;">
 
-<div class="signup-container">
-  <div class="signup-card">
-
-    <div class="logo-header">
-      <h1>iAscendAi</h1>
-      <p>Your Authored Digital Identity</p>
-    </div>
-
-    <h2 class="form-title">Create Your Identity</h2>
-    <p class="form-desc">
-      Begin your iAscendAi journey by creating your identity. You can always donate later to generate your SoulMark® and unlock verification features.
-    </p>
-
-    <div class="input-group">
-      <label class="input-label">Contact Email</label>
-      <input type="email" id="emailInput" class="styled-input" placeholder="you@example.com" required />
-    </div>
-
-    <div class="input-group">
-      <label class="input-label">Full Name</label>
-      <input type="text" id="fullnameInput" class="styled-input" placeholder="Adrian McKenzie" required />
-    </div>
-
-    <div class="input-group">
-      <label class="input-label">Choose Username</label>
-      <div class="username-wrapper">
-        <input type="text" id="usernameInput" class="styled-input" placeholder="adrian" oninput="checkUsername()" required />
-        <span class="username-suffix">@iascendai</span>
+      <div class="brand-row">
+        <div class="brand-mark">@</div>
+        <div>
+          <h1>iAscendAi</h1>
+          <h2>Claim Your Verified Digital Identity</h2>
+        </div>
       </div>
-      <div id="usernameStatus"></div>
+
+      <p class="info">
+        Link your SoulMarkⓈ verified donation to your permanent iAscendAi identity.
+      </p>
+
+      <!-- Donation Email on File -->
+      <p class="label">Donation email on file</p>
+      <input id="email" type="email" class="input" />
+
+      <!-- Full Name (LOCKED) -->
+      <p class="label">Full Name</p>
+      <input id="fullName" type="text" class="input" readonly />
+
+      <!-- SoulMark -->
+      <p class="label">Donation SoulMarkⓈ</p>
+      <div class="soulmark-chip">
+        <span id="soulmarkText"></span>
+        <button class="copy-btn" id="copySoulmark">Copy</button>
+      </div>
+
+      <!-- Username -->
+      <p class="label" style="margin-top:18px;">Choose iAscendAi Username *</p>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input id="username" class="input" style="flex:1;" placeholder="yourname"/>
+        <span>@iascendai</span>
+      </div>
+      <p id="userStatus" class="small-label"></p>
+
+      <button id="submitBtn" class="btn-primary" style="margin-top:28px;">
+        Secure My iAscendAi Identity →
+      </button>
+
     </div>
-
-    <button id="createBtn" class="create-btn" onclick="createIdentity()">
-      Create My iAscendAi Identity
-    </button>
-
-    <div class="login-link">
-      Already have an identity? <a href="iascendai-login.html">Log in</a>
-    </div>
-
   </div>
-</div>
 
 <script>
-  const BACKEND = "https://fundtrackerai.onrender.com";
+const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-  // --- Username Check ---
-  async function checkUsername() {
-    const raw = document.getElementById("usernameInput").value.trim().toLowerCase();
-    const statusEl = document.getElementById("usernameStatus");
+// Load donor info stored from success.html
+window.onload = () => {
+  document.getElementById("email").value =
+    localStorage.getItem("fta_email") || "";
 
-    if (!raw) {
-      statusEl.innerHTML = "";
-      return;
-    }
+  document.getElementById("fullName").value =
+    localStorage.getItem("fta_name") || "";
 
-    // Clean + add suffix
-    const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-    const full = cleaned + "@iascendai";
+  document.getElementById("soulmarkText").textContent =
+    localStorage.getItem("fta_soulmark") || "";
+};
 
-    try {
-      const res = await fetch(`${BACKEND}/check-username/${full}`);
-      const data = await res.json();
+// Copy SoulMark
+document.getElementById("copySoulmark").onclick = () => {
+  const sm = localStorage.getItem("fta_soulmark") || "";
+  navigator.clipboard.writeText(sm);
+  alert("SoulMark copied!");
+};
 
-      if (data.available) {
-        statusEl.innerHTML = "Available";
-        statusEl.style.color = "#47c28a";
-      } else {
-        statusEl.innerHTML = "Username taken";
-        statusEl.style.color = "#f87171";
-      }
-    } catch (e) {
-      statusEl.innerHTML = "Checking…";
-      statusEl.style.color = "#94a3b8";
-    }
+// Username availability check
+document.getElementById("username").addEventListener("input", async () => {
+  const raw = document.getElementById("username").value.trim().toLowerCase();
+  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+  const full = cleaned + "@iascendai";
+
+  if (!cleaned) {
+    document.getElementById("userStatus").textContent = "";
+    return;
   }
 
-  // --- Create Identity ---
-  async function createIdentity() {
-    const email = document.getElementById("emailInput").value.trim();
-    const fullName = document.getElementById("fullnameInput").value.trim();
-    const raw = document.getElementById("usernameInput").value.trim().toLowerCase();
-    const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-    const username = cleaned + "@iascendai";
+  const res = await fetch(`${BACKEND_URL}/check-username/${full}`);
+  const data = await res.json();
 
-    // Load SoulMark + SessionId from success page
-    const soulmark = localStorage.getItem("fta_soulmark") || "";
-    const sessionId = localStorage.getItem("fta_last_session") || "";
+  if (data.available) {
+    document.getElementById("userStatus").textContent = "Available";
+    document.getElementById("userStatus").style.color = "#22c55e";
+  } else {
+    document.getElementById("userStatus").textContent = "Taken";
+    document.getElementById("userStatus").style.color = "#f87171";
+  }
+});
 
-    if (!email || !fullName || !cleaned) {
-      alert("Please fill in all fields");
-      return;
-    }
+// Submit identity creation
+document.getElementById("submitBtn").onclick = async () => {
+  const email = document.getElementById("email").value.trim();
+  const fullName = document.getElementById("fullName").value.trim();
+  const raw = document.getElementById("username").value.trim().toLowerCase();
+  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+  const username = cleaned + "@iascendai";
+  const soulmark = localStorage.getItem("fta_soulmark") || "";
+  const sessionId = localStorage.getItem("fta_last_session") || "";
 
-    const btn = document.getElementById("createBtn");
-    btn.disabled = true;
-    btn.textContent = "Creating…";
+  if (!cleaned) {
+    alert("Choose a username.");
+    return;
+  }
 
-    try {
-      const res = await fetch(`${BACKEND}/register-identity`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+  const body = {
   email,
   name: fullName,
   username,
   soulmark,
   sessionId
-})
+  };
 
-      });
+  const res = await fetch(`${BACKEND_URL}/register-identity`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(body)
+  });
 
-      const data = await res.json();
+  const data = await res.json();
 
-      if (data.success) {
-        // Save login
-        localStorage.setItem("ias_username", username);
-        window.location.href = "iascendai-dashboard.html";
-      } else {
-        alert(data.message || "Error creating identity");
-        btn.disabled = false;
-        btn.textContent = "Create My iAscendAi Identity";
-      }
-    } catch (e) {
-      alert("Network error");
-      btn.disabled = false;
-      btn.textContent = "Create My iAscendAi Identity";
-    }
+  if (data.success) {
+    // Save local login
+    localStorage.setItem("ias_username", username);
+    window.location.href = "iascendai-dashboard.html";
+  } else {
+    alert("Error creating identity.");
   }
+};
 </script>
 
 </body>
-</html><script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_ECwgBjjtdT4DuB4rvm6sySgYfN44" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+</html>
