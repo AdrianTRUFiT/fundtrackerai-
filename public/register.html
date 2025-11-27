@@ -2,173 +2,334 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>iAscendAi — Create Your Identity</title>
+  <title>Create Your iAscendAi Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 
-  <style>
-    .soulmark-chip {
-      background: #f8bc07;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      color: #0f766e;
-      word-break: break-word;
-    }
-    .copy-btn {
-      background: #0f766e;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      border: none;
-      font-size: 13px;
-    }
-  </style>
+<style>
+  /* Main info boxes – Donation Email & SoulMark */
+  .info-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 11px 14px;           /* Tight but comfortable */
+    margin: 8px 0;                 /* Consistent small gap top/bottom */
+  }
+
+  /* Remove gap BETWEEN the two info-boxes */
+  .info-box + .info-box {
+    margin-top: 10px !important;  /* Tiny 10px gap only – matches live site perfectly */
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .label {
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+
+  /* Green email chip */
+  .chip-locked {
+    background: #10b981;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    display: inline-block;
+  }
+
+  /* Yellow SoulMark chip */
+  .chip-soulmark {
+    background: #f8bc07;
+    color: #041423;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14.5px;
+    line-height: 1.2;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Username input with suffix */
+  .input-with-suffix {
+    display: flex;
+    align-items: center;
+    background: #334155;
+    border-radius: 12px;
+    padding: 0 4px;
+    margin-top: 6px;
+  }
+  .input-with-suffix input {
+    background: transparent;
+    border: none;
+    padding: 14px 12px;
+    flex: 1;
+    color: white;
+    font-size: 16px;
+  }
+  .suffix {
+    color: #94a3b8;
+    padding-right: 14px;
+    font-size: 15px;
+  }
+
+  /* Mini visibility checkboxes */
+  .mini-vis {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mini-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #cbd5e1;
+    font-size: 15px;
+  }
+  .mini-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #10b981;
+  }
+
+  #anonNote {
+    font-size: 13px;
+    margin-top: 6px;
+    color: #f8bc07;
+    display: none;
+  }
+
+  /* Extra: tighten section labels (Contact Email, Full Name, etc.) */
+  .label {
+    margin: 18px 0 6px;
+    font-size: 15px;
+  }
+</style>
 </head>
 
 <body>
   <div class="app-shell">
-    <div class="card" style="max-width:480px;">
+    <div class="card card--narrow">
 
       <div class="brand-row">
         <div class="brand-mark">@</div>
         <div>
           <h1>iAscendAi</h1>
-          <h2>Claim Your Verified Digital Identity</h2>
+          <h2>Claim Your Verified Identity</h2>
         </div>
       </div>
 
-      <p class="info">
-        Link your SoulMarkⓈ verified donation to your permanent iAscendAi identity.
-      </p>
+      <h2>Create Your Identity</h2>
+      <p class="subtext">Link your SoulMark-verified donation to your permanent iAscendAi identity.</p>
 
-      <!-- ⭐ FORM STARTS HERE -->
-      <form id="regForm" onsubmit="return false;">
-
-        <p class="label">Donation email on file</p>
-        <input id="email" type="email" class="input" />
-
-        <p class="label">Full Name</p>
-        <input id="fullName" type="text" class="input" readonly />
-
-        <p class="label">Donation SoulMarkⓈ</p>
-        <div class="soulmark-chip">
-          <span id="soulmarkText"></span>
-          <button class="copy-btn" id="copySoulmark" type="button">Copy</button>
+      <!-- Donation Email -->
+      <div class="info-box">
+        <div class="info-row">
+          <div class="label">Donation email on file</div>
+          <div id="lockedEmail" class="chip-locked">Loading...</div>
         </div>
+      </div>
 
-        <p class="label" style="margin-top:18px;">Choose iAscendAi Username *</p>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <input id="username" class="input" style="flex:1;" placeholder="yourname"/>
-          <span>@iascendai</span>
+      <p class="label">Contact Email *</p>
+      <input id="contactEmail" type="email" placeholder="you@example.com" />
+
+      <p class="label" style="margin-top:14px;">Full Name *</p>
+      <input id="fullName" type="text" placeholder="Adrian McKenzie" />
+
+      <!-- SoulMark -->
+      <div class="info-box" style="margin-top:20px;">
+        <div class="info-row">
+          <div class="label">Latest SoulMark</div>
+          <div id="lockedSoulmark" class="chip-soulmark">••••••••••••••••••</div>
         </div>
-        <p id="userStatus" class="small-label"></p>
+      </div>
 
-        <button id="submitBtn" class="btn-primary" type="button" style="margin-top:28px;">
-          Secure My iAscendAi Identity →
-        </button>
+      <!-- Username -->
+      <p class="label">Choose Username *</p>
+      <div class="input-with-suffix">
+        <input id="username" type="text" placeholder="yourname" />
+        <div class="suffix">@iascendai</div>
+      </div>
+      <p id="usernameStatus" class="small-label" style="margin-top:6px;"></p>
 
-      </form>
-      <!-- ⭐ FORM ENDS HERE -->
+      <!-- MINI VISIBILITY CHECKBOXES (OPTION A) -->
+      <div class="mini-vis">
+        <label class="mini-item">
+          <input type="checkbox" id="showName" checked />
+          Show Name
+        </label>
+
+        <label class="mini-item">
+          <input type="checkbox" id="showUsername" checked />
+          Show Username
+        </label>
+
+        <label class="mini-item">
+          <input type="checkbox" id="showAmount" checked />
+          Show Donation Amount
+        </label>
+      </div>
+
+      <p id="anonNote">Anonymous mode requires donation amount shown.</p>
+
+      <button id="registerBtn" class="btn-primary" style="margin-top:24px;">
+        Create My iAscendAi Identity
+      </button>
+
+      <p id="registerStatus" class="small-label" style="margin-top:10px;"></p>
 
     </div>
   </div>
 
-<script>
-const BACKEND_URL = "https://fundtrackerai.onrender.com";
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-// Load donor info stored from success.html
-window.onload = () => {
-  document.getElementById("email").value =
-    localStorage.getItem("fta_email") || "";
+    const emailEl = document.getElementById("lockedEmail");
+    const contactEmailInput = document.getElementById("contactEmail");
+    const fullNameInput = document.getElementById("fullName");
+    const usernameInput = document.getElementById("username");
+    const smEl = document.getElementById("lockedSoulmark");
+    const registerStatus = document.getElementById("registerStatus");
 
-  document.getElementById("fullName").value =
-    localStorage.getItem("fta_name") || "";
+    const showNameCb = document.getElementById("showName");
+    const showUsernameCb = document.getElementById("showUsername");
+    const showAmountCb = document.getElementById("showAmount");
+    const anonNote = document.getElementById("anonNote");
 
-  document.getElementById("soulmarkText").textContent =
-    localStorage.getItem("fta_soulmark") || "";
-};
+    let baseEmail = "";
+    let latestSoulmark = "";
 
-// Copy SoulMark
-document.getElementById("copySoulmark").onclick = () => {
-  const sm = localStorage.getItem("fta_soulmark") || "";
-  navigator.clipboard.writeText(sm);
-  alert("SoulMark copied!");
-};
+    /* LOAD DONATION DATA */
+    (function preload() {
+      baseEmail = localStorage.getItem("fta_email") || "";
+      latestSoulmark = localStorage.getItem("fta_soulmark") || "";
 
-// Username availability check
-document.getElementById("username").addEventListener("input", async () => {
-  const raw = document.getElementById("username").value.trim().toLowerCase();
-  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-  const full = cleaned + "@iascendai";
+      emailEl.textContent = baseEmail || "Unavailable";
 
-  if (!cleaned) {
-    document.getElementById("userStatus").textContent = "";
-    return;
-  }
+      const saved = localStorage.getItem("ias_access_email");
+      contactEmailInput.value = saved || baseEmail || "";
 
-  const res = await fetch(`${BACKEND_URL}/check-username/${full}`);
-  const data = await res.json();
+      smEl.textContent = latestSoulmark
+        ? latestSoulmark.substring(0, 18) + "..."
+        : "No SoulMark found";
+    })();
 
-  if (data.available) {
-    document.getElementById("userStatus").textContent = "Available";
-    document.getElementById("userStatus").style.color = "#22c55e";
-  } else {
-    document.getElementById("userStatus").textContent = "Taken";
-    document.getElementById("userStatus").style.color = "#f87171";
-  }
-});
+    /* Username check */
+    let usernameTimer = null;
+    usernameInput.addEventListener("input", () => {
+      const cleaned = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
+      usernameInput.value = cleaned;
+      if (cleaned.length < 3) return;
 
-// ⭐ ENTER KEY HANDLER — FIXES YOUR ISSUE
-document.getElementById("regForm").addEventListener("submit", () => {
-  document.getElementById("submitBtn").click();
-});
+      if (usernameTimer) clearTimeout(usernameTimer);
+      usernameTimer = setTimeout(() => checkUsername(cleaned), 300);
+    });
 
-// Submit identity creation
-document.getElementById("submitBtn").onclick = async () => {
-  const email = document.getElementById("email").value.trim();
-  const fullName = document.getElementById("fullName").value.trim();
-  const raw = document.getElementById("username").value.trim().toLowerCase();
-  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-  const username = cleaned + "@iascendai";
+    async function checkUsername(name) {
+      const full = `${name}@iascendai`;
+      try {
+        const res = await fetch(`${BACKEND_URL}/check-username/${encodeURIComponent(full)}`);
+        const data = await res.json();
+        usernameStatus.textContent = data.available ? "Available" : "Already taken";
+        usernameStatus.style.color = data.available ? "#10b981" : "#ff6b6b";
+      } catch {
+        usernameStatus.textContent = "Error checking username.";
+      }
+    }
 
-  const soulmark = localStorage.getItem("fta_soulmark") || "";
-  const sessionId = localStorage.getItem("fta_last_session") || "";
+    /* VISIBILITY LOGIC — Full 7-state rule system */
+    function applyVisibilityLogic() {
+      const nameON = showNameCb.checked;
+      const userON = showUsernameCb.checked;
 
-  if (!cleaned) {
-    alert("Choose a username.");
-    return;
-  }
+      // Anonymous rule
+      if (!nameON && !userON) {
+        showAmountCb.checked = true;
+        anonNote.style.display = "block";
+      } else {
+        anonNote.style.display = "none";
+      }
 
-  const body = {
-    username,
-    email,
-    fullName,
-    soulmark,
-    sessionId
-  };
+      localStorage.setItem("fta_show_name", nameON ? "1" : "0");
+      localStorage.setItem("fta_show_username", userON ? "1" : "0");
+      localStorage.setItem("fta_show_amount", showAmountCb.checked ? "1" : "0");
+    }
 
-  const res = await fetch(`${BACKEND_URL}/register-identity`, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(body)
-  });
+    showNameCb.addEventListener("change", applyVisibilityLogic);
+    showUsernameCb.addEventListener("change", applyVisibilityLogic);
+    showAmountCb.addEventListener("change", applyVisibilityLogic);
 
-  const data = await res.json();
+    /* REGISTER */
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      const fullName = fullNameInput.value.trim();
+      const email = contactEmailInput.value.trim();
+      const uname = usernameInput.value.trim().toLowerCase();
 
-  if (data.success) {
-    localStorage.setItem("ias_username", username);
-    window.location.href = "iascendai-dashboard.html";
-  } else {
-    alert("Error creating identity.");
-  }
-};
-</script>
+      if (!fullName || !email || uname.length < 3) {
+        registerStatus.textContent = "Please complete all fields.";
+        return;
+      }
 
+      const fullUsername = `${uname}@iascendai`;
+
+      applyVisibilityLogic();
+
+      const visibility = {
+        showName: localStorage.getItem("fta_show_name") === "1",
+        showUsername: localStorage.getItem("fta_show_username") === "1",
+        showAmount: localStorage.getItem("fta_show_amount") === "1"
+      };
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Creating identity…";
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: fullName,
+            email,
+            donationEmail: baseEmail,
+            username: fullUsername,
+            soulmark: latestSoulmark,
+            visibility
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error);
+
+        // Save
+        localStorage.setItem("ias_username", fullUsername);
+        localStorage.setItem("ias_name", fullName);
+        localStorage.setItem("ias_access_email", email);
+
+        registerStatus.textContent = "Success! Redirecting…";
+
+        setTimeout(() => {
+          window.location.href = "iascendai-dashboard.html";
+        }, 700);
+
+      } catch (err) {
+        registerStatus.textContent = err.message || "Registration error.";
+        registerBtn.disabled = false;
+        registerBtn.textContent = "Create My iAscendAi Identity";
+      }
+    });
+  </script>
 </body>
 </html>
