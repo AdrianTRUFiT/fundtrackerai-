@@ -152,20 +152,8 @@ document.getElementById("submitBtn").onclick = async () => {
   const res = await fetch(`${BACKEND_URL}/register-identity`, {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(body)
-  });
+    body: JSON.stringify(body
 
-  const data = await res.json();
-
-  if (data.success) {
-    // Save local login
-    localStorage.setItem("ias_username", username);
-    window.location.href = "iascendai-dashboard.html";
-  } else {
-    alert("Error creating identity.");
-  }
-};
-</script>
 
 </body>
 </html>
