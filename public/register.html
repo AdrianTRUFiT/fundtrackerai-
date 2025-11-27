@@ -7,29 +7,32 @@
   <link rel="stylesheet" href="styles.css" />
 
   <style>
-.soulmark-chip {
-  background: #f8bc07;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  color: #0f766e;
-  word-break: break-word;
-}
-.soulmark-chip span { color:#0f766e; }
+    .soulmark-chip {
+      background: #f8bc07;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: #0f766e;
+      word-break: break-word;
+    }
 
-.copy-btn {
-  background: #0f766e;
-  color:#fff;
-  padding:6px 12px;
-  border-radius:6px;
-  cursor:pointer;
-  border:none;
-  font-size:13px;
-}
+    .soulmark-chip span {
+      color: #0f766e;
+    }
+
+    .copy-btn {
+      background: #0f766e;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      font-size: 13px;
+    }
   </style>
 </head>
 
@@ -79,92 +82,134 @@
     </div>
   </div>
 
-<script>
-const BACKEND_URL = "https://fundtrackerai.onrender.com";
+  <script>
+    const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-/* Load donor info */
-window.onload = () => {
-  document.getElementById("email").value =
-    localStorage.getItem("fta_email") || "";
+    // -------- Load donor info stored from success.html --------
+    window.onload = () => {
+      document.getElementById("email").value =
+        localStorage.getItem("fta_email") || "";
 
-  document.getElementById("fullName").value =
-    localStorage.getItem("fta_name") || "";
+      document.getElementById("fullName").value =
+        localStorage.getItem("fta_name") || "";
 
-  document.getElementById("soulmarkText").textContent =
-    localStorage.getItem("fta_soulmark") || "";
-};
+      document.getElementById("soulmarkText").textContent =
+        localStorage.getItem("fta_soulmark") || "";
 
-/* Copy SoulMark */
-document.getElementById("copySoulmark").onclick = () => {
-  const sm = localStorage.getItem("fta_soulmark") || "";
-  navigator.clipboard.writeText(sm);
-  alert("SoulMark copied!");
-};
+      // Let Enter key submit the form
+      ["email", "username"].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            document.getElementById("submitBtn").click();
+          }
+        });
+      });
+    };
 
-/* Username availability check */
-document.getElementById("username").addEventListener("input", async () => {
-  const raw = document.getElementById("username").value.trim().toLowerCase();
-  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-  document.getElementById("username").value = cleaned;
+    // -------- Copy SoulMark --------
+    document.getElementById("copySoulmark").onclick = () => {
+      const sm = localStorage.getItem("fta_soulmark") || "";
+      if (!sm) {
+        alert("No SoulMark found to copy.");
+        return;
+      }
+      navigator.clipboard.writeText(sm);
+      alert("SoulMark copied!");
+    };
 
-  if (!cleaned) {
-    userStatus.textContent = "";
-    return;
-  }
+    // -------- Username availability check --------
+    document.getElementById("username").addEventListener("input", async () => {
+      const inputEl = document.getElementById("username");
+      const statusEl = document.getElementById("userStatus");
 
-  const full = cleaned + "@iascendai";
+      const raw = inputEl.value.trim().toLowerCase();
+      const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+      inputEl.value = cleaned;
 
-  const res = await fetch(`${BACKEND_URL}/check-username/${full}`);
-  const data = await res.json();
+      if (!cleaned) {
+        statusEl.textContent = "";
+        return;
+      }
 
-  if (data.available) {
-    userStatus.textContent = "Available";
-    userStatus.style.color = "#22c55e";
-  } else {
-    userStatus.textContent = "Taken";
-    userStatus.style.color = "#f87171";
-  }
-});
+      const full = cleaned + "@iascendai";
 
-/* Submit identity creation */
-submitBtn.onclick = async () => {
-  const email = document.getElementById("email").value.trim();
-  const fullName = document.getElementById("fullName").value.trim();
-  const raw = document.getElementById("username").value.trim().toLowerCase();
-  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-  const username = cleaned + "@iascendai";
-  const soulmark = localStorage.getItem("fta_soulmark") || "";
-  const sessionId = localStorage.getItem("fta_last_session") || "";
+      try {
+        const res = await fetch(`${BACKEND_URL}/check-username/${full}`);
+        const data = await res.json();
 
-  if (!cleaned) {
-    alert("Choose a username.");
-    return;
-  }
+        if (data.available) {
+          statusEl.textContent = "Available";
+          statusEl.style.color = "#22c55e";
+        } else {
+          statusEl.textContent = "Taken";
+          statusEl.style.color = "#f87171";
+        }
+      } catch (err) {
+        console.error("Username check error:", err);
+        statusEl.textContent = "Error checking username.";
+        statusEl.style.color = "#f97316";
+      }
+    });
 
-  const body = {
-    name: fullName,     // ✅ FIXED — backend requires name not fullName
-    email,
-    username,
-    soulmark,
-    sessionId
-  };
+    // -------- Submit identity creation --------
+    document.getElementById("submitBtn").onclick = async () => {
+      const email = document.getElementById("email").value.trim();
+      const fullName = document.getElementById("fullName").value.trim();
+      const raw = document.getElementById("username").value.trim().toLowerCase();
+      const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+      const username = cleaned + "@iascendai";
+      const soulmark = localStorage.getItem("fta_soulmark") || "";
+      let sessionId = localStorage.getItem("fta_last_session") || "";
 
-  const res = await fetch(`${BACKEND_URL}/register-identity`, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(body)
-  });
+      if (!cleaned) {
+        alert("Choose a username.");
+        return;
+      }
 
-  const data = await res.json();
+      if (!email) {
+        alert("Please confirm your email.");
+        return;
+      }
 
-  if (data.success) {
-    localStorage.setItem("ias_username", username);
-    window.location.href = "iascendai-dashboard.html";
-  } else {
-    alert("Error creating identity.");
-  }
-};
-</script>
+      // Fallback in case sessionId is missing but we still want identity
+      if (!sessionId) {
+        sessionId = "no-donation-session";
+      }
+
+      const body = {
+        // 🔑 CRITICAL: backend expects `name`, NOT `fullName`
+        name: fullName,
+        email,
+        username,
+        soulmark,
+        sessionId
+      };
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/register-identity`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        console.log("register-identity response:", data);
+
+        if (data.success) {
+          // Save local login
+          localStorage.setItem("ias_username", username);
+          window.location.href = "iascendai-dashboard.html";
+        } else {
+          alert(data.message || "Error creating identity.");
+        }
+      } catch (err) {
+        console.error("Register identity error:", err);
+        alert("Network error while creating identity.");
+      }
+    };
+  </script>
 
 </body>
 </html>
