@@ -124,7 +124,13 @@
         statusEl.textContent = "Network error creating donation session.";
       }
     });
-  </script>
+    </script>   <!-- end of your donate page script -->
+
+    <!-- INSERT STRIPE HERE -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+      const stripe = Stripe("pk_live_51SPnCcBmy0RRwOozHOeSoIwIVSA8MedfYGS1ccURqfyqKhU8Iafk5Kjt3qb2ea9khYzyJnQpUnkwjcTT9jRerjfm00LLQ31nuh");
+    </script>
 
 </body>
 </html>
