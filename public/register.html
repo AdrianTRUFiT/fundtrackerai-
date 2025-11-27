@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>iAscendAi — Claim Your Identity</title>
+  <title>iAscendAi — Create Your Identity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 
@@ -19,7 +19,6 @@
       color: #0f766e;
       word-break: break-word;
     }
-
     .copy-btn {
       background: #0f766e;
       color: #fff;
@@ -45,35 +44,37 @@
       </div>
 
       <p class="info">
-        Your verified donation SoulMarkⓈ is ready to link to your identity.
+        Link your SoulMarkⓈ verified donation to your permanent iAscendAi identity.
       </p>
 
-      <!-- Donation Email -->
-      <p class="label">Donation Email on File</p>
-      <input id="email" type="email" class="input" />
+      <!-- ⭐ FORM STARTS HERE -->
+      <form id="regForm" onsubmit="return false;">
 
-      <!-- Full Name (locked) -->
-      <p class="label">Full Name</p>
-      <input id="fullName" type="text" class="input" readonly />
+        <p class="label">Donation email on file</p>
+        <input id="email" type="email" class="input" />
 
-      <!-- SoulMark -->
-      <p class="label">Donation SoulMarkⓈ</p>
-      <div class="soulmark-chip">
-        <span id="soulmarkText"></span>
-        <button class="copy-btn" id="copySoulmark">Copy</button>
-      </div>
+        <p class="label">Full Name</p>
+        <input id="fullName" type="text" class="input" readonly />
 
-      <!-- Username -->
-      <p class="label" style="margin-top:18px;">Choose iAscendAi Username *</p>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <input id="username" class="input" style="flex:1;" placeholder="yourname"/>
-        <span>@iascendai</span>
-      </div>
-      <p id="userStatus" class="small-label"></p>
+        <p class="label">Donation SoulMarkⓈ</p>
+        <div class="soulmark-chip">
+          <span id="soulmarkText"></span>
+          <button class="copy-btn" id="copySoulmark" type="button">Copy</button>
+        </div>
 
-      <button id="submitBtn" class="btn-primary" style="margin-top:28px;">
-        Secure My iAscendAi Identity →
-      </button>
+        <p class="label" style="margin-top:18px;">Choose iAscendAi Username *</p>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <input id="username" class="input" style="flex:1;" placeholder="yourname"/>
+          <span>@iascendai</span>
+        </div>
+        <p id="userStatus" class="small-label"></p>
+
+        <button id="submitBtn" class="btn-primary" type="button" style="margin-top:28px;">
+          Secure My iAscendAi Identity →
+        </button>
+
+      </form>
+      <!-- ⭐ FORM ENDS HERE -->
 
     </div>
   </div>
@@ -81,7 +82,7 @@
 <script>
 const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-// Load donor info
+// Load donor info stored from success.html
 window.onload = () => {
   document.getElementById("email").value =
     localStorage.getItem("fta_email") || "";
@@ -100,14 +101,14 @@ document.getElementById("copySoulmark").onclick = () => {
   alert("SoulMark copied!");
 };
 
-// Username availability
+// Username availability check
 document.getElementById("username").addEventListener("input", async () => {
   const raw = document.getElementById("username").value.trim().toLowerCase();
   const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
   const full = cleaned + "@iascendai";
 
   if (!cleaned) {
-    userStatus.textContent = "";
+    document.getElementById("userStatus").textContent = "";
     return;
   }
 
@@ -115,12 +116,17 @@ document.getElementById("username").addEventListener("input", async () => {
   const data = await res.json();
 
   if (data.available) {
-    userStatus.textContent = "Available";
-    userStatus.style.color = "#22c55e";
+    document.getElementById("userStatus").textContent = "Available";
+    document.getElementById("userStatus").style.color = "#22c55e";
   } else {
-    userStatus.textContent = "Taken";
-    userStatus.style.color = "#f87171";
+    document.getElementById("userStatus").textContent = "Taken";
+    document.getElementById("userStatus").style.color = "#f87171";
   }
+});
+
+// ⭐ ENTER KEY HANDLER — FIXES YOUR ISSUE
+document.getElementById("regForm").addEventListener("submit", () => {
+  document.getElementById("submitBtn").click();
 });
 
 // Submit identity creation
@@ -130,6 +136,7 @@ document.getElementById("submitBtn").onclick = async () => {
   const raw = document.getElementById("username").value.trim().toLowerCase();
   const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
   const username = cleaned + "@iascendai";
+
   const soulmark = localStorage.getItem("fta_soulmark") || "";
   const sessionId = localStorage.getItem("fta_last_session") || "";
 
@@ -141,7 +148,7 @@ document.getElementById("submitBtn").onclick = async () => {
   const body = {
     username,
     email,
-    name: fullName,
+    fullName,
     soulmark,
     sessionId
   };
@@ -158,7 +165,7 @@ document.getElementById("submitBtn").onclick = async () => {
     localStorage.setItem("ias_username", username);
     window.location.href = "iascendai-dashboard.html";
   } else {
-    alert(data.message || "Error creating identity.");
+    alert("Error creating identity.");
   }
 };
 </script>
