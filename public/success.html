@@ -53,45 +53,6 @@
         align-items: center;
       }
     }
-
-    /* Small visibility controls just under Payment Verified */
-    .visibility-inline {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-start;
-      align-items: center;
-      margin: 8px 0 4px 0;
-      font-size: 14px;
-    }
-
-    .vis-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #020617;
-      border: 1px solid #1f2937;
-      color: #e5e7eb;
-      white-space: nowrap;
-    }
-
-    .vis-toggle input {
-      width: 16px;
-      height: 16px;
-      accent-color: #0f766e;
-      margin: 0;
-    }
-
-    .vis-note {
-      font-size: 12px;
-      color: #9ca3af;
-      margin: 0 0 10px 2px;
-    }
-
-    .vis-note.warning {
-      color: #facc15;
-    }
   </style>
 </head>
 
@@ -110,13 +71,10 @@
       <h2>Payment Status</h2>
       <p class="subtext">Your transaction has been securely processed.</p>
 
-      <!-- Yellow status pill -->
       <div id="statusText" class="success-status">
         Checking...
       </div>
 
-      <!-- tiny inline controls directly under Payment Verified -->
-      
       <div id="details" style="margin-top:16px; display:none;">
 
         <p class="label">Name</p>
@@ -143,6 +101,7 @@
       <button id="signupBtn" class="btn-primary" style="display:none; margin-top:32px;">
         Reveal My Verified SoulMarkⓈ →
       </button>
+
     </div>
   </div>
 
@@ -153,46 +112,6 @@
       if (!email) return "unknown";
       const [u, d] = email.split("@");
       return u[0] + "•••@" + d;
-    }
-
-    function initVisibilityControls() {
-      const wrapper    = document.getElementById("visibilityControls");
-      const showName   = document.getElementById("showName");
-      const showAmount = document.getElementById("showAmount");
-      const anonWarning = document.getElementById("anonWarning");
-
-      wrapper.style.display = "block";
-
-      function syncToStorage() {
-        localStorage.setItem("fta_show_name", showName.checked ? "1" : "0");
-        localStorage.setItem("fta_show_amount", showAmount.checked ? "1" : "0");
-      }
-
-      function handleChange(changed) {
-        const nameOn   = showName.checked;
-        const amountOn = showAmount.checked;
-
-        // RULE:
-        // - If name is OFF, donation becomes Anonymous.
-        // - Anonymous donations MUST still show amount.
-        if (!nameOn && !amountOn) {
-          // user tried to turn both off → force amount back on
-          showAmount.checked = true;
-          anonWarning.style.display = "block";
-        } else if (!nameOn && amountOn) {
-          anonWarning.style.display = "block";
-        } else {
-          anonWarning.style.display = "none";
-        }
-
-        syncToStorage();
-      }
-
-      showName.addEventListener("change", () => handleChange("name"));
-      showAmount.addEventListener("change", () => handleChange("amount"));
-
-      // initial sync
-      handleChange(null);
     }
 
     async function verify() {
@@ -218,7 +137,7 @@
         if (data.verified && data.entry) {
           const e = data.entry;
 
-          // autoresponder call (already working)
+          // send email
           try {
             await fetch("https://emailassistai.onrender.com/api/donation-email", {
               method: "POST",
@@ -247,16 +166,12 @@
           const shortRef = e.soulmark.substring(0, 10) + "••••••••";
           document.getElementById("refText").textContent = shortRef;
 
-          // Base data for register + board
+          // Save for register
           localStorage.setItem("fta_name", e.name || "");
           localStorage.setItem("fta_email", e.email || "");
           localStorage.setItem("fta_amount", String(e.amount || ""));
           localStorage.setItem("fta_soulmark", e.soulmark || "");
           localStorage.setItem("fta_last_session", e.id || "");
-
-          // Default visibility (Name + Amount ON)
-          localStorage.setItem("fta_show_name", "1");
-          localStorage.setItem("fta_show_amount", "1");
 
           detailsEl.style.display = "block";
           signupBtn.style.display = "block";
@@ -264,9 +179,6 @@
           const go = () => (window.location.href = "register.html");
           signupBtn.onclick = go;
           inlineRevealBtn.onclick = go;
-
-          // now show and wire the little toggles
-          initVisibilityControls();
 
         } else {
           statusEl.textContent = "Verification Failed";
