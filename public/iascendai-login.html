@@ -44,54 +44,48 @@
     </div>
   </div>
 
-  <script>
-    const BACKEND_URL = "https://fundtrackerai.onrender.com";
+ <script>
+const BACKEND_URL = "https://fundtrackerai.onrender.com";
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const loginStatus = document.getElementById("loginStatus");
-      const raw = document.getElementById("uname").value.trim().toLowerCase();
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const loginStatus = document.getElementById("loginStatus");
+  const raw = document.getElementById("uname").value.trim().toLowerCase();
 
-      if (!raw) {
-        loginStatus.textContent = "Enter your username.";
-        return;
-      }
+  if (!raw) {
+    loginStatus.textContent = "Enter your username.";
+    return;
+  }
 
-      const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
-      const full = cleaned + "@iascendai";
+  const cleaned = raw.replace(/[^a-z0-9._-]/g, "");
+  const full = cleaned + "@iascendai";
 
-      loginStatus.textContent = "Checking identity…";
+  loginStatus.textContent = "Checking identity…";
 
-      try {
-        // Pull entire identity list
-        const res = await fetch(`${BACKEND_URL}/identities`);
-        const data = await res.json();
-        const identities = data.identities || [];
+  try {
+    // ⭐️ Correct endpoint
+    const res = await fetch(`${BACKEND_URL}/check-username/${full}`);
+    const data = await res.json();
 
-        const match = identities.find(
-          i => i.username.toLowerCase() === full.toLowerCase()
-        );
+    // ⭐️ available === false → username EXISTS
+    if (data.available === false) {
+      
+      // Save username locally
+      localStorage.setItem("ias_username", full);
 
-        if (!match) {
-          loginStatus.textContent = "Username not found.";
-          return;
-        }
+      loginStatus.textContent = "Logging in…";
+      setTimeout(() => {
+        window.location.href = "iascendai-dashboard.html";
+      }, 300);
 
-        // SAVE identity locally on this device
-        localStorage.setItem("ias_username", match.username);
-        localStorage.setItem("ias_email", match.email);
-        localStorage.setItem("ias_identity_id", match.identity_id);
+    } else {
+      loginStatus.textContent = "Username not found.";
+    }
 
-        loginStatus.textContent = "Logging in…";
-
-        setTimeout(() => {
-          window.location.href = "iascendai-dashboard.html";
-        }, 300);
-
-      } catch (err) {
-        console.error(err);
-        loginStatus.textContent = "Network error. Try again.";
-      }
-    });
-  </script>
+  } catch (err) {
+    console.error(err);
+    loginStatus.textContent = "Network error. Try again.";
+  }
+});
+</script>
 </body>
 </html>
