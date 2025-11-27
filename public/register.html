@@ -168,7 +168,14 @@
     const saved = localStorage.getItem("ias_access_email");
     contactEmailInput.value = saved || baseEmail || "";
 
-    smEl.textContent = latestSoulmark || "No SoulMark found";
+    if (latestSoulmark && latestSoulmark.length > 18) {
+  smEl.textContent = latestSoulmark.substring(0, 18) + "...";
+} else if (latestSoulmark) {
+  smEl.textContent = latestSoulmark;
+} else {
+  smEl.textContent = "No SoulMark found";
+}
+
   })();
 
   /* Username check */
